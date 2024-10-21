@@ -1,0 +1,45 @@
+$mortgage-calculator-bg-color: #f7f7f7;
+$mortgage-calculator-border-radius: 8px;
+$mortgage-calculator-button-bg-color: #007BFF;
+
+.mortgage-calculator {
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+    padding: 20px;
+    background-color: $mortgage-calculator-bg-color;
+    border-radius: $mortgage-calculator-border-radius;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+    label {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    input,
+    select {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        padding: 10px;
+        width: 100%;
+        background-color: $mortgage-calculator-button-bg-color;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:hover {
+            background-color: adjust($mortgage-calculator-button-bg-color, -10%);
+        }
+    }
+
+    #payment-result {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+}
