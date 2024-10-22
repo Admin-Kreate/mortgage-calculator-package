@@ -1,6 +1,6 @@
 {
   "name": "mortgage-calculator-package",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple, embeddable mortgage calculator that dynamically generates an interactive and styled calculator widget. It allows users to input mortgage amount, interest rate, amortization period, and payment frequency, and calculates the monthly payment based on these inputs. The package handles both the mortgage calculation logic and the HTML/CSS rendering, making it easy to integrate into any webpage by simply providing a container ID. Ideal for real estate websites, financial tools, and blogs.",
   "main": "dist/index.js",
   "files": [
