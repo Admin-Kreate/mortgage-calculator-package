@@ -33,10 +33,10 @@ module.exports = {
       filename: "styles.css",
     }),
     new HtmlWebpackPlugin({
-      template: "./src/test-webpage.html", // Path to your HTML template
+      template: "./src/test-webpage.html", // Path to your test HTML file
     }),
   ],
-  mode: "development",
+  mode: "production",
   devtool: "source-map",
   devServer: {
     port: 8080,
