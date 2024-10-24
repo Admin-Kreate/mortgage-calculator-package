@@ -4,19 +4,7 @@ $mortgage-calculator-color-white: #ffffff;
 $mortgage-calculator-border-radius: 8px;
 $mortgage-calculator-button-bg-color: #007BFF;
 
-@font-face {
-    font-family: 'Mont Extra Light';
-    src: url('./fonts/Mont-ExtraLight.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Mont Heavy';
-    src: url('./fonts/Mont-Heavy.otf') format('opentype');
-    font-weight: normal;
-    font-style: normal;
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,400;0,600;0,800;1,200;1,400;1,600;1,800&display=swap');
 
 $desktop-breakpoint: 992px;
 
@@ -35,17 +23,16 @@ $desktop-breakpoint: 992px;
 .mortgage-calculator {
     max-width: fit-content;
     margin: auto;
+    font-family: "Poppins", serif;
 
     .section-heading {
-        font-family: 'Mont Extra Light', sans-serif;
         font-size: 56px;
-        font-weight: 600;
+        font-weight: 200;
         line-height: 74px;
         text-align: center;
         padding-bottom: 2rem;
 
         span {
-            font-family: 'Mont Heavy', sans-serif;
             font-weight: 800;
         }
 
@@ -97,9 +84,8 @@ $desktop-breakpoint: 992px;
             position: relative;
 
             label {
-                font-family: 'Mont Extra Light', sans-serif;
                 font-size: 16px;
-                font-weight: 400;
+                font-weight: 200;
                 line-height: 20px;
                 background-color: $mortgage-calculator-color-white;
 
@@ -111,7 +97,7 @@ $desktop-breakpoint: 992px;
 
             input,
             select {
-                font-family: 'Mont Heavy', sans-serif;
+                font-family: "Poppins", serif;
                 font-size: 22px;
                 font-weight: 800;
                 line-height: 30px;
@@ -138,9 +124,8 @@ $desktop-breakpoint: 992px;
             padding: 0.5rem 1rem;
 
             label {
-                font-family: 'Mont Extra Light', sans-serif;
                 font-size: 14px;
-                font-weight: 400;
+                font-weight: 200;
                 line-height: 14px;
                 background-color: $mortgage-calculator-color-white;
 
@@ -149,7 +134,7 @@ $desktop-breakpoint: 992px;
 
             input,
             select {
-                font-family: 'Mont Heavy', sans-serif;
+                font-family: "Poppins", serif;
                 font-size: 22px;
                 font-weight: 800;
                 line-height: 22px;
@@ -206,17 +191,16 @@ $desktop-breakpoint: 992px;
 
 
             #mortagage-payment {
-                font-family: 'Mont Extra Light', sans-serif;
                 font-size: 42px;
-                font-weight: 700;
+                font-weight: 200;
                 line-height: 56px;
                 color: $mortgage-calculator-color-white;
             }
 
             button {
-                font-family: 'Mont Extra Light', sans-serif;
+                font-family: "Poppins", serif;
                 font-size: 20px;
-                font-weight: 800;
+                font-weight: 200;
                 line-height: 27px;
                 color: #1A1A30;
                 text-transform: uppercase;

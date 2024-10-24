@@ -11,9 +11,9 @@ function handleCalculation() {
   const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/\$/g, '').replace(/\,/g, ''));
   const rate = parseFloat(rateInput.value.replace(/%/g, ''));
   const amortization = parseInt(amortizationSelect.value);
-  const paymentPeriod = parseInt(paymentPeriodSelect.value);
+  const paymentPeriod = paymentPeriodSelect.value;
 
-  if (isNaN(mortgageAmount) || isNaN(rate) || isNaN(amortization) || isNaN(paymentPeriod)) {
+  if (isNaN(mortgageAmount) || isNaN(rate) || isNaN(amortization) || !paymentPeriod) {
     return;
   }
 
@@ -56,9 +56,9 @@ export function init(options: { containerId: string }) {
             <div class="calculator-fixed-label-field">
               <label>Payment Period</label>
               <select id="payment-period-field">
-                <option value="12">Monthly</option>
-                <option value="6">Bi-Annually</option>
-                <option value="1">Annually</option>
+                <option value="monthly">Monthly</option>
+                <option value="biweekly">Bi-weekly</option>
+                <option value="weekly">Weekly</option>
               </select>
             </div>
           </div>

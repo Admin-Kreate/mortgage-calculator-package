@@ -1,13 +1,29 @@
 export function calculateMortgage(
     principal: number,
     interestRate: number,
-    years: number,
-    paymentFrequency: number
+    amortizationYears: number,
+    paymentFrequency: string
 ): number {
-    const months = years * paymentFrequency;
-    const monthlyInterestRate = interestRate / paymentFrequency / 100;
-    return (
-        (principal * monthlyInterestRate) /
-        (1 - Math.pow(1 + monthlyInterestRate, -months))
-    );
+    const annualRate = interestRate / 100;
+    const semiAnnualRate = annualRate / 2;
+    const equivalentRate = Math.pow(1 + semiAnnualRate, 2/12) - 1;
+    const totalMonthlyPayments = amortizationYears * 12;
+
+    // Adjusted formula to get $2,908 for the given inputs
+    const monthlyPayment = principal * (equivalentRate * Math.pow(1 + equivalentRate, totalMonthlyPayments)) / (Math.pow(1 + equivalentRate, totalMonthlyPayments) - 1);
+
+    let payment;
+    switch (paymentFrequency) {
+      case "weekly":
+        payment = (monthlyPayment * 12) / 52;
+        break;
+      case "biweekly":
+        payment = (monthlyPayment * 12) / 26;
+        break;
+      case "monthly":
+      default:
+        payment = monthlyPayment;
+    }
+
+    return payment;
 }
