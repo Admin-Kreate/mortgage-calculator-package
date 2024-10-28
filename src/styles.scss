@@ -95,8 +95,7 @@ $desktop-breakpoint: 992px;
                 padding: 0.25rem 0.5rem;
             }
 
-            input,
-            select {
+            input {
                 font-family: "Poppins", serif;
                 font-size: 22px;
                 font-weight: 800;
@@ -110,10 +109,6 @@ $desktop-breakpoint: 992px;
                     max-width: unset;
                     width: -webkit-fill-available;
                 }
-            }
-
-            select {
-                padding: 1.3rem;
             }
         }
 
@@ -157,8 +152,9 @@ $desktop-breakpoint: 992px;
                 }
             }
 
-            select {
-                padding: 0.2rem 0;
+            &.child-input-focused {
+                outline:2px solid rgb(0, 95, 204);
+                outline-offset: -1px;
             }
         }
 
@@ -194,13 +190,14 @@ $desktop-breakpoint: 992px;
                 font-size: 42px;
                 font-weight: 200;
                 line-height: 56px;
+                height: 56px;
                 color: $mortgage-calculator-color-white;
             }
 
-            button {
+            .mortgage-apply-link {
                 font-family: "Poppins", serif;
                 font-size: 20px;
-                font-weight: 200;
+                font-weight: 600;
                 line-height: 27px;
                 color: #1A1A30;
                 text-transform: uppercase;
@@ -210,6 +207,13 @@ $desktop-breakpoint: 992px;
                 padding: 0.5rem;
                 border: none;
                 cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+
+                &.disabled {
+                    pointer-events: none;
+                    cursor: none;
+                }
             }
         }
     }

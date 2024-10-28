@@ -7,6 +7,7 @@ function handleCalculation() {
   const amortizationSelect = document.getElementById('amortization-field') as HTMLSelectElement;
   const paymentPeriodSelect = document.getElementById('payment-period-field') as HTMLSelectElement;
   const mortagagePaymentElement = document.getElementById('mortagage-payment') as HTMLParagraphElement;
+  const applyLink = document.querySelector('.mortgage-apply-link') as HTMLAnchorElement;
 
   const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/\$/g, '').replace(/\,/g, ''));
   const rate = parseFloat(rateInput.value.replace(/%/g, ''));
@@ -14,14 +15,22 @@ function handleCalculation() {
   const paymentPeriod = paymentPeriodSelect.value;
 
   if (isNaN(mortgageAmount) || isNaN(rate) || isNaN(amortization) || !paymentPeriod) {
+    mortagagePaymentElement.textContent = "";
+    if (!applyLink.classList.contains("disabled")) {
+      applyLink.classList.add("disabled");
+    }
     return;
   }
 
   const payment = calculateMortgage(mortgageAmount, rate, amortization, paymentPeriod);
   mortagagePaymentElement.textContent = `$${parseFloat(payment.toFixed(2)).toLocaleString('en-US')}`;
+
+  if (applyLink.classList.contains("disabled")) {
+    applyLink.classList.remove("disabled");
+  }
 }
 
-export function init(options: { containerId: string }) {
+export function init(options: { containerId: string, applyUrl: string }) {
   const container = document.getElementById(options.containerId);
 
   if (!container) {
@@ -64,7 +73,7 @@ export function init(options: { containerId: string }) {
           </div>
           <div class="apply-wrapper">
             <div id="mortagage-payment"></div>
-            <button>Apply</button>
+            <a class="mortgage-apply-link disabled" href="${options.applyUrl ? options.applyUrl : ''}" target="_blank">Apply</button>
           </div>
         </div>
     </div>
@@ -98,4 +107,31 @@ export function init(options: { containerId: string }) {
   rateInput.addEventListener('input', handleCalculation);
   amortizationSelect.addEventListener('change', handleCalculation);
   paymentPeriodSelect.addEventListener('change', handleCalculation);
+
+  rateInput.addEventListener("focus", (event) => {
+    const target = event.target as HTMLInputElement;
+    target.parentElement?.classList.add("child-input-focused");
+  });
+  rateInput.addEventListener("blur", (event) => {
+    const target = event.target as HTMLInputElement;
+    target.parentElement?.classList.remove("child-input-focused");
+  });
+
+  amortizationSelect.addEventListener("focus", (event) => {
+    const target = event.target as HTMLInputElement;
+    target.parentElement?.classList.add("child-input-focused");
+  });
+  amortizationSelect.addEventListener("blur", (event) => {
+    const target = event.target as HTMLInputElement;
+    target.parentElement?.classList.remove("child-input-focused");
+  });
+
+  paymentPeriodSelect.addEventListener("focus", (event) => {
+    const target = event.target as HTMLInputElement;
+    target.parentElement?.classList.add("child-input-focused");
+  });
+  paymentPeriodSelect.addEventListener("blur", (event) => {
+    const target = event.target as HTMLInputElement;
+    target.parentElement?.classList.remove("child-input-focused");
+  });
 }
