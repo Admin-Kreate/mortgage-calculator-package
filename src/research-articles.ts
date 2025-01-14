@@ -72,7 +72,7 @@ async function loadResearchArticles(container: HTMLElement) {
             const researchArticleElement = document.createElement("div");
             researchArticleElement.classList.add("research-article");
             researchArticleElement.innerHTML = `
-                <div class="thumbnail"></div>
+                <div class="thumbnail" style="background-image: url('${researchArticleData.img_link}');"></div>
                 <div class="date">${researchArticleData.date}</div>
                 <div class="title">${researchArticleData.headline?.trim()}</div>
                 <div class="description">${researchArticleData.description?.trim()}</div>

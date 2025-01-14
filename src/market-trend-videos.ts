@@ -81,7 +81,7 @@ async function loadTrendingVideos(container: HTMLElement) {
             videoElement.classList.add("video");
             videoElement.setAttribute("data-video-url", videoData.video_link);
             videoElement.innerHTML = `
-                <div class="thumbnail">
+                <div class="thumbnail" style="background-image: url('${videoData.img_link}');">
                     <div class="thumbnail-overlay" style="">
                         <div class="play-icon">
                             <img src="${playIcon}" alt="Play Video" />
