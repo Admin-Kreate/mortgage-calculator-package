@@ -239,8 +239,8 @@ body {
         padding: 2rem 0;
 
         @include respond-to-mobile {
-            font-size: 42px;
-            line-height: 50px;
+            font-size: 26px;
+            font-weight: 700;
             padding: 1rem;
         }
     }
@@ -271,7 +271,7 @@ body {
             .thumbnail {
                 border-radius: 0.75rem;
                 background: #D9D9D9;
-                background-image: url('./assets/images/test-thumbnail.png');
+                background-image: url('https://img.youtube.com/vi/22Cw_8tECyQ/sddefault.jpg');
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
@@ -378,6 +378,124 @@ body {
 
             &:hover {
                 background-color: #626060;
+            }
+        }
+    }
+}
+
+
+.faqs {
+    max-width: fit-content;
+    margin: auto;
+    font-family: "Poppins", serif;
+
+    .section-heading {
+        color: #000000;
+        text-align: center;
+        font-family: "DM Sans";
+        font-size: 50px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: normal;
+        padding: 2rem 0;
+
+        @include respond-to-mobile {
+            font-size: 26px;
+            font-weight: 700;
+            padding: 1rem;
+        }
+    }
+
+    .faq-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 850px;
+        padding-bottom: 1.5rem;
+
+        @include respond-to-mobile {
+            width: calc(100vw - 2rem);
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .faq {
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            justify-content: space-between;
+            align-items: start;
+            gap: 0.5rem;
+
+            border-bottom: 1px solid #181A1A;
+            padding: 1.5rem 0;
+
+            @include respond-to-mobile {
+                padding: 1rem 0;
+            }
+
+            .content-wrapper {
+                display: grid;
+                gap: 0.5rem;
+
+                .question {
+                    color: #000000;
+                    font-family: "DM Sans";
+                    font-size: 22px;
+                    font-style: normal;
+                    font-weight: 700;
+                    line-height: normal;
+
+                    @include respond-to-mobile {
+                        font-size: 14px;
+                    }
+                }
+
+                .answer {
+                    color: #181A1A;
+                    font-family: "DM Sans";
+                    font-size: 16px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: normal;
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: max-height 0.2s ease-out;
+
+                    @include respond-to-mobile {
+                        font-size: 12px;
+                    }
+                }
+            }
+
+            .expand-collapse-wrapper {
+                background-color: #5F758A;
+                width: 42px;
+                height: 42px;
+                display: grid;
+                justify-content: center;
+                align-items: center;
+                border-radius: 0.5rem;
+                cursor: pointer;
+
+                img {
+                    transition: transform 0.2s ease;
+                }
+
+                @include respond-to-mobile {
+                    width: 30px;
+                    height: 30px;
+                }
+            }
+
+            &.expand {
+                .answer {
+                    max-height: 100px;
+                }
+
+                .expand-collapse-wrapper {
+                    img {
+                        transform: scaleY(-1);
+                    }
+
+                }
             }
         }
     }

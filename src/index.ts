@@ -1,10 +1,11 @@
 import './styles.scss';
 import { initCalculator } from './calculator';
 import { initMarketTrendVideos } from './market-trend-videos';
+import { initFaqs } from './faqs';
 
 interface InitParams {
   containerId: string;
-  product: "calculator" | "market-trend-videos";
+  product: "calculator" | "market-trend-videos" | "faqs";
   options?: {
     applyUrl?: string;
   };
@@ -24,6 +25,9 @@ export function init(initParams: InitParams) {
       break;
     case "market-trend-videos":
       initMarketTrendVideos(container);
+      break;
+    case "faqs":
+      initFaqs(container);
       break;
     default:
       console.error(`Unknown product: ${initParams.product}`);
