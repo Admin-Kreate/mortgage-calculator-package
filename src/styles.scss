@@ -236,7 +236,7 @@ body {
         font-style: normal;
         font-weight: 600;
         line-height: normal;
-        padding-bottom: 4rem;
+        padding: 2rem 0;
 
         @include respond-to-mobile {
             font-size: 42px;
@@ -249,9 +249,9 @@ body {
         display: grid;
         grid-template-columns: repeat(3, auto);
         grid-gap: 2rem;
-        padding: 0 0 4rem 0;
+        padding: 0 0 2rem 0;
 
-        height: calc(100vh - 250px);
+        height: calc(100vh - 200px);
         overflow-y: auto;
 
         @include respond-to-mobile {
