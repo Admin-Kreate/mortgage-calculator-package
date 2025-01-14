@@ -26,6 +26,21 @@ module.exports = {
         test: /\.scss$/,
         use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
       },
+      {
+        test: /\.svg$/,
+        type: 'asset/resource',
+      },
+      // {
+      //   test: /\.(png|jpe?g|gif|svg)$/i,
+      //   use: [
+      //     {
+      //       loader: "file-loader",
+      //       options: {
+      //         name: "[path][name].[ext]",
+      //       },
+      //     },
+      //   ],
+      // },
     ],
   },
   plugins: [
@@ -41,5 +56,10 @@ module.exports = {
   devServer: {
     port: 8080,
     hot: true,
+  },
+  performance: {
+    hints: "warning",
+    maxAssetSize: 612000, // Adjust as per your requirements (e.g., 500 KiB)
+    maxEntrypointSize: 1024000, // Adjust as per your requirements (e.g., 1 MiB)
   },
 };
