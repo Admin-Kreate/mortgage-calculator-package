@@ -615,3 +615,105 @@ body {
         }
     }
 }
+
+.mortgage-news {
+    max-width: fit-content;
+    margin: auto;
+    font-family: "Poppins", serif;
+
+    .section-heading {
+        color: #000000;
+        text-align: center;
+        font-family: "DM Sans";
+        font-size: 50px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: normal;
+        padding: 2rem 0;
+
+        @include respond-to-mobile {
+            font-size: 26px;
+            font-weight: 700;
+            padding: 1rem;
+        }
+    }
+
+    .mortgage-news-list {
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        grid-gap: 2rem;
+        padding: 0 0 2rem 0;
+
+        @include respond-to-mobile {
+            grid-template-columns: 1fr;
+            justify-items: center;
+            padding: 0 1rem;
+        }
+
+        .mortgage-news-item {
+            width: 350px;
+
+            @include respond-to-mobile {
+                width: 100%;
+            }
+
+            .thumbnail {
+                border-radius: 0.75rem;
+                background: #D9D9D9;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                width: 350px;
+                height: 300px;
+
+                @include respond-to-mobile {
+                    width: 100%;
+                }
+            }
+
+            .date {
+                color: #5F758A;
+                font-family: "DM Sans";
+                font-size: 16px;
+                font-style: normal;
+                font-weight: 700;
+                line-height: 30px;
+            }
+
+            .title {
+                color: #000000;
+                font-family: "DM Sans";
+                font-size: 24px;
+                font-style: normal;
+                font-weight: 700;
+                line-height: 30px;
+                padding-bottom: 1rem;
+            }
+
+            .read-more-link {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+                padding-top: 1rem;
+                border-top: 1px solid #324455;
+
+                color: #324455;
+                font-family: "DM Sans";
+                font-size: 18px;
+                font-style: italic;
+                font-weight: 700;
+                line-height: 25px;
+
+                .read-more-icon {
+                    border: 1px solid #324455;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    display: grid;
+                    justify-content: center;
+                    align-items: center;
+                }
+            }
+        }
+    }
+}
