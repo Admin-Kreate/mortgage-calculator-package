@@ -394,11 +394,11 @@ body {
 
 
 .faqs {
-    max-width: fit-content;
     margin: auto;
     font-family: "Poppins", serif;
 
     .section-heading {
+        width: 100%;
         color: #000000;
         text-align: center;
         font-family: "DM Sans";
@@ -407,6 +407,14 @@ body {
         font-weight: 600;
         line-height: normal;
         padding: 2rem 0;
+
+        &.sticky {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: white;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
 
         @include respond-to-mobile {
             font-size: 26px;
@@ -420,9 +428,10 @@ body {
         grid-template-columns: 1fr;
         width: 850px;
         padding-bottom: 1.5rem;
+        margin: auto;
 
         @include respond-to-mobile {
-            width: calc(100vw - 2rem);
+            width: 100vw;
             padding: 0 1rem 1rem 1rem;
         }
 

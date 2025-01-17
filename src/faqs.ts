@@ -19,10 +19,36 @@ export function initFaqs(container: HTMLElement) {
       </div>
     `;
 
+    const faqs = container.querySelector(".faqs") as HTMLElement;
+    const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
     const faqList = container.querySelector(".faq-list") as HTMLUListElement;
-    if (!faqList) return;
+    if (!faqs || !sectionHeading || !faqList) return;
 
     loadFaqs(container);
+
+    const handleScroll = async () => {
+        const faqsRect = faqs.getBoundingClientRect();
+        const isInViewport = faqsRect.top <= 0 && faqsRect.bottom > 0;
+
+        if (isInViewport) {
+            sectionHeading.classList.add("sticky");
+        } else {
+            sectionHeading.classList.remove("sticky");
+        }
+    };
+
+    const throttle = (func: Function, limit: number) => {
+        let lastCall = 0;
+        return (...args: any[]) => {
+            const now = Date.now();
+            if (now - lastCall >= limit) {
+                lastCall = now;
+                func(...args);
+            }
+        };
+    };
+
+    window.addEventListener("scroll", throttle(handleScroll, 200));
 }
 
 async function loadFaqs(container: HTMLElement) {
