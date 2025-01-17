@@ -21,29 +21,59 @@ export function initResearchArticles(container: HTMLElement) {
       </div>
     `;
 
+    const researchArticles = container.querySelector(".research-articles") as HTMLElement;
+    const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
     const researchArticlesList = container.querySelector(".research-articles-list") as HTMLUListElement;
-    if (!researchArticlesList) return;
+    if (!researchArticles || !sectionHeading || !researchArticlesList) return;
 
     loadResearchArticles(container);
 
     let isLoading = false;
-    
-    researchArticlesList.addEventListener("scroll", async () => {
-        const { scrollTop, scrollHeight, clientHeight } = researchArticlesList;
-        if (!isLoading && scrollTop + clientHeight >= scrollHeight - 100) {
+    let hasMoreData = true;
+
+    const handleScroll = async () => {
+        const rect = researchArticlesList.getBoundingClientRect();
+        const isNearBottom = rect.bottom <= window.innerHeight + 100;
+
+        if (!isLoading && hasMoreData && isNearBottom) {
             isLoading = true;
             try {
-                await loadResearchArticles(container);
+                const hasMore = await loadResearchArticles(container);
+                hasMoreData = hasMore;
+            } catch (error) {
+                console.error("Error loading research articles:", error);
             } finally {
                 isLoading = false;
             }
         }
-    });
+
+        const articlesRect = researchArticles.getBoundingClientRect();
+        const isInViewport = articlesRect.top <= 0 && articlesRect.bottom > 0;
+
+        if (isInViewport) {
+            sectionHeading.classList.add("sticky");
+        } else {
+            sectionHeading.classList.remove("sticky");
+        }
+    };
+
+    const throttle = (func: Function, limit: number) => {
+        let lastCall = 0;
+        return (...args: any[]) => {
+            const now = Date.now();
+            if (now - lastCall >= limit) {
+                lastCall = now;
+                func(...args);
+            }
+        };
+    };
+
+    window.addEventListener("scroll", throttle(handleScroll, 200));
 }
 
-async function loadResearchArticles(container: HTMLElement) {
+async function loadResearchArticles(container: HTMLElement): Promise<boolean> {
     const researchArticlesList = container.querySelector(".research-articles-list") as HTMLUListElement;
-    if (!researchArticlesList) return;
+    if (!researchArticlesList) return false;
 
     try {
         const db = await getFirestoreInstance();
@@ -62,7 +92,7 @@ async function loadResearchArticles(container: HTMLElement) {
 
         if (querySnapshot.empty) {
             console.log("No more research articles to load");
-            return;
+            return false;
         }
 
         querySnapshot.forEach((doc) => {
@@ -82,7 +112,9 @@ async function loadResearchArticles(container: HTMLElement) {
         });
 
         lastDocument = querySnapshot.docs[querySnapshot.docs.length - 1];
+        return true;
     } catch (error) {
         console.error("Error loading research articles:", error);
+        return false;
     }
 }
