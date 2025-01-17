@@ -23,21 +23,21 @@ export function initMortgageNews(container: HTMLElement) {
       </div>
     `;
 
+    const mortgageNews = container.querySelector(".mortgage-news") as HTMLElement;
+    const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
     const mortgageNewsList = container.querySelector(".mortgage-news-list") as HTMLUListElement;
-    if (!mortgageNewsList) return;
+    if (!mortgageNews || !sectionHeading || !mortgageNewsList) return;
 
     loadMortgageNews(container);
 
     let isLoading = false;
     let hasMoreData = true;
-
+    
     const handleScroll = async () => {
-        if (!hasMoreData || isLoading) return;
-
         const rect = mortgageNewsList.getBoundingClientRect();
         const isNearBottom = rect.bottom <= window.innerHeight + 100;
 
-        if (isNearBottom) {
+        if (!isLoading && hasMoreData && isNearBottom) {
             isLoading = true;
             try {
                 const hasMore = await loadMortgageNews(container);
@@ -47,6 +47,15 @@ export function initMortgageNews(container: HTMLElement) {
             } finally {
                 isLoading = false;
             }
+        }
+
+        const newsRect = mortgageNews.getBoundingClientRect();
+        const isInViewport = newsRect.top <= 0 && newsRect.bottom > 0;
+
+        if (isInViewport) {
+            sectionHeading.classList.add("sticky");
+        } else {
+            sectionHeading.classList.remove("sticky");
         }
     };
 
