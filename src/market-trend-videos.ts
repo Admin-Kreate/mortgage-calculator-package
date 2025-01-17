@@ -29,29 +29,59 @@ export function initMarketTrendVideos(container: HTMLElement) {
       </div>
     `;
 
+    const marketTrendVideos = container.querySelector(".market-trend-videos") as HTMLElement;
+    const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
     const videosList = container.querySelector(".videos") as HTMLUListElement;
-    if (!videosList) return;
+    if (!marketTrendVideos || !sectionHeading || !videosList) return;
 
     loadTrendingVideos(container);
 
     let isLoading = false;
-    
-    videosList.addEventListener("scroll", async () => {
-        const { scrollTop, scrollHeight, clientHeight } = videosList;
-        if (!isLoading && scrollTop + clientHeight >= scrollHeight - 100) {
+    let hasMoreData = true;
+
+    const handleScroll = async () => {
+        const rect = videosList.getBoundingClientRect();
+        const isNearBottom = rect.bottom <= window.innerHeight + 100;
+
+        if (!isLoading && hasMoreData && isNearBottom) {
             isLoading = true;
             try {
-                await loadTrendingVideos(container);
+                const hasMore = await loadTrendingVideos(container);
+                hasMoreData = hasMore;
+            } catch (error) {
+                console.error("Error loading market trend videos:", error);
             } finally {
                 isLoading = false;
             }
         }
-    });
+
+        const trendRect = marketTrendVideos.getBoundingClientRect();
+        const isInViewport = trendRect.top <= 0 && trendRect.bottom > 0;
+
+        if (isInViewport) {
+            sectionHeading.classList.add("sticky");
+        } else {
+            sectionHeading.classList.remove("sticky");
+        }
+    };
+
+    const throttle = (func: Function, limit: number) => {
+        let lastCall = 0;
+        return (...args: any[]) => {
+            const now = Date.now();
+            if (now - lastCall >= limit) {
+                lastCall = now;
+                func(...args);
+            }
+        };
+    };
+
+    window.addEventListener("scroll", throttle(handleScroll, 200));
 }
 
-async function loadTrendingVideos(container: HTMLElement) {
+async function loadTrendingVideos(container: HTMLElement): Promise<boolean> {
     const videosList = container.querySelector(".videos") as HTMLUListElement;
-    if (!videosList) return;
+    if (!videosList) return false;
 
     try {
         const db = await getFirestoreInstance();
@@ -70,7 +100,7 @@ async function loadTrendingVideos(container: HTMLElement) {
 
         if (querySnapshot.empty) {
             console.log("No more videos to load");
-            return;
+            return false;
         }
 
         querySnapshot.forEach((doc) => {
@@ -102,7 +132,6 @@ async function loadTrendingVideos(container: HTMLElement) {
                 if (videoElement) {
                     const videoUrl = videoElement.getAttribute("data-video-url");
                     if (videoUrl) {
-                        console.log("videoURL: ", videoUrl);
                         showVideoModal(videoUrl);
                     }
                 }
@@ -110,8 +139,10 @@ async function loadTrendingVideos(container: HTMLElement) {
         });
 
         lastDocument = querySnapshot.docs[querySnapshot.docs.length - 1];
+        return true;
     } catch (error) {
         console.error("Error loading trending videos:", error);
+        return false;
     }
 }
 
