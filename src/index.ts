@@ -5,10 +5,11 @@ import { initFaqs } from './faqs';
 import { initResearchArticles } from './research-articles';
 import { initMortgageNews } from './mortgage-news';
 import { initMortgageGlossary } from './mortgage-glossary';
+import { initEducationalVideos } from './educational-videos';
 
 interface InitParams {
   containerId: string;
-  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary";
+  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos";
   options?: {
     applyUrl?: string;
   };
@@ -40,6 +41,9 @@ export function init(initParams: InitParams) {
       break;
     case "mortgage-glossary":
       initMortgageGlossary(container);
+      break;
+    case "educational-videos":
+      initEducationalVideos(container);
       break;
     default:
       console.error(`Unknown product: ${initParams.product}`);
