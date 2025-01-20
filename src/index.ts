@@ -4,10 +4,11 @@ import { initMarketTrendVideos } from './market-trend-videos';
 import { initFaqs } from './faqs';
 import { initResearchArticles } from './research-articles';
 import { initMortgageNews } from './mortgage-news';
+import { initMortgageGlossary } from './mortgage-glossary';
 
 interface InitParams {
   containerId: string;
-  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news";
+  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary";
   options?: {
     applyUrl?: string;
   };
@@ -36,6 +37,9 @@ export function init(initParams: InitParams) {
       break;
     case "mortgage-news":
       initMortgageNews(container);
+      break;
+    case "mortgage-glossary":
+      initMortgageGlossary(container);
       break;
     default:
       console.error(`Unknown product: ${initParams.product}`);

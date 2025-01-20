@@ -60,7 +60,7 @@ async function loadFaqs(container: HTMLElement) {
 
         let faqsQuery = query(
             collection(db, FIRESTORE_COLLECTION),
-            orderBy("question", "desc")
+            orderBy("question", "asc")
         );
 
         const querySnapshot = await getDocs(faqsQuery);
