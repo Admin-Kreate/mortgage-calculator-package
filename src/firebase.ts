@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import type { Firestore } from "firebase/firestore";
+import type { Functions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAdZy_OGph3BeMs0CqwjYkV7NNQR40MjJQ",
@@ -11,6 +12,7 @@ const firebaseConfig = {
 };
 
 let firestoreInstance: Firestore | null = null;
+let firebaseFunctions: Functions | null = null;
 
 export async function getFirestoreInstance() {
   if (!firestoreInstance) {
@@ -19,4 +21,13 @@ export async function getFirestoreInstance() {
     firestoreInstance = getFirestore(app);
   }
   return firestoreInstance;
+}
+
+export async function getFirebaseFunctions() {
+  if (!firebaseFunctions) {
+    const { getFunctions } = await import("firebase/functions");
+    const app = initializeApp(firebaseConfig);
+    firebaseFunctions = getFunctions(app);
+  }
+  return firebaseFunctions;
 }

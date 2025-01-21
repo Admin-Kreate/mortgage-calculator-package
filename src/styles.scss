@@ -1068,3 +1068,173 @@ body {
         }
     }
 }
+
+.free-guides {
+    margin: auto;
+    font-family: "Poppins", serif;
+
+    .section-heading {
+        width: 100%;
+        color: #000000;
+        text-align: center;
+        font-family: "DM Sans";
+        font-size: 50px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: normal;
+        padding: 2rem 0;
+
+        &.sticky {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: white;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        @include respond-to-mobile {
+            font-size: 26px;
+            font-weight: 700;
+            padding: 1rem;
+            width: auto;
+        }
+    }
+
+    .free-guides-form {
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        align-items: center;
+        justify-content: space-evenly;
+        background-color: #5F75890F;
+        width: 875px;
+        margin: auto;
+        padding: 2rem 0;
+        border-radius: 1rem;
+
+        @include respond-to-mobile {
+            grid-template-columns: auto;
+            width: auto;
+            justify-items: center;
+            padding: 2rem;
+            margin: 0 1rem;
+        }
+
+        .icon-wrapper {
+            background-color: #0000000d;
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+
+        .form-wrapper {
+            display: grid;
+            grid-gap: 1rem;
+
+            .info {
+                color: #000;
+                font-family: "DM Sans";
+                font-size: 30px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 37px;
+                width: 500px;
+
+                @include respond-to-mobile {
+                    font-size: 20px;
+                    line-height: 24px;
+                    text-align: center;
+                    width: auto;
+                    margin: 1rem 0;
+                }
+            }
+
+            .fields {
+                display: grid;
+                grid-template-columns: repeat(3, auto);
+                align-items: center;
+                grid-gap: 1rem;
+
+                @include respond-to-mobile {
+                    grid-template-columns: 1fr;
+                }
+
+                input {
+                    color: #000;
+                    font-family: "DM Sans";
+                    font-size: 14px;
+                    font-style: italic;
+                    font-weight: 400;
+                    line-height: normal;
+
+                    border-radius: 10px;
+                    border: 1px solid rgba(35, 38, 55, 0.20);
+                    background: #FFF;
+                    padding: 1rem;
+                }
+
+                .submit-button {
+                    border-radius: 10px;
+                    background-color: #5F758A;
+                    color: #FFFFFF;
+                    font-family: "DM Sans";
+                    font-size: 16px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: normal;
+                    transition: background-color 0.25s ease-in-out;
+                    cursor: pointer;
+                    padding: 1rem;
+                    width: fit-content;
+
+                    &.disabled {
+                        background-color: #d0d0d0;
+                        cursor: unset;
+                        pointer-events: none;
+                    }
+
+                    &:hover {
+                        background-color: #32485c;
+                    }
+
+                    @include respond-to-mobile {
+                        width: auto;
+                        text-align: center;
+                    }
+                }
+            }
+
+            .consent-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+
+                @include respond-to-mobile {
+                    align-items: start;
+                }
+
+                label {
+                    color: #000;
+                    font-family: "DM Sans";
+                    font-size: 14px;
+                    font-style: normal;
+                    font-weight: 600;
+                    line-height: normal;
+                    cursor: pointer;
+                }
+            }
+
+            .status {
+                max-width: 450px;
+                font-size: 14px;
+                line-height: 18px;
+
+                &.success {
+                    color: #3ea63e;
+                }
+
+                &.error {
+                    color: #dc4d4d;
+                }
+            }
+        }
+    }
+}
