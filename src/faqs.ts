@@ -26,29 +26,29 @@ export function initFaqs(container: HTMLElement) {
 
     loadFaqs(container);
 
-    const handleScroll = async () => {
-        const faqsRect = faqs.getBoundingClientRect();
-        const isInViewport = faqsRect.top <= 0 && faqsRect.bottom > 0;
+    // const handleScroll = async () => {
+        // const faqsRect = faqs.getBoundingClientRect();
+        // const isInViewport = faqsRect.top <= 0 && faqsRect.bottom > 0;
 
-        if (isInViewport) {
-            sectionHeading.classList.add("sticky");
-        } else {
-            sectionHeading.classList.remove("sticky");
-        }
-    };
+        // if (isInViewport) {
+        //     sectionHeading.classList.add("sticky");
+        // } else {
+        //     sectionHeading.classList.remove("sticky");
+        // }
+    // };
 
-    const throttle = (func: Function, limit: number) => {
-        let lastCall = 0;
-        return (...args: any[]) => {
-            const now = Date.now();
-            if (now - lastCall >= limit) {
-                lastCall = now;
-                func(...args);
-            }
-        };
-    };
+    // const throttle = (func: Function, limit: number) => {
+    //     let lastCall = 0;
+    //     return (...args: any[]) => {
+    //         const now = Date.now();
+    //         if (now - lastCall >= limit) {
+    //             lastCall = now;
+    //             func(...args);
+    //         }
+    //     };
+    // };
 
-    window.addEventListener("scroll", throttle(handleScroll, 200));
+    // window.addEventListener("scroll", throttle(handleScroll, 200));
 }
 
 async function loadFaqs(container: HTMLElement) {
