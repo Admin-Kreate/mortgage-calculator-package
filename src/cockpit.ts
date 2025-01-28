@@ -93,27 +93,27 @@ export function initCockpit(container: HTMLElement) {
     }
     stats.innerHTML = defaultModuleStatsHTML;
 
-    const handleScroll = async () => {
-        const cockpitRect = cockpit.getBoundingClientRect();
-        const isInViewport = cockpitRect.top <= 0 && cockpitRect.bottom > 0;
+    // const handleScroll = async () => {
+        // const cockpitRect = cockpit.getBoundingClientRect();
+        // const isInViewport = cockpitRect.top <= 0 && cockpitRect.bottom > 0;
 
-        if (isInViewport) {
-            headerWrapper.classList.add("sticky");
-        } else {
-            headerWrapper.classList.remove("sticky");
-        }
-    };
+        // if (isInViewport) {
+        //     headerWrapper.classList.add("sticky");
+        // } else {
+        //     headerWrapper.classList.remove("sticky");
+        // }
+    // };
 
-    const throttle = (func: Function, limit: number) => {
-        let lastCall = 0;
-        return (...args: any[]) => {
-            const now = Date.now();
-            if (now - lastCall >= limit) {
-                lastCall = now;
-                func(...args);
-            }
-        };
-    };
+    // const throttle = (func: Function, limit: number) => {
+    //     let lastCall = 0;
+    //     return (...args: any[]) => {
+    //         const now = Date.now();
+    //         if (now - lastCall >= limit) {
+    //             lastCall = now;
+    //             func(...args);
+    //         }
+    //     };
+    // };
 
     cockpit.addEventListener("click", (event) => {
         const target = event.target as HTMLElement;
@@ -144,5 +144,5 @@ export function initCockpit(container: HTMLElement) {
         }
     });
 
-    window.addEventListener("scroll", throttle(handleScroll, 200));
+    // window.addEventListener("scroll", throttle(handleScroll, 200));
 }

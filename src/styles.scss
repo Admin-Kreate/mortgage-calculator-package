@@ -964,6 +964,7 @@ body {
 
         @include respond-to-mobile {
             width: 100vw;
+            background-color: unset;
         }
 
         &.sticky {
@@ -986,6 +987,7 @@ body {
                 width: 100vw;
                 overflow: auto;
                 justify-content: unset;
+                background-color: #E7E7E7;
             }
 
             .tab-selector {
