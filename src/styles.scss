@@ -1171,7 +1171,7 @@ body {
                 font-style: normal;
                 font-weight: 600;
                 line-height: 37px;
-                width: 500px;
+                // width: 500px;
 
                 @include respond-to-mobile {
                     font-size: 20px;

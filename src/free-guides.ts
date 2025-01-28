@@ -44,9 +44,8 @@ export function initFreeGuides(container: HTMLElement) {
     const validateForm = async () => {
         const name = nameField.value;
         const email = emailField.value;
-        const consent = consentField.checked;
 
-        if (name && email && consent && validateEmail(email)) {
+        if (name && email && validateEmail(email)) {
             submitBtn.classList.remove("disabled");
         } else {
             submitBtn.classList.add("disabled");
