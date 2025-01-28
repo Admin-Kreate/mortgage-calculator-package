@@ -324,8 +324,12 @@ body {
                 font-family: "DM Sans";
                 font-size: 16px;
                 font-style: normal;
-                font-weight: 700;
+                font-weight: 500;
                 line-height: 30px;
+
+                @include respond-to-mobile {
+                    font-weight: 400;
+                }
             }
 
             .title {
@@ -335,6 +339,22 @@ body {
                 font-style: normal;
                 font-weight: 700;
                 line-height: 30px;
+            }
+            .source {
+                color: #5F758A;
+                font-family: "DM Sans";
+                font-size: 18px;
+                font-style: normal;
+                font-weight: 500;
+                line-height: 30px;
+
+                span {
+                    color: #000;
+                }
+
+                @include respond-to-mobile {
+                    font-size: 18px;
+                }
             }
         }
     }
