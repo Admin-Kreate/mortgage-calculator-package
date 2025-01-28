@@ -836,8 +836,12 @@ body {
                 cursor: pointer;
                 margin: 2rem 0;
 
+                @include respond-to-mobile {
+                    margin: 1rem 0;
+                }
+
                 img {
-                    width: 45px;
+                    width: 35px;
                 }
 
                 &:hover {
@@ -853,7 +857,8 @@ body {
                 padding: 2rem 0;
 
                 @include respond-to-mobile {
-                    width: calc(100vw - 90px);
+                    width: calc(100vw - 102px);
+                    padding: 1rem 0;
                 }
 
                 .alphabet {
@@ -868,7 +873,7 @@ body {
                     border-radius: 52px;
                     border: .675px solid hsla(0, 0%, 100%, .31);
                     width: 45px;
-                    height: 70px;
+                    height: 60px;
                     display: grid;
                     align-items: center;
                     justify-content: center;
@@ -879,6 +884,12 @@ body {
                     &:hover {
                         background-color: #FFFFFF;
                         color: #5f758a;
+                    }
+
+                    @include respond-to-mobile {
+                        font-size: 20px;
+                        width: 30px;
+                        height: 45px;
                     }
                 }
             }
@@ -891,11 +902,12 @@ body {
         grid-template-columns: 1fr;
         width: 850px;
         padding-bottom: 1.5rem;
-        margin: auto;
+        margin: 1.5rem auto;
 
         @include respond-to-mobile {
-            width: 100vw;
-            padding: 0 1rem 1rem 1rem;
+            width: calc(100vw - 3rem);
+            padding: 0 1rem;
+            margin: 0;
         }
 
         .glossary-item {
@@ -927,11 +939,11 @@ body {
                 font-family: "DM Sans";
                 font-size: 18px;
                 font-style: normal;
-                font-weight: 500;
+                font-weight: 400;
                 line-height: 27px;
 
                 @include respond-to-mobile {
-                    font-size: 18px;
+                    font-size: 14px;
                     line-height: 22px;
                 }
             }

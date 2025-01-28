@@ -34,29 +34,29 @@ export function initMortgageGlossary(container: HTMLElement) {
 
     loadMortgageGlossary(container);
 
-    const handleScroll = async () => {
-        const glossaryRect = mortgageGlossary.getBoundingClientRect();
-        const isInViewport = glossaryRect.top <= 0 && glossaryRect.bottom > 0;
+    // const handleScroll = async () => {
+        // const glossaryRect = mortgageGlossary.getBoundingClientRect();
+        // const isInViewport = glossaryRect.top <= 0 && glossaryRect.bottom > 0;
 
-        if (isInViewport) {
-            headerWrapper.classList.add("sticky");
-        } else {
-            headerWrapper.classList.remove("sticky");
-        }
-    };
+        // if (isInViewport) {
+        //     headerWrapper.classList.add("sticky");
+        // } else {
+        //     headerWrapper.classList.remove("sticky");
+        // }
+    // };
 
-    const throttle = (func: Function, limit: number) => {
-        let lastCall = 0;
-        return (...args: any[]) => {
-            const now = Date.now();
-            if (now - lastCall >= limit) {
-                lastCall = now;
-                func(...args);
-            }
-        };
-    };
+    // const throttle = (func: Function, limit: number) => {
+    //     let lastCall = 0;
+    //     return (...args: any[]) => {
+    //         const now = Date.now();
+    //         if (now - lastCall >= limit) {
+    //             lastCall = now;
+    //             func(...args);
+    //         }
+    //     };
+    // };
 
-    window.addEventListener("scroll", throttle(handleScroll, 200));
+    // window.addEventListener("scroll", throttle(handleScroll, 200));
 }
 
 async function loadMortgageGlossary(container: HTMLElement) {
