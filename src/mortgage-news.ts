@@ -8,6 +8,7 @@ import {
     getDocs,
     startAfter,
 } from "firebase/firestore";
+import { formatDate } from './utils';
 
 import chevronRight from './assets/icons/chevron-right.svg';
 
@@ -49,14 +50,14 @@ export function initMortgageNews(container: HTMLElement) {
             }
         }
 
-        const newsRect = mortgageNews.getBoundingClientRect();
-        const isInViewport = newsRect.top <= 0 && newsRect.bottom > 0;
+        // const newsRect = mortgageNews.getBoundingClientRect();
+        // const isInViewport = newsRect.top <= 0 && newsRect.bottom > 0;
 
-        if (isInViewport) {
-            sectionHeading.classList.add("sticky");
-        } else {
-            sectionHeading.classList.remove("sticky");
-        }
+        // if (isInViewport) {
+        //     sectionHeading.classList.add("sticky");
+        // } else {
+        //     sectionHeading.classList.remove("sticky");
+        // }
     };
 
     const throttle = (func: Function, limit: number) => {
@@ -105,7 +106,7 @@ async function loadMortgageNews(container: HTMLElement): Promise<boolean> {
             mortgageNewsElement.classList.add("mortgage-news-item");
             mortgageNewsElement.innerHTML = `
                 <div class="thumbnail" style="background-image: url('${mortgageNewsData.img_link}');"></div>
-                <div class="date">${mortgageNewsData.date}</div>
+                <div class="date">${formatDate(mortgageNewsData.date)}</div>
                 <div class="title">${mortgageNewsData.headline}</div>
                 <a class="read-more-link" href="${mortgageNewsData.source}" target="_blank">
                     Read More
