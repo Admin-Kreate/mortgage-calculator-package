@@ -1102,17 +1102,18 @@ body {
 
     .free-guides-form {
         display: grid;
-        grid-template-columns: repeat(2, auto);
+        grid-template-columns: auto 1fr;
         align-items: center;
-        justify-content: space-evenly;
-        background-color: #5F75890F;
-        width: 875px;
+        grid-gap: 4rem;
+        width: calc(100vw - 300px);
         margin: auto;
-        padding: 2rem 0;
+        padding: 4rem;
         border-radius: 1rem;
+        background-color: #5F75890F;
 
         @include respond-to-mobile {
             grid-template-columns: auto;
+            grid-gap: 2rem;
             width: auto;
             justify-items: center;
             padding: 2rem;
@@ -1219,6 +1220,7 @@ body {
                     font-weight: 600;
                     line-height: normal;
                     cursor: pointer;
+                    margin: 0;
                 }
             }
 

@@ -16,7 +16,7 @@ export function initFreeGuides(container: HTMLElement) {
                 <img src="${freeGuidesIcon}" alt="Free guides icon"/>
             </div>
             <div class="form-wrapper">
-                <div class="info">Get your first time homebuyer free guide with you</div>
+                <div class="info">Grab your free guide for first-time <br/>homebuyers today!</div>
                 <div class="fields">
                     <input type="text" class="name-field" placeholder="Name" />
                     <input type="email" class="email-field" placeholder="Email" />
