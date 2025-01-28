@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 
 import playIcon from './assets/icons/play.svg';
+import { formatDate } from './utils';
 
 const FIRESTORE_COLLECTION = "educational_videos";
 const PAGE_SIZE = 9;
@@ -55,14 +56,14 @@ export function initEducationalVideos(container: HTMLElement) {
             }
         }
 
-        const educationalRect = educationalVideos.getBoundingClientRect();
-        const isInViewport = educationalRect.top <= 0 && educationalRect.bottom > 0;
+        // const educationalRect = educationalVideos.getBoundingClientRect();
+        // const isInViewport = educationalRect.top <= 0 && educationalRect.bottom > 0;
 
-        if (isInViewport) {
-            sectionHeading.classList.add("sticky");
-        } else {
-            sectionHeading.classList.remove("sticky");
-        }
+        // if (isInViewport) {
+        //     sectionHeading.classList.add("sticky");
+        // } else {
+        //     sectionHeading.classList.remove("sticky");
+        // }
     };
 
     const throttle = (func: Function, limit: number) => {
@@ -118,8 +119,9 @@ async function loadEducationalVideos(container: HTMLElement): Promise<boolean> {
                         </div>
                     </div>
                 </div>
-                <div class="date">${videoData.date?.trim()}</div>
+                <div class="date">${formatDate(videoData.date?.trim())}</div>
                 <div class="title">${videoData.headline?.trim()}</div>
+                <div class="source">Source: <span>${videoData.source?.trim()}</span></div>
             `;
             videosList.appendChild(videoElement);
         });
