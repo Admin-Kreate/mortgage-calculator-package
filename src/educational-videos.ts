@@ -3,6 +3,7 @@ import { getFirestoreInstance } from "./firebase";
 import {
     collection,
     query,
+    where,
     orderBy,
     limit,
     getDocs,
@@ -15,11 +16,19 @@ import { formatDate } from './utils';
 const FIRESTORE_COLLECTION = "educational_videos";
 const PAGE_SIZE = 9;
 let lastDocument: any = null;
+let selectedCategory = "";
 
 export function initEducationalVideos(container: HTMLElement) {
     container.innerHTML = `
       <div class="educational-videos">
         <div class="section-heading">Educational Videos</div>
+        <div class="filters">
+            <div class="filter selected">All Videos</div>
+            <div class="filter">First time home buyers in Canada</div>
+            <div class="filter">Mortgage Fundamentals</div>
+            <div class="filter">Renewal</div>
+            <div class="filter">Mortgage Repayment</div>
+        </div>
         <div class="videos"></div>
         <div id="video-player" class="modal" style="display: none;">
             <div class="modal-content">
@@ -32,6 +41,7 @@ export function initEducationalVideos(container: HTMLElement) {
 
     const educationalVideos = container.querySelector(".educational-videos") as HTMLElement;
     const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
+    const filtersList = container.querySelector(".filters") as HTMLElement;
     const videosList = container.querySelector(".videos") as HTMLUListElement;
     if (!educationalVideos || !sectionHeading || !videosList) return;
 
@@ -78,6 +88,25 @@ export function initEducationalVideos(container: HTMLElement) {
     };
 
     window.addEventListener("scroll", throttle(handleScroll, 200));
+
+    filtersList.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest(".filter")) {
+            const filterElements = filtersList.querySelectorAll(".filter");
+            filterElements.forEach(filterElement => {
+                filterElement.classList.remove("selected");
+            });
+            target.classList.add("selected");
+
+            const text = target.textContent === "All Videos" ? "" : target.textContent;
+            selectedCategory = text ? text : "";
+            lastDocument = null;
+
+            videosList.innerHTML = "";
+
+            loadEducationalVideos(container);
+        }
+    });
 }
 
 async function loadEducationalVideos(container: HTMLElement): Promise<boolean> {
@@ -92,10 +121,17 @@ async function loadEducationalVideos(container: HTMLElement): Promise<boolean> {
             orderBy("date", "desc"),
             limit(PAGE_SIZE)
         );
+        
+        // Conditionally apply the "where" clause if categoryToFilter is available
+        if (selectedCategory) {
+            videosQuery = query(videosQuery, where("category", "==", selectedCategory));
+        }
 
         if (lastDocument) {
             videosQuery = query(videosQuery, startAfter(lastDocument));
         }
+
+        console.log(videosQuery, "videosQuery");
 
         const querySnapshot = await getDocs(videosQuery);
 

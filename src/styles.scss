@@ -254,6 +254,35 @@ body {
         }
     }
 
+    .filters {
+        display: flex;
+        gap: 1rem;
+        margin: auto;
+        width: fit-content;
+        padding-bottom: 2rem;
+
+        .filter {
+            color: #5f758a;
+            text-align: center;
+            font-family: "DM Sans";
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 15px;
+            padding: 1rem;
+            border: 1px solid #5f758a;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &.selected, &:hover {
+                background-color: #5f758a;
+                color: #FFFFFF;
+            }
+        }
+        
+    }
+
     .videos {
         display: grid;
         grid-template-columns: repeat(3, auto);
