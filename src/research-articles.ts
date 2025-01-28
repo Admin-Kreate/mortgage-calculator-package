@@ -8,6 +8,7 @@ import {
     getDocs,
     startAfter,
 } from "firebase/firestore";
+import { formatDate } from './utils';
 
 const FIRESTORE_COLLECTION = "research_articles";
 const PAGE_SIZE = 9;
@@ -47,14 +48,14 @@ export function initResearchArticles(container: HTMLElement) {
             }
         }
 
-        const articlesRect = researchArticles.getBoundingClientRect();
-        const isInViewport = articlesRect.top <= 0 && articlesRect.bottom > 0;
+        // const articlesRect = researchArticles.getBoundingClientRect();
+        // const isInViewport = articlesRect.top <= 0 && articlesRect.bottom > 0;
 
-        if (isInViewport) {
-            sectionHeading.classList.add("sticky");
-        } else {
-            sectionHeading.classList.remove("sticky");
-        }
+        // if (isInViewport) {
+        //     sectionHeading.classList.add("sticky");
+        // } else {
+        //     sectionHeading.classList.remove("sticky");
+        // }
     };
 
     const throttle = (func: Function, limit: number) => {
@@ -103,7 +104,7 @@ async function loadResearchArticles(container: HTMLElement): Promise<boolean> {
             researchArticleElement.classList.add("research-article");
             researchArticleElement.innerHTML = `
                 <div class="thumbnail" style="background-image: url('${researchArticleData.img_link}');"></div>
-                <div class="date">${researchArticleData.date}</div>
+                <div class="date">${formatDate(researchArticleData.date)}</div>
                 <div class="title">${researchArticleData.headline?.trim()}</div>
                 <div class="description">${researchArticleData.description?.trim()}</div>
                 <a class="read-more-link" href="${researchArticleData.source}" target="_blank">Read More</a>
