@@ -1092,7 +1092,7 @@ body {
     .stats {
         width: 1250px;
         display: grid;
-        grid-template-columns: repeat(2, auto);
+        grid-template-columns: repeat(2, 1fr);
         align-items: center;
         justify-content: start;
         grid-gap: 2rem;
