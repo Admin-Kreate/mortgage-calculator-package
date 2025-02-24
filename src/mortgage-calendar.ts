@@ -86,6 +86,8 @@ export function initMortgageCalendar(container: HTMLElement) {
             selectedCategory = target.textContent ? target.textContent : "";
             lastDocument = null;
 
+            calendarHeader.classList.remove("show", "col-3");
+
             calendarEvents.innerHTML = "";
             calendarHeader.innerHTML = "";
 

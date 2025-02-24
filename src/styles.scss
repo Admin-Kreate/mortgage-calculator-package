@@ -252,6 +252,7 @@ body {
             font-size: 26px;
             font-weight: 700;
             padding: 1rem;
+            width: auto;
         }
     }
 
@@ -266,6 +267,7 @@ body {
             display: grid;
             gap: 0.5rem;
             margin: 0 1rem;
+            width: auto;
         }
 
         .filter {
@@ -300,7 +302,7 @@ body {
         margin: auto;
 
         @include respond-to-mobile {
-            width: 100vw;
+            width: auto;
             margin: auto;
             grid-template-columns: 1fr;
             justify-items: center;
@@ -403,7 +405,7 @@ body {
         margin: 1.5rem auto;
 
         @include respond-to-mobile {
-            width: fit-content;
+            width: auto;
             margin: 0 1rem;
         }
 
@@ -586,6 +588,7 @@ body {
             font-size: 26px;
             font-weight: 700;
             padding: 1rem;
+            width: auto;
         }
     }
 
@@ -597,7 +600,7 @@ body {
         margin: auto;
 
         @include respond-to-mobile {
-            width: 100vw;
+            width: auto;
             padding: 0 1rem 1rem 1rem;
         }
 
@@ -712,6 +715,7 @@ body {
             font-size: 26px;
             font-weight: 700;
             padding: 1rem;
+            width: auto;
         }
     }
 
@@ -725,7 +729,7 @@ body {
         margin: auto;
 
         @include respond-to-mobile {
-            width: 100vw;
+            width: auto;
             margin: auto;
             grid-template-columns: 1fr;
             justify-items: center;
@@ -836,6 +840,7 @@ body {
             font-size: 26px;
             font-weight: 700;
             padding: 1rem;
+            width: auto;
         }
     }
 
@@ -849,7 +854,7 @@ body {
         margin: auto;
 
         @include respond-to-mobile {
-            width: 100vw;
+            width: auto;
             margin: auto;
             grid-template-columns: 1fr;
             justify-items: center;
