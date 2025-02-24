@@ -27,18 +27,18 @@ export function initCockpit(container: HTMLElement) {
                 { title: 'CPI and CPI excluding gasoline', embed_code: `<iframe width="${iframeWidth}" height="${iframeheight}" src="https://lookerstudio.google.com/embed/reporting/bf06875f-f5f4-4a3a-8a3b-82c11a1346a6/page/g2eGE" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>` },
             ]
         },
-        {
-            id: "mortgage-indicators",
-            name: "Mortgage Indicators",
-            description: "",
-            stats: []
-        },
-        {
-            id: "key-rates",
-            name: "Key Rates",
-            description: "",
-            stats: []
-        },
+        // {
+        //     id: "mortgage-indicators",
+        //     name: "Mortgage Indicators",
+        //     description: "",
+        //     stats: []
+        // },
+        // {
+        //     id: "key-rates",
+        //     name: "Key Rates",
+        //     description: "",
+        //     stats: []
+        // },
     ];
 
     let cockpitHTML = `
