@@ -8,10 +8,11 @@ import { initMortgageGlossary } from './mortgage-glossary';
 import { initEducationalVideos } from './educational-videos';
 import { initCockpit } from './cockpit';
 import { initFreeGuides } from './free-guides';
+import { initMortgageCalendar } from './mortgage-calendar';
 
 interface InitParams {
   containerId: string;
-  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos" | "cockpit" | "free-guides";
+  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos" | "cockpit" | "free-guides" | "mortgage-calender";
   options?: {
     applyUrl?: string;
   };
@@ -29,29 +30,32 @@ export function init(initParams: InitParams) {
     case "calculator":
       initCalculator(container, initParams.options?.applyUrl || "");
       break;
-    case "market-trend-videos":
-      initMarketTrendVideos(container);
-      break;
-    case "faqs":
-      initFaqs(container);
-      break;
-    case "research-articles":
-      initResearchArticles(container);
-      break;
-    case "mortgage-news":
-      initMortgageNews(container);
-      break;
-    case "mortgage-glossary":
-      initMortgageGlossary(container);
+    case "cockpit":
+      initCockpit(container);
       break;
     case "educational-videos":
       initEducationalVideos(container);
       break;
-    case "cockpit":
-      initCockpit(container);
+    case "faqs":
+      initFaqs(container);
       break;
     case "free-guides":
       initFreeGuides(container);
+      break;
+    case "market-trend-videos":
+      initMarketTrendVideos(container);
+      break;
+    case "mortgage-calender":
+      initMortgageCalendar(container);
+      break;
+    case "mortgage-glossary":
+      initMortgageGlossary(container);
+      break;
+    case "mortgage-news":
+      initMortgageNews(container);
+      break;
+    case "research-articles":
+      initResearchArticles(container);
       break;
     default:
       console.error(`Unknown product: ${initParams.product}`);
