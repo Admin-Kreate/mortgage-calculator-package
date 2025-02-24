@@ -106,7 +106,7 @@ async function loadMortgageCalendarEvents(container: HTMLElement): Promise<boole
 
         let calendarEventsQuery = query(
             collection(db, FIRESTORE_COLLECTION),
-            orderBy("schedule_date", "desc"),
+            orderBy("schedule_date", "asc"),
             limit(PAGE_SIZE)
         );
         
