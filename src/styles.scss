@@ -426,7 +426,7 @@ body {
                 visibility: visible;
             }
 
-            &.col-3 {
+            &.three-col-layout {
                 grid-template-columns: repeat(3, 1fr);
             }
 
@@ -464,7 +464,7 @@ body {
                     border-bottom: none;
                 }
 
-                &.col-3 {
+                &.three-col-layout {
                     grid-template-columns: repeat(3, 1fr);
                 }
 

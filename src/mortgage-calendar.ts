@@ -86,7 +86,7 @@ export function initMortgageCalendar(container: HTMLElement) {
             selectedCategory = target.textContent ? target.textContent : "";
             lastDocument = null;
 
-            calendarHeader.classList.remove("show", "col-3");
+            calendarHeader.classList.remove("show", "three-col-layout");
 
             calendarEvents.innerHTML = "";
             calendarHeader.innerHTML = "";
@@ -131,7 +131,7 @@ async function loadMortgageCalendarEvents(container: HTMLElement): Promise<boole
 
             const calendarEventElement = document.createElement("div");
             calendarEventElement.classList.add("calendar-event");
-            calendarHeader.classList.remove("show", "col-3");
+            calendarHeader.classList.remove("show", "three-col-layout");
             if (selectedCategory === "Interest Rate") {
                 calendarHeader.classList.add("show");
                 calendarHeader.innerHTML = `
@@ -143,26 +143,26 @@ async function loadMortgageCalendarEvents(container: HTMLElement): Promise<boole
                     <div class="calendar-event-col date">${formatDate(calendarEventData.schedule_date?.trim())}</div>
                 `;
             } else if (selectedCategory === "Gross domestic product, income, and expenditure") {
-                calendarHeader.classList.add("show", "col-3");
+                calendarHeader.classList.add("show", "three-col-layout");
                 calendarHeader.innerHTML = `
                     <div class="calendar-header-col">Gross domestic product, income, and expenditure</div>
                     <div class="calendar-header-col">Release Date</div>
                     <div class="calendar-header-col">Reference Period</div>
                 `;
-                calendarEventElement.classList.add("col-3");
+                calendarEventElement.classList.add("three-col-layout");
                 calendarEventElement.innerHTML = `
                     <div class="calendar-event-col">${calendarEventData.title?.trim()}</div>
                     <div class="calendar-event-col date">${formatDate(calendarEventData.release_date?.trim())}</div>
                     <div class="calendar-event-col date">${formatDate(calendarEventData.reference_period?.trim())}</div>
                 `;
             } else if (selectedCategory === "Housing") {
-                calendarHeader.classList.add("show", "col-3");
+                calendarHeader.classList.add("show", "three-col-layout");
                 calendarHeader.innerHTML = `
                     <div class="calendar-header-col">Housing</div>
                     <div class="calendar-header-col">Release Date</div>
                     <div class="calendar-header-col">Last Published Date</div>
                 `;
-                calendarEventElement.classList.add("col-3");
+                calendarEventElement.classList.add("three-col-layout");
                 calendarEventElement.innerHTML = `
                     <div class="calendar-event-col">${calendarEventData.title?.trim()}</div>
                     <div class="calendar-event-col date">${formatDate(calendarEventData.release_date?.trim())}</div>
