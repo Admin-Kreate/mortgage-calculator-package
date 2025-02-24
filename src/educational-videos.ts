@@ -131,8 +131,6 @@ async function loadEducationalVideos(container: HTMLElement): Promise<boolean> {
             videosQuery = query(videosQuery, startAfter(lastDocument));
         }
 
-        console.log(videosQuery, "videosQuery");
-
         const querySnapshot = await getDocs(videosQuery);
 
         if (querySnapshot.empty) {
@@ -142,8 +140,6 @@ async function loadEducationalVideos(container: HTMLElement): Promise<boolean> {
 
         querySnapshot.forEach((doc) => {
             const videoData = doc.data();
-            console.log("videoData - ", videoData);
-
             const videoElement = document.createElement("div");
             videoElement.classList.add("video");
             videoElement.setAttribute("data-video-url", videoData.video_link);
