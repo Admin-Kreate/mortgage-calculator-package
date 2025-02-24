@@ -54,7 +54,7 @@ export function initMortgageCalendar(container: HTMLElement) {
             try {
                 hasMoreData = await loadMortgageCalendarEvents(container);
             } catch (error) {
-                console.error("Error loading educational videos:", error);
+                console.error("Error loading mortgage calendar events:", error);
             } finally {
                 isLoading = false;
             }
@@ -175,7 +175,7 @@ async function loadMortgageCalendarEvents(container: HTMLElement): Promise<boole
         lastDocument = querySnapshot.docs[querySnapshot.docs.length - 1];
         return true;
     } catch (error) {
-        console.error("Error loading educational videos:", error);
+        console.error("Error loading mortgage calendar events:", error);
         return false;
     }
 }
