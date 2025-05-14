@@ -33,6 +33,12 @@ body {
     border: 1px solid rgba(35, 38, 55, 0.20);
     background: rgba(255, 255, 255, 0.04);
 
+    @include respond-to-mobile {
+        margin: 1rem auto;
+        width: 90vw;
+        border-radius: 8px;
+    }
+
     .section-heading {
         color: #FFF;
         font-family: "DM Sans";
@@ -45,6 +51,12 @@ body {
         background: #5F758A;
 
         padding: 1rem;
+
+        @include respond-to-mobile {
+            font-size: 28px;
+            padding: 0.5rem;
+            border-radius: 8px 8px 0px 0px;
+        }
     }
 
     .tab-layout {
@@ -71,6 +83,11 @@ body {
                     font-weight: 700;
                     border-bottom: 3px solid #000;
                 }
+
+                @include respond-to-mobile {
+                    font-size: 20px;
+                    padding: 0.5rem 0;
+                }
             }
         }
 
@@ -79,6 +96,12 @@ body {
             grid-template-columns: 3fr 2fr;
             grid-gap: 2rem;
             padding: 2rem;
+
+            @include respond-to-mobile {
+                grid-template-columns: 1fr;
+                grid-gap: 1rem;
+                padding: 1rem;
+            }
 
             &.active {
                 display: grid;
@@ -89,6 +112,11 @@ body {
                     display: grid;
                     grid-gap: 1rem;
                     margin-bottom: 2rem;
+
+                    @include respond-to-mobile {
+                        grid-gap: 0.5rem;
+                        margin-bottom: 1rem;
+                    }
 
                     .header {
                         display: grid;
@@ -110,6 +138,10 @@ body {
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;
+
+                                @include respond-to-mobile {
+                                    font-size: 18px;
+                                }
                             }
                         }
 
@@ -136,6 +168,10 @@ body {
                                 text-align: center;
                                 padding: 0.25rem 0;
                                 cursor: pointer;
+
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
 
                                 &.active {
                                     background: #5F758A;
@@ -168,6 +204,10 @@ body {
                                 padding: 0.25rem 0;
                                 cursor: pointer;
 
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
+
                                 &.active {
                                     background: #5F758A;
                                     color: #FFFFFF;
@@ -176,7 +216,8 @@ body {
                                 &:nth-child(2) {
                                     border-top: 1px solid #5F758A;
                                     border-bottom: 1px solid #5F758A;
-                                    border-left: 1px solid #5F758A;
+                                    border-left: none;
+                                    border-right: none;
                                     border-radius: 0;
                                 }
 
@@ -195,6 +236,10 @@ body {
                         box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
                         padding: 1rem;
 
+                        @include respond-to-mobile {
+                            padding: 0.5rem;
+                        }
+
                         input[type="text"] {
                             color: #161819;
                             font-family: "DM Sans";
@@ -204,9 +249,11 @@ body {
                             line-height: normal;
                             border: none;
                             padding: 0.5rem;
-                        }
 
-                        input[type="range"] {}
+                            @include respond-to-mobile {
+                                font-size: 16px;
+                            }
+                        }
 
 
                         .downpayment-percentage-wrapper {
@@ -214,6 +261,10 @@ body {
                             grid-template-columns: 1fr auto;
                             align-items: center;
                             grid-gap: 1rem;
+
+                            @include respond-to-mobile {
+                                grid-gap: 0.5rem;
+                            }
 
                             .percentage-value-input {
                                 border-radius: 12px;
@@ -242,6 +293,15 @@ body {
                                 opacity: 0.6;
                             }
                         }
+
+                        &.disabled {
+                            pointer-events: none;
+                            background: #f0f0f0;
+
+                            input[type="text"] {
+                                background: #f0f0f0;
+                            }
+                        }
                     }
 
                     .dropdown {
@@ -253,6 +313,17 @@ body {
                             align-items: center;
                             grid-gap: 1rem;
 
+                            border-radius: 12px;
+                            border: 1px solid rgba(35, 38, 55, 0.20);
+                            background: #FFF;
+                            box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
+                            padding: 1rem;
+                            cursor: pointer;
+
+                            @include respond-to-mobile {
+                                grid-gap: 0.5rem;
+                            }
+
                             span {
                                 color: #161819;
                                 font-family: "DM Sans";
@@ -260,14 +331,13 @@ body {
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;
+
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
                             }
 
-                            border-radius: 12px;
-                            border: 1px solid rgba(35, 38, 55, 0.20);
-                            background: #FFF;
-                            box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
-                            padding: 1rem;
-                            cursor: pointer;
+                            
                         }
 
                         .dropdown-opts {
@@ -287,6 +357,10 @@ body {
                                 max-height: 285px;
                             }
 
+                            @include respond-to-mobile {
+                                top: 3.5rem;
+                            }
+
                             .dropdown-opt {
                                 color: #161819;
                                 font-family: "DM Sans";
@@ -298,17 +372,24 @@ body {
                                 padding: 0.5rem 1rem;
                                 transition: all .15s ease;
 
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
+
                                 &:hover {
                                     background-color: #ededed;
                                 }
                             }
                         }
-                    }
 
-                    // .extra-payment-fields {
-                    //     display: grid;
-                    //     grid-gap: 1rem;
-                    // }
+                        &.disabled {
+                            pointer-events: none;
+
+                            .dropdown-field {
+                                background: #f0f0f0;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -317,12 +398,21 @@ body {
                 grid-gap: 1rem;
                 height: fit-content;
 
+                @include respond-to-mobile {
+                    grid-gap: 0.5rem;
+                }
+
                 .mortgage-payment,
                 .total-mortgage-payment {
                     border-radius: 20px;
                     border: 1px solid rgba(35, 38, 55, 0.20);
                     background: rgba(95, 117, 138, 0.10);
                     padding: 2rem;
+
+                    @include respond-to-mobile {
+                        border-radius: 14px;
+                        padding: 1rem;
+                    }
 
                     &.total-mortgage-payment {
                         border: none;
@@ -344,16 +434,25 @@ body {
                             font-style: normal;
                             font-weight: 700;
                             line-height: normal;
+
+                            @include respond-to-mobile {
+                                font-size: 18px;
+                            }
                         }
 
                         .value {
                             color: #5F758A;
                             font-family: "DM Sans";
-                            font-size: 47.383px;
+                            font-size: 47px;
                             font-style: normal;
                             font-weight: 800;
                             line-height: normal;
                             padding-top: 0.5rem;
+
+                            @include respond-to-mobile {
+                                font-size: 24px;
+                                padding-top: 0.25rem;
+                            }
                         }
 
                         .frequency {
@@ -365,6 +464,10 @@ body {
                             font-weight: 400;
                             line-height: normal;
                             opacity: 0.8;
+
+                            @include respond-to-mobile {
+                                font-size: 14px;
+                            }
                         }
                     }
 
@@ -376,6 +479,11 @@ body {
                         margin-top: 1.5rem;
                         grid-gap: 1rem;
                         justify-items: center;
+
+                        @include respond-to-mobile {
+                            margin-top: 0.75rem;
+                            grid-gap: 0.5rem;
+                        }
 
                         .mortgage-amount,
                         .mortgage-insurance {
@@ -390,16 +498,24 @@ body {
                                 font-weight: 400;
                                 line-height: normal;
                                 opacity: 0.8;
+
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
                             }
 
                             .value {
                                 color: #000;
                                 text-align: center;
                                 font-family: "DM Sans";
-                                font-size: 21.183px;
+                                font-size: 21;
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;
+
+                                @include respond-to-mobile {
+                                    font-size: 18px;
+                                }
                             }
                         }
                     }
@@ -412,6 +528,11 @@ body {
                     background: #FFF;
                     padding: 2rem;
 
+                    @include respond-to-mobile {
+                        border-radius: 14px;
+                        padding: 1rem;
+                    }
+
                     .section-label {
                         color: #000;
                         font-family: "DM Sans";
@@ -419,6 +540,10 @@ body {
                         font-style: normal;
                         font-weight: 700;
                         line-height: normal;
+
+                        @include respond-to-mobile {
+                            font-size: 20px;
+                        }
                     }
 
                     .section-wrapper {
@@ -427,6 +552,11 @@ body {
                         align-items: center;
                         grid-gap: 2rem;
                         margin-top: 1.5rem;
+
+                        @include respond-to-mobile {
+                            grid-gap: 1rem;
+                            margin-top: 0.75rem;
+                        }
 
                         .principal,
                         .interest {
@@ -441,15 +571,23 @@ body {
                                 font-weight: 400;
                                 line-height: normal;
                                 opacity: 0.8;
+
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
                             }
 
                             .value {
                                 color: #000;
                                 font-family: "DM Sans";
-                                font-size: 21.183px;
+                                font-size: 21px;
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;
+
+                                @include respond-to-mobile {
+                                    font-size: 18px;
+                                }
                             }
                         }
                     }
@@ -468,6 +606,12 @@ body {
                     display: grid;
                     grid-gap: 1rem;
 
+                    @include respond-to-mobile {
+                        border-radius: 14px;
+                        padding: 1rem;
+                        grid-gap: 0.5rem;
+                    }
+
                     .section-label {
                         color: #000;
                         font-family: "DM Sans";
@@ -475,6 +619,10 @@ body {
                         font-style: normal;
                         font-weight: 700;
                         line-height: normal;
+
+                        @include respond-to-mobile {
+                            font-size: 18px;
+                        }
                     }
 
                     .section-wrapper {
@@ -493,25 +641,37 @@ body {
                                 font-weight: 400;
                                 line-height: normal;
                                 opacity: 0.8;
+
+                                @include respond-to-mobile {
+                                    font-size: 14px;
+                                }
                             }
 
                             .value {
                                 color: #000;
                                 font-family: "DM Sans";
-                                font-size: 21.183px;
+                                font-size: 21px;
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;
+
+                                @include respond-to-mobile {
+                                    font-size: 18px;
+                                }
                             }
 
                             .calculation-row-label {
                                 color: #000;
                                 font-family: "DM Sans";
-                                font-size: 21.183px;
+                                font-size: 21px;
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;
                                 padding: 0.5rem 0;
+
+                                @include respond-to-mobile {
+                                    font-size: 18px;
+                                }
                             }
 
                             .range-label {
@@ -1783,4 +1943,27 @@ body {
 /* Firefox Track */
 .slider::-moz-range-track {
     background: transparent;
+}
+
+.custom-tooltip {
+    position: absolute;
+    background: #fff;
+    color: #333;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    transform: translateY(-4px);
+
+    font-family: "DM Sans";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

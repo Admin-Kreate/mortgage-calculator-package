@@ -1,4 +1,4 @@
-import { calculateMortgage } from './utils';
+import { calculateMortgage, calculateAdvancedResults } from './utils';
 
 import PurchasePriceIcon from './assets/icons/purchase-price.svg';
 import DownPaymentIcon from './assets/icons/down-payment.svg';
@@ -21,7 +21,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${PurchasePriceIcon}" alt="Purchase Price icon"/>
           <div class="title">Purchase Price</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The total purchase price of the property"/>
       </div>
       <div class="input-field">
         <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
@@ -39,7 +39,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${DownPaymentIcon}" alt="Down Payment icon"/>
           <div class="title">Down Payment</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Your initial payment towards the property"/>
       </div>
       <div class="input-field">
         <div class="downpayment-percentage-wrapper">
@@ -61,8 +61,8 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <div class="title">Interest Rate</div>
         </div>
         <div class="fixed-variable-selector">
-          <div class="selector active">Fixed</div>
-          <div class="selector">Variable</div>
+          <div class="selector">Fixed</div>
+          <div class="selector active">Variable</div>
         </div>
       </div>
       <div class="input-field">
@@ -81,7 +81,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${AmortizationPeriodIcon}" alt="Amortization Period icon"/>
           <div class="title">Amortization Period</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The total length of time to pay off your mortgage"/>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -105,7 +105,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${TermLengthIcon}" alt="Term Length icon"/>
           <div class="title">Term Length</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The length of your mortgage term"/>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -130,7 +130,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${PaymentFrequencyIcon}" alt="Payment Frequency icon"/>
           <div class="title">Payment Frequency</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="How often you make mortgage payments"/>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -184,7 +184,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="term-calculations">
-      <div class="section-label">Term Calculations (5 years)</div>
+      <div class="section-label">Term Calculations (<span>5 years</span>)</div>
       <div class="section-wrapper">
         <div class="calculation-row">
           <div class="label">Total Payments over Term</div>
@@ -213,7 +213,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="total-mortgage">
-      <div class="section-label">Total Mortgage (25 years)</div>
+      <div class="section-label">Total Mortgage (<span>25 years</span>)</div>
       <div class="section-wrapper">
         <div class="calculation-row">
           <div class="label">Total Mortgage + Interest</div>
@@ -247,7 +247,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${TermLengthIcon}" alt="Term Length icon"/>
           <div class="title">Term Length</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The length of your mortgage contract"/>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -272,7 +272,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${PropertyTaxesIcon}" alt="Property Taxes icon"/>
           <div class="title">Property Taxes</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Annual property taxes"/>
       </div>
       <div class="input-field">
         <input type="text" value="$  9,600" data-previous-value="9600" class="value-input">
@@ -290,7 +290,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${HeatingCostsIcon}" alt="Heating Costs icon"/>
           <div class="title">Heating Costs</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Annual heating costs"/>
       </div>
       <div class="input-field">
         <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
@@ -308,7 +308,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           <img src="${CondoFeesIcon}" alt="Condo Fees icon"/>
           <div class="title">Condo Fees</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon"/>
+        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Monthly condo maintenance fees"/>
       </div>
       <div class="input-field">
         <input type="text" value="$  250" data-previous-value="250" class="value-input">
@@ -356,19 +356,19 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
         <div class="frequency">Including all selected costs</div>
       </div>
       <div class="mortgage-amount-insurance">
-        <div class="mortgage-amount">
+        <div class="mortgage-amount advanced-mortgage-payment">
           <div class="label">Mortgage Payment</div>
           <div class="value">$2,902</div>
         </div>
-        <div class="mortgage-insurance">
+        <div class="mortgage-insurance property-taxes">
           <div class="label">Property Taxes</div>
           <div class="value">$800</div>
         </div>
-        <div class="mortgage-amount">
+        <div class="mortgage-amount heating-costs">
           <div class="label">Heating Costs</div>
           <div class="value">$200</div>
         </div>
-        <div class="mortgage-insurance">
+        <div class="mortgage-insurance condo-fees">
           <div class="label">Condo Fees</div>
           <div class="value">$0</div>
         </div>
@@ -378,11 +378,11 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     <div class="extra-payment-impacts">
       <div class="section-label">Impact of Extra Payments</div>
       <div class="section-wrapper">
-        <div class="principal">
+        <div class="principal years-saved">
           <div class="label">Years Saved</div>
           <div class="value">0 years</div>
         </div>
-        <div class="interest">
+        <div class="interest interest-saved">
           <div class="label">Interest Saved</div>
           <div class="value">$0</div>
         </div>
@@ -413,10 +413,10 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
         <div class="section-heading">Mortgage Calculator</div>
         <div class="tab-layout">
           <div class="tab-headers">
-            <div class="tab-header">Standard</div>
-            <div class="tab-header active">Advanced</div>
+            <div class="tab-header active">Standard</div>
+            <div class="tab-header">Advanced</div>
           </div>
-          <div class="tab-content">
+          <div class="tab-content active">
             <div class="calculator-inputs">
               ${calculatorInputsHTML}
             </div>
@@ -424,7 +424,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
               ${calculatorResultsHTML}
             </div>
           </div>
-          <div class="tab-content active">
+          <div class="tab-content">
             <div class="calculator-inputs">
               ${advancedCalculatorInputsHTML}
             </div>
@@ -465,6 +465,47 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
 
   const extraPaymentsInput = document.querySelector('.extra-payments .value-input') as HTMLInputElement;
 
+  const amortizationPeriodValueElement = document.querySelector('.amortization-period .dropdown-field span') as HTMLInputElement;
+  const paymentFrequencyValueElement = document.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
+  const termLengthValueElement = document.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
+  const extraPaymentFrequencyValueElement = document.querySelector('.extra-payments .dropdown-field span') as HTMLInputElement;
+
+  const mortgagePaymentResultsElement = document.querySelector('.calculator-results .mortgage-payment-wrapper .value') as HTMLInputElement;
+  const mortgageAmountResultsElement = document.querySelector('.calculator-results .mortgage-amount-insurance .mortgage-amount .value') as HTMLInputElement;
+  const mortgageInsuranceResultsElement = document.querySelector('.calculator-results .mortgage-amount-insurance .mortgage-insurance .value') as HTMLInputElement;
+  const paymentBreakdownPrincipalResultsElement = document.querySelector('.calculator-results .payment-breakdown .principal .value') as HTMLInputElement;
+  const paymentBreakdownInterestResultsElement = document.querySelector('.calculator-results .payment-breakdown .interest .value') as HTMLInputElement;
+
+  const totalPaymentsOverTimeResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
+  const principalPaidDuringTermResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
+  const interestPaidDuringTermResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
+  const balanceRemainingAfterTermResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(4) .value') as HTMLInputElement;
+
+  const totalMortgagePlusInterestResultsElement = document.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
+  const totalInterestPaidResultsElement = document.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
+  const interestPrincipalRatioResultsElement = document.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
+
+  const termLengthResultsElement = document.querySelector('.term-calculations .section-label span') as HTMLInputElement;
+  const totalMortgageYearsResultsElement = document.querySelector('.total-mortgage .section-label span') as HTMLInputElement;
+
+  const totalMortgagePaymentAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-payment-wrapper .value') as HTMLInputElement;
+  const mortgagePaymentAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .advanced-mortgage-payment .value') as HTMLInputElement;
+  const propertyTaxesAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .property-taxes .value') as HTMLInputElement;
+  const heatingCostsAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .heating-costs .value') as HTMLInputElement;
+  const condoFeesAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .condo-fees .value') as HTMLInputElement;
+
+  const yearsSavedAdvancedResultsElement = document.querySelector('.calculator-results .extra-payment-impacts .years-saved .value') as HTMLInputElement;
+  const interestSavedAdvancedResultsElement = document.querySelector('.calculator-results .extra-payment-impacts .interest-saved .value') as HTMLInputElement;
+
+  const qualifyingRateAdvancedResultsElement = document.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
+  const stressTestPaymentAdvancedResultsElement = document.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
+  const incomeRequiredAdvancedResultsElement = document.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
+
+  const interestRateTypeSelectorElements = document.querySelectorAll('.fixed-variable-selector .selector');
+  const extraPaymentsTypeSelectorElements = document.querySelectorAll('.extra-payment-selectors .selector');
+
+  const tooltipElements = document.querySelectorAll("[data-tooltip]");
+
   const dropdownOpts = document.querySelectorAll('.dropdown-opt');
 
   dropdownOpts.forEach(dropdownOpt => {
@@ -477,6 +518,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
       }
 
       dropdownOpt.parentElement?.classList.remove("expanded");
+      updateResults();
     });
   });
 
@@ -510,11 +552,64 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
 
       header.classList.add('active');
       tabContents[index].classList.add('active');
+
+      updateResults();
+    });
+  });
+
+  interestRateTypeSelectorElements.forEach((selector, index) => {
+    selector.addEventListener('click', () => {
+      interestRateTypeSelectorElements.forEach(h => h.classList.remove('active'));
+      selector.classList.add('active');
+      updateResults();
+    });
+  });
+
+  extraPaymentsTypeSelectorElements.forEach((selector, index) => {
+    selector.addEventListener('click', () => {
+      extraPaymentsTypeSelectorElements.forEach(h => h.classList.remove('active'));
+      selector.classList.add('active');
+
+      const firstField = selector.parentElement?.parentElement?.nextElementSibling;
+      const secondField = selector.parentElement?.parentElement?.nextElementSibling?.nextElementSibling;
+      if (selector.textContent?.toLowerCase() === 'none') {
+        firstField?.classList.add("disabled");
+        secondField?.classList.add("disabled");
+      } else {
+        firstField?.classList.remove("disabled");
+        secondField?.classList.remove("disabled");
+      }
+
+      updateResults();
+    });
+  });
+
+  tooltipElements.forEach(el => {
+    const tooltipText = el.getAttribute("data-tooltip");
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "custom-tooltip";
+    tooltip.textContent = tooltipText;
+    document.body.appendChild(tooltip);
+
+    el.addEventListener("mousemove", (e) => {
+      const event = e as MouseEvent;
+      tooltip.style.top = `${event.pageY + 20}px`;
+      tooltip.style.left = `${(event.pageX - (tooltip.clientWidth / 2))}px`;
+    });
+
+    el.addEventListener("mouseenter", (e) => {
+      tooltip.style.opacity = "1";
+      tooltip.style.pointerEvents = "none";
+    });
+
+    el.addEventListener("mouseleave", () => {
+      tooltip.style.opacity = "0";
     });
   });
 
   function updateSliderBackground(slider: HTMLInputElement) {
-    const value = Number(slider.value); // convert value to number
+    const value = Number(slider.value);
     const min = Number(slider.min);
     const max = Number(slider.max);
     const percent = ((value - min) / (max - min)) * 100;
@@ -527,6 +622,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     purchasePriceInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     purchasePriceInput.dataset.previousValue = inputValue;
     updateSliderBackground(purchasePriceInputSlider);
+    updateResults();
   });
 
   downPaymentPercentageInputSlider.addEventListener("input", () => {
@@ -542,6 +638,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     downPaymentInput.dataset.previousValue = downpaymentValue.toString();
 
     updateSliderBackground(downPaymentPercentageInputSlider);
+    updateResults();
   });
 
   interestRateInputSlider.addEventListener("input", () => {
@@ -549,6 +646,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     interestRateInput.value = inputValue ? `${parseFloat(inputValue).toFixed(2)}%` : '';
     interestRateInput.dataset.previousValue = inputValue;
     updateSliderBackground(interestRateInputSlider);
+    updateResults();
   });
 
   propertyTaxesInputSlider.addEventListener("input", () => {
@@ -556,6 +654,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     propertyTaxesInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     propertyTaxesInput.dataset.previousValue = inputValue;
     updateSliderBackground(propertyTaxesInputSlider);
+    updateResults();
   });
 
   heatingCostsInputSlider.addEventListener("input", () => {
@@ -563,6 +662,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     heatingCostsInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     heatingCostsInput.dataset.previousValue = inputValue;
     updateSliderBackground(heatingCostsInputSlider);
+    updateResults();
   });
 
   condoFeesInputSlider.addEventListener("input", () => {
@@ -570,6 +670,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     condoFeesInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     condoFeesInput.dataset.previousValue = inputValue;
     updateSliderBackground(condoFeesInputSlider);
+    updateResults();
   });
 
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
@@ -664,7 +765,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
-            
+
           case "condo-fees":
             if (0 <= numericValue && numericValue <= 1000) {
               condoFeesInputSlider.value = numericValue.toString();
@@ -675,7 +776,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
-            
+
           case "extra-payments":
             if (0 <= numericValue) {
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -688,10 +789,75 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
           default:
             break;
         }
-
+        updateResults();
       }
     });
   };
+
+  const updateResults = () => {
+    const activeTabElement = document.querySelector('.mortgage-calculator .tab-headers .active') as HTMLElement;
+    const rateTypeValueElement = document.querySelector('.interest-rate .fixed-variable-selector .active') as HTMLInputElement;
+    const extraPaymentTypeValueElement = document.querySelector('.extra-payments .extra-payment-selectors .active') as HTMLInputElement;
+
+    const activeTab = activeTabElement.textContent?.toLowerCase();
+
+    const inputData: any = {
+      purchasePrice: purchasePriceInput.dataset.previousValue ? parseInt(purchasePriceInput.dataset.previousValue) : 0,
+      downPaymentAmount: downPaymentInput.dataset.previousValue ? parseInt(downPaymentInput.dataset.previousValue) : 0,
+      downPaymentPercentage: downPaymentPecentageInput.dataset.previousValue ? parseInt(downPaymentPecentageInput.dataset.previousValue) : 0,
+      interestRate: interestRateInput.dataset.previousValue ? parseInt(interestRateInput.dataset.previousValue) : 0,
+      amortizationPeriod: amortizationPeriodValueElement.textContent ? parseInt(amortizationPeriodValueElement.textContent.replace(" years", "")) : 5,
+      paymentFrequency: paymentFrequencyValueElement.textContent ? paymentFrequencyValueElement.textContent.toLowerCase() : "monthly",
+      rateType: rateTypeValueElement.textContent ? rateTypeValueElement.textContent.toLowerCase() : "fixed",
+      termLength: termLengthValueElement.textContent ? parseInt(termLengthValueElement.textContent.replace(" years", "").replace(" year", "")) : 5,
+      propertyTaxes: propertyTaxesInput.dataset.previousValue ? parseInt(propertyTaxesInput.dataset.previousValue) : 0,
+      heatingCosts: heatingCostsInput.dataset.previousValue ? parseInt(heatingCostsInput.dataset.previousValue) : 0,
+      condoFees: condoFeesInput.dataset.previousValue ? parseInt(condoFeesInput.dataset.previousValue) : 0,
+      extraPaymentType: extraPaymentTypeValueElement.textContent ? extraPaymentTypeValueElement.textContent.toLowerCase() : "none",
+      extraPaymentAmount: extraPaymentsInput.dataset.previousValue ? parseInt(extraPaymentsInput.dataset.previousValue) : 0,
+      extraPaymentFrequency: extraPaymentFrequencyValueElement.textContent ? extraPaymentFrequencyValueElement.textContent.toLowerCase() : "monthly",
+    };
+    const resultObj = calculateMortgage(inputData);
+    const advancedResultObj = calculateAdvancedResults(inputData);
+
+    if (activeTab === "standard") {
+      mortgagePaymentResultsElement.textContent = `$${resultObj.monthlyPayment.toLocaleString()}`;
+      mortgageAmountResultsElement.textContent = `$${resultObj.mortgageAmount.toLocaleString()}`;
+      mortgageInsuranceResultsElement.textContent = `$${resultObj.mortgageInsurance.toLocaleString()}`;
+
+      paymentBreakdownPrincipalResultsElement.textContent = `$${resultObj.principal.toLocaleString()}`;
+      paymentBreakdownInterestResultsElement.textContent = `$${resultObj.interest.toLocaleString()}`;
+
+      totalPaymentsOverTimeResultsElement.textContent = `$${resultObj.termPayments.toLocaleString()}`;
+      principalPaidDuringTermResultsElement.textContent = `$${resultObj.termPrincipalPaid.toLocaleString()}`;
+      interestPaidDuringTermResultsElement.textContent = `$${resultObj.termInterestPaid.toLocaleString()}`;
+      balanceRemainingAfterTermResultsElement.textContent = `$${resultObj.remainingPrincipalAtEndOfTerm.toLocaleString()}`;
+      principalSlider.value = Math.round((resultObj.termPrincipalPaid / resultObj.mortgageAmount) * 100).toString();
+      updateSliderBackground(principalSlider);
+
+      totalMortgagePlusInterestResultsElement.textContent = `$${resultObj.totalMortgagePlusInterest.toLocaleString()}`;
+      totalInterestPaidResultsElement.textContent = `$${resultObj.totalInterestPaid.toLocaleString()}`;
+      interestPrincipalRatioResultsElement.textContent = `${resultObj.interestPrincipalRatio}%`;
+      amortizationResultSlider.value = (100 - resultObj.interestPrincipalRatio).toString();
+      updateSliderBackground(amortizationResultSlider);
+
+      termLengthResultsElement.textContent = termLengthValueElement.textContent;
+      totalMortgageYearsResultsElement.textContent = amortizationPeriodValueElement.textContent;
+    } else {
+      totalMortgagePaymentAdvancedResultsElement.textContent = `$${advancedResultObj.totalMonthlyPayment.toLocaleString()}`;
+      mortgagePaymentAdvancedResultsElement.textContent = `$${advancedResultObj.mortgagePayment.toLocaleString()}`;
+      propertyTaxesAdvancedResultsElement.textContent = `$${advancedResultObj.propertyTaxesMonthly.toLocaleString()}`;
+      heatingCostsAdvancedResultsElement.textContent = `$${advancedResultObj.heatingCostsMonthly.toLocaleString()}`;
+      condoFeesAdvancedResultsElement.textContent = `$${advancedResultObj.condoFeesMonthly.toLocaleString()}`;
+
+      yearsSavedAdvancedResultsElement.textContent = `${advancedResultObj.yearsSaved} years`;
+      interestSavedAdvancedResultsElement.textContent = `$${advancedResultObj.interestSaved.toLocaleString()}`;
+
+      qualifyingRateAdvancedResultsElement.textContent = `${advancedResultObj.qualifyingRate.toFixed(2)}%`;
+      stressTestPaymentAdvancedResultsElement.textContent = `$${advancedResultObj.stressTestPayment.toLocaleString()}`;
+      incomeRequiredAdvancedResultsElement.textContent = `$${advancedResultObj.incomeRequired.toLocaleString()}`;
+    }
+  }
 
   formatInput(purchasePriceInput, '$', 'purchase-price');
   updateSliderBackground(purchasePriceInputSlider);
@@ -717,4 +883,6 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
   updateSliderBackground(condoFeesInputSlider);
 
   formatInput(extraPaymentsInput, '$', 'extra-payments');
+
+  updateResults();
 }
