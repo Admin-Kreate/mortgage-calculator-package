@@ -622,6 +622,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     purchasePriceInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     purchasePriceInput.dataset.previousValue = inputValue;
     updateSliderBackground(purchasePriceInputSlider);
+    updateDownpaymentPercentageInputs();
     updateResults();
   });
 
@@ -673,6 +674,19 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     updateResults();
   });
 
+  const updateDownpaymentPercentageInputs = () => {
+    let ppValue = purchasePriceInput.dataset.previousValue?.replace(/[^0-9.]/g, '');
+    const purchasePrice = ppValue ? parseInt(ppValue) : 0;
+
+    const downpaymentValue = parseInt(downPaymentInput.dataset.previousValue ?? '0');
+    const downpaymentPercentageValue = (downpaymentValue / purchasePrice) * 100;
+    downPaymentPercentageInputSlider.value = downpaymentPercentageValue.toString();
+    updateSliderBackground(downPaymentPercentageInputSlider);
+
+    downPaymentPecentageInput.value = `${downpaymentPercentageValue.toLocaleString('en-US')}%`;
+    downPaymentPecentageInput.dataset.previousValue = downpaymentPercentageValue.toString();
+  };
+
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
     inputElement.addEventListener('input', (event) => {
       const target = event.target as HTMLInputElement;
@@ -691,6 +705,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
+            updateDownpaymentPercentageInputs();
             break;
 
           case "downpayment":
@@ -805,7 +820,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
       purchasePrice: purchasePriceInput.dataset.previousValue ? parseInt(purchasePriceInput.dataset.previousValue) : 0,
       downPaymentAmount: downPaymentInput.dataset.previousValue ? parseInt(downPaymentInput.dataset.previousValue) : 0,
       downPaymentPercentage: downPaymentPecentageInput.dataset.previousValue ? parseInt(downPaymentPecentageInput.dataset.previousValue) : 0,
-      interestRate: interestRateInput.dataset.previousValue ? parseInt(interestRateInput.dataset.previousValue) : 0,
+      interestRate: interestRateInput.dataset.previousValue ? parseFloat(parseFloat(interestRateInput.dataset.previousValue).toFixed(2)) : 0,
       amortizationPeriod: amortizationPeriodValueElement.textContent ? parseInt(amortizationPeriodValueElement.textContent.replace(" years", "")) : 5,
       paymentFrequency: paymentFrequencyValueElement.textContent ? paymentFrequencyValueElement.textContent.toLowerCase() : "monthly",
       rateType: rateTypeValueElement.textContent ? rateTypeValueElement.textContent.toLowerCase() : "fixed",

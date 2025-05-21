@@ -27,7 +27,7 @@ body {
 .mortgage-calculator {
     margin: 2rem auto;
     font-family: "Poppins", serif;
-    width: 80vw;
+    max-width: 80vw;
 
     border-radius: 15px;
     border: 1px solid rgba(35, 38, 55, 0.20);
@@ -36,6 +36,7 @@ body {
     @include respond-to-mobile {
         margin: 1rem auto;
         width: 90vw;
+        max-width: unset;
         border-radius: 8px;
     }
 
