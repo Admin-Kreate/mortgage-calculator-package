@@ -49,9 +49,9 @@ body {
         line-height: normal;
 
         border-radius: 15px 15px 0px 0px;
-        background: #5F758A;
+        background: #1A4383;
 
-        padding: 1rem;
+        padding: 1rem 1rem 1rem 2rem;
 
         @include respond-to-mobile {
             font-size: 28px;
@@ -156,14 +156,14 @@ body {
                             align-items: center;
 
                             .selector {
-                                color: #5F758A;
+                                color: #1A4383;
                                 font-family: "DM Sans";
                                 font-size: 16px;
                                 font-style: normal;
                                 font-weight: 400;
                                 line-height: normal;
                                 border-radius: 12px 0px 0px 12px;
-                                border: 1px solid #5F758A;
+                                border: 1px solid #1A4383;
 
                                 width: 75px;
                                 text-align: center;
@@ -175,7 +175,7 @@ body {
                                 }
 
                                 &.active {
-                                    background: #5F758A;
+                                    background: #1A4383;
                                     color: #FFFFFF;
                                 }
 
@@ -191,14 +191,14 @@ body {
                             align-items: center;
 
                             .selector {
-                                color: #5F758A;
+                                color: #1A4383;
                                 font-family: "DM Sans";
                                 font-size: 14px;
                                 font-style: normal;
                                 font-weight: 400;
                                 line-height: normal;
                                 border-radius: 12px 0px 0px 12px;
-                                border: 1px solid #5F758A;
+                                border: 1px solid #1A4383;
 
                                 width: 75px;
                                 text-align: center;
@@ -210,13 +210,13 @@ body {
                                 }
 
                                 &.active {
-                                    background: #5F758A;
+                                    background: #1A4383;
                                     color: #FFFFFF;
                                 }
 
                                 &:nth-child(2) {
-                                    border-top: 1px solid #5F758A;
-                                    border-bottom: 1px solid #5F758A;
+                                    border-top: 1px solid #1A4383;
+                                    border-bottom: 1px solid #1A4383;
                                     border-left: none;
                                     border-right: none;
                                     border-radius: 0;
@@ -442,7 +442,7 @@ body {
                         }
 
                         .value {
-                            color: #5F758A;
+                            color: #1A4383;
                             font-family: "DM Sans";
                             font-size: 47px;
                             font-style: normal;
@@ -1915,7 +1915,7 @@ body {
     background-repeat: no-repeat;
     outline: none;
     height: 2px;
-    background: #5f758a2f;
+    background: #1A43832f;
     margin: 0.5rem 0;
 }
 
@@ -1924,7 +1924,7 @@ body {
     -webkit-appearance: none;
     height: 16px;
     width: 16px;
-    background: #5f758a;
+    background: #1A4383;
     border-radius: 50%;
     cursor: pointer;
     position: relative;
@@ -1935,7 +1935,7 @@ body {
 .slider::-moz-range-thumb {
     height: 16px;
     width: 16px;
-    background: #5f758a;
+    background: #1A4383;
     border: none;
     border-radius: 50%;
     cursor: pointer;

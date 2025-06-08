@@ -410,7 +410,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
   `;
   container.innerHTML = `
     <div class="mortgage-calculator">
-        <div class="section-heading">Purchase Calculator</div>
+        <div class="section-heading">Mortgage Calculator</div>
         <div class="tab-layout">
           <div class="tab-headers">
             <div class="tab-header active">Standard</div>
