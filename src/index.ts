@@ -1,5 +1,6 @@
 import './styles.scss';
 import { initCalculator } from './calculator';
+import { initMortgageCalculator } from './mortgage-calculator';
 import { initMarketTrendVideos } from './market-trend-videos';
 import { initFaqs } from './faqs';
 import { initResearchArticles } from './research-articles';
@@ -12,7 +13,7 @@ import { initMortgageCalendar } from './mortgage-calendar';
 
 interface InitParams {
   containerId: string;
-  product: "calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos" | "cockpit" | "free-guides" | "mortgage-calender";
+  product: "calculator" | "mortgage-calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos" | "cockpit" | "free-guides" | "mortgage-calender";
   options?: {
     applyUrl?: string;
   };
@@ -29,6 +30,9 @@ export function init(initParams: InitParams) {
   switch (initParams.product) {
     case "calculator":
       initCalculator(container, initParams.options?.applyUrl || "");
+      break;
+    case "mortgage-calculator":
+      initMortgageCalculator(container, initParams.options?.applyUrl || "");
       break;
     case "cockpit":
       initCockpit(container);
