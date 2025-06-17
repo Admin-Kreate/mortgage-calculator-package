@@ -10,7 +10,7 @@ A simple, embeddable **mortgage calculator** widget for any website. Easily add 
 - Handles rendering of HTML, SCSS styles, and JS logic
 - Responsive UI with clean modern styling
 - Lightweight and dependency-free (optional Material UI support)
-- Supports input masking for dollar and percentage fields
+- Supports input masking for dollar and percentage field(s)
 
 ---
 
