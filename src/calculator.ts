@@ -241,31 +241,6 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
   `;
 
   const advancedCalculatorInputsHTML = `
-    <div class="calculator-input term-length">
-      <div class="header">
-        <div class="title-wrapper">
-          <img src="${TermLengthIcon}" alt="Term Length icon"/>
-          <div class="title">Term Length</div>
-        </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The length of your mortgage contract"/>
-      </div>
-      <div class="dropdown">
-        <div class="dropdown-field">
-          <span>5 years</span>
-          <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
-        </div>
-        <div class="dropdown-opts">
-          <div class="dropdown-opt">1 year</div>
-          <div class="dropdown-opt">2 years</div>
-          <div class="dropdown-opt">3 years</div>
-          <div class="dropdown-opt">4 years</div>
-          <div class="dropdown-opt">5 years</div>
-          <div class="dropdown-opt">7 years</div>
-          <div class="dropdown-opt">10 years</div>
-        </div>
-      </div>
-    </div>
-
     <div class="calculator-input property-taxes">
       <div class="header">
         <div class="title-wrapper">
@@ -276,10 +251,10 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
       </div>
       <div class="input-field">
         <input type="text" value="$  9,600" data-previous-value="9600" class="value-input">
-        <input type="range" min="0" max="10000" value="9600" class="slider">
+        <input type="range" min="0" max="100000" value="9600" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$10,000</span>
+          <span>$100,000</span>
         </div>
       </div>
     </div>
@@ -294,10 +269,10 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
       </div>
       <div class="input-field">
         <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
-        <input type="range" min="0" max="3000" value="2400" class="slider">
+        <input type="range" min="0" max="5000" value="2400" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$3,000</span>
+          <span>$5,000</span>
         </div>
       </div>
     </div>
@@ -312,10 +287,10 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
       </div>
       <div class="input-field">
         <input type="text" value="$  250" data-previous-value="250" class="value-input">
-        <input type="range" min="0" max="1000" value="250" class="slider">
+        <input type="range" min="0" max="1500" value="250" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$1,000</span>
+          <span>$1,500</span>
         </div>
       </div>
     </div>
@@ -760,7 +735,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
             break;
 
           case "property-taxes":
-            if (0 <= numericValue && numericValue <= 10000) {
+            if (0 <= numericValue && numericValue <= 100000) {
               propertyTaxesInputSlider.value = numericValue.toString();
               updateSliderBackground(propertyTaxesInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -771,7 +746,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
             break;
 
           case "heating-costs":
-            if (0 <= numericValue && numericValue <= 3000) {
+            if (0 <= numericValue && numericValue <= 5000) {
               heatingCostsInputSlider.value = numericValue.toString();
               updateSliderBackground(heatingCostsInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -782,7 +757,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
             break;
 
           case "condo-fees":
-            if (0 <= numericValue && numericValue <= 1000) {
+            if (0 <= numericValue && numericValue <= 1500) {
               condoFeesInputSlider.value = numericValue.toString();
               updateSliderBackground(condoFeesInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
