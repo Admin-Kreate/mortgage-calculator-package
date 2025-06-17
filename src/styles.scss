@@ -49,9 +49,9 @@ body {
         line-height: normal;
 
         border-radius: 15px 15px 0px 0px;
-        background: #5F758A;
+        background: #1A4383;
 
-        padding: 1rem;
+        padding: 1rem 1rem 1rem 2rem;
 
         @include respond-to-mobile {
             font-size: 28px;
@@ -125,6 +125,11 @@ body {
                         justify-content: space-between;
                         align-items: center;
 
+                        &.stacked {
+                            grid-template-columns: auto;
+                            grid-gap: 1rem;
+                        }
+
                         .title-wrapper {
                             display: grid;
                             grid-template-columns: repeat(2, auto);
@@ -146,6 +151,15 @@ body {
                             }
                         }
 
+                        .mortgage-calculator-info {
+                            color: #161819;
+                            font-family: "DM Sans";
+                            font-size: 12px;
+                            font-style: normal;
+                            font-weight: 500;
+                            line-height: 16px;
+                        }
+
                         .info-icon {
                             cursor: pointer;
                         }
@@ -156,14 +170,14 @@ body {
                             align-items: center;
 
                             .selector {
-                                color: #5F758A;
+                                color: #1A4383;
                                 font-family: "DM Sans";
                                 font-size: 16px;
                                 font-style: normal;
                                 font-weight: 400;
                                 line-height: normal;
                                 border-radius: 12px 0px 0px 12px;
-                                border: 1px solid #5F758A;
+                                border: 1px solid #1A4383;
 
                                 width: 75px;
                                 text-align: center;
@@ -175,7 +189,7 @@ body {
                                 }
 
                                 &.active {
-                                    background: #5F758A;
+                                    background: #1A4383;
                                     color: #FFFFFF;
                                 }
 
@@ -191,14 +205,14 @@ body {
                             align-items: center;
 
                             .selector {
-                                color: #5F758A;
+                                color: #1A4383;
                                 font-family: "DM Sans";
                                 font-size: 14px;
                                 font-style: normal;
                                 font-weight: 400;
                                 line-height: normal;
                                 border-radius: 12px 0px 0px 12px;
-                                border: 1px solid #5F758A;
+                                border: 1px solid #1A4383;
 
                                 width: 75px;
                                 text-align: center;
@@ -210,13 +224,13 @@ body {
                                 }
 
                                 &.active {
-                                    background: #5F758A;
+                                    background: #1A4383;
                                     color: #FFFFFF;
                                 }
 
                                 &:nth-child(2) {
-                                    border-top: 1px solid #5F758A;
-                                    border-bottom: 1px solid #5F758A;
+                                    border-top: 1px solid #1A4383;
+                                    border-bottom: 1px solid #1A4383;
                                     border-left: none;
                                     border-right: none;
                                     border-radius: 0;
@@ -229,6 +243,34 @@ body {
                         }
                     }
 
+                    &.mortgage-calculator-input {
+                        border-radius: 15px;
+                        border: 1px solid rgba(35, 38, 55, 0.20);
+                        background: rgba(95, 117, 138, 0.04);
+                        padding: 2rem;
+                    }
+
+                    .input-fields {
+                        display: grid;
+                        grid-template-columns: 2fr 1fr;
+                        align-items: stretch;
+                        grid-gap: 1rem;
+
+                        &.single-field {
+                            grid-template-columns: 1fr;
+                        }
+
+
+                        .field-label {
+                            color: #1A4383;
+                            font-family: "DM Sans";
+                            font-size: 12px;
+                            font-style: normal;
+                            font-weight: 600;
+                            line-height: normal;
+                        }
+                    }
+
                     .input-field {
                         display: grid;
                         border-radius: 12px;
@@ -236,6 +278,44 @@ body {
                         background: #FFF;
                         box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
                         padding: 1rem;
+
+
+
+                        .title-selector-wrapper {
+                            display: grid;
+                            grid-template-columns: repeat(2, auto);
+                            justify-content: space-between;
+                            align-items: center;
+
+                            .fixed-variable-selector {
+                                display: grid;
+                                grid-template-columns: repeat(2, auto);
+                                align-items: center;
+                                grid-gap: 0.5rem;
+
+                                .selector {
+                                    color: #1A4383;
+                                    border-radius: 1rem;
+                                    border: 1px solid #1A4383;
+
+                                    font-family: "DM Sans";
+                                    font-size: 12px;
+                                    font-style: normal;
+                                    font-weight: 700;
+                                    line-height: normal;
+
+                                    width: 75px;
+                                    text-align: center;
+                                    padding: 0.25rem 0;
+                                    cursor: pointer;
+
+                                    &.active {
+                                        background: #1A4383;
+                                        color: #FFFFFF;
+                                    }
+                                }
+                            }
+                        }
 
                         @include respond-to-mobile {
                             padding: 0.5rem;
@@ -250,6 +330,7 @@ body {
                             line-height: normal;
                             border: none;
                             padding: 0.5rem;
+                            padding-left: 0;
 
                             @include respond-to-mobile {
                                 font-size: 16px;
@@ -308,6 +389,11 @@ body {
                     .dropdown {
                         position: relative;
 
+                        &.inline {
+                            display: flex;
+                            align-items: stretch;
+                        }
+
                         .dropdown-field {
                             display: grid;
                             grid-template-columns: 1fr auto;
@@ -320,6 +406,16 @@ body {
                             box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
                             padding: 1rem;
                             cursor: pointer;
+
+                            &.inline-label {
+                                grid-template-rows: auto auto;
+                                grid-gap: 0;
+                                width: 100%;
+
+                                .field-label {
+                                    grid-column: 1 / -1;
+                                }
+                            }
 
                             @include respond-to-mobile {
                                 grid-gap: 0.5rem;
@@ -337,8 +433,6 @@ body {
                                     font-size: 14px;
                                 }
                             }
-
-                            
                         }
 
                         .dropdown-opts {
@@ -353,6 +447,10 @@ body {
                             overflow-y: auto;
                             transition: all .15s ease;
                             width: 100%;
+
+                            &.payment-frequency-dd {
+                                top: 7rem;
+                            }
 
                             &.expanded {
                                 max-height: 285px;
@@ -403,6 +501,353 @@ body {
                     grid-gap: 0.5rem;
                 }
 
+                &.mortgage-calculator-results {
+                    .mortgage-payment {
+                        border-radius: 12px;
+                        border: 1px solid rgba(35, 38, 55, 0.20);
+                        background: #FFF;
+                        box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
+
+                        .label {
+                            font-size: 20px !important;
+                        }
+
+                        .value {
+                            font-size: 48px !important;
+                        }
+                    }
+
+                    .payment-breakdown {
+                        padding: 0;
+                        border-radius: 12px;
+                        border: 1px solid rgba(35, 38, 55, 0.20);
+                        background: #F3F5F9;
+
+                        .section-label {
+                            font-size: 20px !important;
+                            padding: 1.5rem 1.5rem 0 1.5rem;
+                        }
+
+                        .section-wrapper {
+                            grid-template-columns: 1fr;
+                            margin-top: 0;
+
+                            .breakdown-details {
+                                .breakdown-detail {
+                                    padding: 1.5rem;
+                                    display: grid;
+                                    grid-gap: 0.5rem;
+
+                                    .breakdown-bar-container {
+                                        width: 100%;
+                                        height: 0.5rem;
+                                        display: flex;
+                                        gap: 0.5rem;
+                                        overflow: hidden;
+                                        margin-bottom: 0.75rem;
+
+                                        .breakdown-bar-principal {
+                                            width: 65%;
+                                            background-color: #4195DE;
+                                        }
+
+                                        .breakdown-bar-interest {
+                                            width: 35%;
+                                            background-color: #8285DC;
+                                        }
+                                    }
+
+                                    .principal-paid,
+                                    .interest-paid {
+                                        display: grid;
+                                        grid-template-columns: repeat(2, auto);
+                                        align-items: center;
+                                        justify-content: space-between;
+
+                                        .icon-name-wrapper {
+                                            display: grid;
+                                            grid-template-columns: repeat(2, auto);
+                                            align-items: center;
+                                            justify-content: start;
+                                            grid-gap: 0.5rem;
+
+                                            .detail-icon {
+                                                width: 14px;
+                                                height: 14px;
+                                                border-radius: 50%;
+
+                                                &.principal {
+                                                    background: #4195DE;
+                                                }
+
+                                                &.interest {
+                                                    background: #8285DC;
+                                                }
+                                            }
+
+                                            .detail-name {
+                                                color: #000;
+                                                font-family: "DM Sans";
+                                                font-size: 16px;
+                                                font-style: normal;
+                                                font-weight: 600;
+                                                line-height: normal;
+                                            }
+                                        }
+
+                                        .value {
+                                            color: #000;
+                                            text-align: right;
+                                            font-family: "DM Sans";
+                                            font-size: 16px;
+                                            font-style: normal;
+                                            font-weight: 800;
+                                            line-height: normal;
+                                        }
+                                    }
+                                }
+
+                                .breakdown-total-payment {
+                                    display: grid;
+                                    grid-template-columns: repeat(2, auto);
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    padding: 1.5rem;
+                                    border-top: 1px solid rgba(35, 38, 55, 0.20);
+
+                                    .label {
+                                        color: #000;
+                                        font-family: "DM Sans";
+                                        font-size: 16px;
+                                        font-style: normal;
+                                        font-weight: 600;
+                                        line-height: normal;
+                                    }
+
+                                    .value {
+                                        color: #000;
+                                        text-align: right;
+                                        font-family: "DM Sans";
+                                        font-size: 18px;
+                                        font-style: normal;
+                                        font-weight: 800;
+                                        line-height: normal;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .balance-amortization {
+                        border-radius: 12px;
+                        border: 1px solid rgba(35, 38, 55, 0.20);
+                        background: #FEF6EB;
+                        padding: 1.5rem;
+
+                        .section-wrapper {
+                            display: grid;
+                            grid-gap: 0.5rem;
+
+                            .info-row {
+                                display: grid;
+                                grid-template-columns: repeat(2, auto);
+                                align-items: center;
+                                justify-content: space-between;
+
+                                .label {
+                                    color: #000;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 500;
+                                    line-height: normal;
+                                }
+
+                                .value {
+                                    color: #000;
+                                    text-align: right;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 800;
+                                    line-height: normal;
+                                }
+
+                                &.balance {
+                                    .value {
+                                        color: #D75520;
+                                    }
+                                }
+
+                                &.duration {
+                                    grid-template-columns: auto;
+                                    justify-content: right;
+
+                                    .tag {
+                                        border-radius: 5.205px;
+                                        border: 1.041px solid rgba(114, 220, 138, 0.60);
+                                        background: #EBFFEF;
+                                        box-shadow: 0px 15.614px 52.047px 0px rgba(57, 40, 123, 0.08);
+                                        padding: 0.5rem;
+
+                                        color: #31D152;
+                                        font-family: "DM Sans";
+                                        font-size: 13.948px;
+                                        font-style: normal;
+                                        font-weight: 700;
+                                        line-height: normal;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .five-year-breakdown,
+                    .total-breakdown {
+                        border-radius: 12px;
+                        border: 1px solid rgba(35, 38, 55, 0.20);
+                        background: #FFF;
+                        padding: 1.5rem;
+
+                        &.total-breakdown {
+                            border: 1px solid #95DAA8;
+                            background: #EAFCEF;
+                        }
+
+                        .section-wrapper {
+                            display: grid;
+                            grid-gap: 0.5rem;
+
+                            .sec-heading {
+                                color: #000;
+                                font-family: "DM Sans";
+                                font-size: 20px;
+                                font-style: normal;
+                                font-weight: 700;
+                                line-height: normal;
+                                opacity: 0.8;
+                            }
+
+                            .info-row {
+                                display: grid;
+                                grid-template-columns: repeat(2, auto);
+                                align-items: center;
+                                justify-content: space-between;
+
+                                .label {
+                                    color: #000;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 500;
+                                    line-height: normal;
+                                }
+
+                                .value {
+                                    color: #000;
+                                    text-align: right;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 700;
+                                    line-height: normal;
+                                }
+                            }
+                        }
+                    }
+
+                    .savings-with-accelerated-payments {
+                        border-radius: 12px;
+                        border: 1px solid #95DAA8;
+                        background: #EAFCEF;
+
+                        .section-wrapper {
+
+                            .sec-heading {
+                                color: #000;
+                                text-align: center;
+                                font-family: "DM Sans";
+                                font-size: 20px;
+                                font-style: normal;
+                                font-weight: 700;
+                                line-height: normal;
+                                opacity: 0.8;
+                                padding: 1.5rem;
+                                border-bottom: 1px solid #95DAA8;
+                                ;
+                            }
+
+                            .info-wrapper {
+                                display: grid;
+                                grid-gap: 0.5rem;
+                                padding: 1.5rem;
+
+                                .info-row {
+                                    display: grid;
+                                    grid-template-columns: repeat(2, auto);
+                                    align-items: center;
+                                    justify-content: space-between;
+
+                                    .label {
+                                        color: #000;
+                                        font-family: "DM Sans";
+                                        font-size: 16px;
+                                        font-style: normal;
+                                        font-weight: 500;
+                                        line-height: normal;
+                                    }
+
+                                    .value {
+                                        color: #4FA95D;
+                                        text-align: right;
+                                        font-family: "DM Sans";
+                                        font-size: 16px;
+                                        font-style: normal;
+                                        font-weight: 700;
+                                        line-height: normal;
+                                    }
+                                }
+
+                                .total-money-saved {
+                                    border-radius: 10px;
+                                    border: 1px solid rgba(35, 38, 55, .2);
+                                    background: #f9fafc;
+                                    display: grid;
+                                    grid-gap: 0.25rem;
+                                    justify-content: center;
+                                    justify-items: center;
+                                    padding: 1rem;
+                                    margin-top: 0.5rem;
+
+                                    .btn-label {
+                                        color: #000;
+                                        text-align: center;
+                                        font-family: "DM Sans";
+                                        font-size: 14px;
+                                        font-style: normal;
+                                        font-weight: 500;
+                                        line-height: normal;
+                                    }
+
+                                    .btn-value {
+                                        color: #4FA95D;
+                                        text-align: center;
+                                        leading-trim: both;
+                                        text-edge: cap;
+                                        font-family: "DM Sans";
+                                        font-size: 36px;
+                                        font-style: normal;
+                                        font-weight: 800;
+                                        line-height: normal;
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+                }
+
                 .mortgage-payment,
                 .total-mortgage-payment {
                     border-radius: 20px;
@@ -442,7 +887,7 @@ body {
                         }
 
                         .value {
-                            color: #5F758A;
+                            color: #1A4383;
                             font-family: "DM Sans";
                             font-size: 47px;
                             font-style: normal;
@@ -1915,7 +2360,7 @@ body {
     background-repeat: no-repeat;
     outline: none;
     height: 2px;
-    background: #5f758a2f;
+    background: #1A43832f;
     margin: 0.5rem 0;
 }
 
@@ -1924,7 +2369,7 @@ body {
     -webkit-appearance: none;
     height: 16px;
     width: 16px;
-    background: #5f758a;
+    background: #1A4383;
     border-radius: 50%;
     cursor: pointer;
     position: relative;
@@ -1935,7 +2380,7 @@ body {
 .slider::-moz-range-thumb {
     height: 16px;
     width: 16px;
-    background: #5f758a;
+    background: #1A4383;
     border: none;
     border-radius: 50%;
     cursor: pointer;
