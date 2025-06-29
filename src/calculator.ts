@@ -16,12 +16,12 @@ import InfoIcon from './assets/icons/info.svg';
 export function initCalculator(container: HTMLElement, applyUrl: string) {
   const calculatorInputsHTML = `
     <div class="calculator-input purchase-price">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${PurchasePriceIcon}" alt="Purchase Price icon"/>
           <div class="title">Purchase Price</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The total purchase price of the property"/>
+        <div class="mortgage-calculator-info">The total purchase price of the property</div>
       </div>
       <div class="input-field">
         <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
@@ -34,12 +34,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="calculator-input down-payment">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${DownPaymentIcon}" alt="Down Payment icon"/>
           <div class="title">Down Payment</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Your initial payment towards the property"/>
+        <div class="mortgage-calculator-info">Your initial payment towards the property</div>
       </div>
       <div class="input-field">
         <div class="downpayment-percentage-wrapper">
@@ -76,12 +76,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="calculator-input amortization-period">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${AmortizationPeriodIcon}" alt="Amortization Period icon"/>
           <div class="title">Amortization Period</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The total length of time to pay off your mortgage"/>
+        <div class="mortgage-calculator-info">The total length of time to pay off your mortgage</div>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -100,12 +100,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="calculator-input term-length">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${TermLengthIcon}" alt="Term Length icon"/>
           <div class="title">Term Length</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="The length of your mortgage term"/>
+        <div class="mortgage-calculator-info">The length of your mortgage term</div>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -125,12 +125,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="calculator-input payment-frequency">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${PaymentFrequencyIcon}" alt="Payment Frequency icon"/>
           <div class="title">Payment Frequency</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="How often you make mortgage payments"/>
+        <div class="mortgage-calculator-info">How often you make mortgage payments</div>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -242,12 +242,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
 
   const advancedCalculatorInputsHTML = `
     <div class="calculator-input property-taxes">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${PropertyTaxesIcon}" alt="Property Taxes icon"/>
           <div class="title">Property Taxes</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Annual property taxes"/>
+        <div class="mortgage-calculator-info">Annual property taxes</div>
       </div>
       <div class="input-field">
         <input type="text" value="$  9,600" data-previous-value="9600" class="value-input">
@@ -260,12 +260,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="calculator-input heating-costs">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${HeatingCostsIcon}" alt="Heating Costs icon"/>
           <div class="title">Heating Costs</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Annual heating costs"/>
+        <div class="mortgage-calculator-info">Annual heating costs</div>
       </div>
       <div class="input-field">
         <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
@@ -278,12 +278,12 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
     </div>
 
     <div class="calculator-input condo-fees">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
           <img src="${CondoFeesIcon}" alt="Condo Fees icon"/>
           <div class="title">Condo Fees</div>
         </div>
-        <img class="info-icon" src="${InfoIcon}" alt="Info icon" data-tooltip="Monthly condo maintenance fees"/>
+        <div class="mortgage-calculator-info">Monthly condo maintenance fees</div>
       </div>
       <div class="input-field">
         <input type="text" value="$  250" data-previous-value="250" class="value-input">

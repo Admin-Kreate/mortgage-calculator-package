@@ -4,7 +4,7 @@ export interface MortgageData {
     rateTerm: number; // in years
     amortization: number;
     paymentFrequency: 'monthly' | 'biweekly' | 'weekly';
-    loanType: 'regular' | 'interest-only';
+    loanType: 'regular' | 'interest only';
     compounding: 'daily' | 'weekly' | 'bi-weekly' | 'monthly' | 'quarterly' | 'semi-annual';
     paymentIncrease: number; // dollar amount or percentage
     paymentIncreaseType: 'dollar' | 'percentage';
@@ -111,7 +111,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
 
     // Calculate base mortgage payment
     let mortgagePayment: number;
-    if (data.loanType === 'interest-only') {
+    if (data.loanType === 'interest only') {
         mortgagePayment = principal * monthlyRate;
     } else {
         if (monthlyRate === 0) {

@@ -35,7 +35,7 @@ body {
 
     @include respond-to-mobile {
         margin: 1rem auto;
-        width: 90vw;
+        width: 95vw;
         max-width: unset;
         border-radius: 8px;
     }
@@ -130,6 +130,44 @@ body {
                             grid-gap: 1rem;
                         }
 
+                        .title-toggle-wrapper {
+                            display: grid;
+                            grid-template-columns: repeat(2, auto);
+                            justify-content: space-between;
+                            align-items: center;
+
+                            .toggle {
+                                display: grid;
+                                grid-template-columns: repeat(2, auto);
+                                justify-content: start;
+                                align-items: center;
+                                background: #ffffff;
+                                border-radius: 500px;
+                                padding: 0.25rem;
+                                border: 1px solid #1A4383;
+
+                                &.switched-on {
+                                    background: #1A4383;
+                                }
+
+                                .opt {
+                                    width: 20px;
+                                    height: 20px;
+                                    border-radius: 50%;
+                                    cursor: pointer;
+
+                                    &.on.selected {
+                                        background: #ffffff;
+                                    }
+
+                                    &.off.selected {
+                                        background: #1A4383;
+                                    }
+                                }
+                            }
+
+                        }
+
                         .title-wrapper {
                             display: grid;
                             grid-template-columns: repeat(2, auto);
@@ -158,16 +196,32 @@ body {
                             font-style: normal;
                             font-weight: 500;
                             line-height: 16px;
+                            opacity: 0.8;
                         }
 
                         .info-icon {
                             cursor: pointer;
                         }
 
-                        .fixed-variable-selector {
+                        .fixed-variable-selector,
+                        .btn-group-selector {
                             display: grid;
                             grid-template-columns: repeat(2, auto);
                             align-items: center;
+
+                            @include respond-to-mobile {
+                                justify-content: start;
+                            }
+
+                            &.btn-group-selector {
+                                .selector {
+                                    width: 120px;
+
+                                    &.active {
+                                        font-weight: 500;
+                                    }
+                                }
+                            }
 
                             .selector {
                                 color: #1A4383;
@@ -248,6 +302,20 @@ body {
                         border: 1px solid rgba(35, 38, 55, 0.20);
                         background: rgba(95, 117, 138, 0.04);
                         padding: 2rem;
+
+                        @include respond-to-mobile {
+                            padding: 1rem;
+                        }
+
+                        &.calculator-settings {
+                            .header {
+                                @include respond-to-mobile {
+                                    grid-template-columns: 1fr;
+                                    grid-gap: 0.5rem;
+                                    margin-bottom: 0.5rem;
+                                }
+                            }
+                        }
                     }
 
                     .input-fields {
@@ -255,6 +323,10 @@ body {
                         grid-template-columns: 2fr 1fr;
                         align-items: stretch;
                         grid-gap: 1rem;
+
+                        @include respond-to-mobile {
+                            grid-template-columns: 1fr;
+                        }
 
                         &.single-field {
                             grid-template-columns: 1fr;
@@ -268,6 +340,24 @@ body {
                             font-style: normal;
                             font-weight: 600;
                             line-height: normal;
+                        }
+
+                        &.expandable {
+                            // position: absolute;
+                            // top: 4rem;
+                            // border-radius: 5px;
+                            // background-color: #fff;
+                            // box-shadow: 0 1px 3px 0 rgba(12, 18, 28, .33);
+                            // z-index: 100;
+                            max-height: 0;
+                            overflow-x: hidden;
+                            overflow-y: auto;
+                            transition: all .15s ease;
+                            // width: 100%;
+                        }
+
+                        &.expanded {
+                            max-height: 285px;
                         }
                     }
 
@@ -354,8 +444,13 @@ body {
                                 background: #FFF;
                                 box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
                                 padding: 0.5rem;
-                                width: 75px;
+                                width: 100px;
                                 text-align: center;
+
+                                @include respond-to-mobile {
+                                    width: 40px;
+                                    font-size: 12px;
+                                }
                             }
                         }
 
@@ -417,8 +512,19 @@ body {
                                 }
                             }
 
+
+                            .info-icon {
+                                transition: all .15s ease;
+                            }
+
                             @include respond-to-mobile {
                                 grid-gap: 0.5rem;
+                            }
+
+                            &.dropdown-expanded {
+                                .info-icon {
+                                    transform: rotate(90deg);
+                                }
                             }
 
                             span {
@@ -438,6 +544,7 @@ body {
                         .dropdown-opts {
                             position: absolute;
                             top: 4rem;
+                            // bottom: -250px;
                             border-radius: 5px;
                             background-color: #fff;
                             box-shadow: 0 1px 3px 0 rgba(12, 18, 28, .33);
@@ -954,7 +1061,7 @@ body {
                                 color: #000;
                                 text-align: center;
                                 font-family: "DM Sans";
-                                font-size: 21;
+                                font-size: 21px;
                                 font-style: normal;
                                 font-weight: 700;
                                 line-height: normal;

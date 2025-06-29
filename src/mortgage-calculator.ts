@@ -1,5 +1,7 @@
 import { calculateMortgage, formatCurrency } from './utils-mortgage-calculator';
 import RateIcon from './assets/icons/rate.svg';
+import LoadDetailsIcon from './assets/icons/loan-details.svg';
+import CalculatorSettingsIcon from './assets/icons/calculator-settings.svg'
 import PayMortgageFasterIcon from './assets/icons/pay-mortgage-faster.svg';
 import AmortizationPeriodIcon from './assets/icons/amortization-period.svg';
 import DropdownIcon from './assets/icons/dropdown-icon.svg';
@@ -7,16 +9,21 @@ import DropdownIcon from './assets/icons/dropdown-icon.svg';
 export function initMortgageCalculator(container: HTMLElement, applyUrl: string) {
   const calculatorInputsHTML = `
     <div class="calculator-input mortgage-calculator-input">
-      <div class="header">
+      <div class="header stacked">
         <div class="title-wrapper">
-          <div class="title">Mortgage Calculator</div>
+          <img src="${LoadDetailsIcon}" alt="Loan Details icon"/>
+          <div class="title">Loan Details</div>
         </div>
       </div>
       <div class="input-fields">
         <div class="input-field purchase-price">
-          <div class="field-label">Mortgage Amount</div>
+          <div class="field-label">Loan Amount</div>
           <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
-          <input type="range" min="0" max="2000000" value="500000" step="10000" class="slider">
+          <input type="range" min="100000" max="2000000" value="500000" step="10000" class="slider">
+          <div class="range-label">
+            <span>$100K</span>
+            <span>$2M</span>
+          </div>
         </div>
         <div class="dropdown inline payment-frequency">
           <div class="dropdown-field inline-label">
@@ -44,15 +51,15 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
       </div>
       <div class="input-fields">
         <div class="input-field interest-rate">
-          <div class="title-selector-wrapper">
+          <div class="title-wrapper">
             <div class="field-label">Rate</div>
-            <div class="fixed-variable-selector">
-              <div class="selector">Fixed</div>
-              <div class="selector active">Variable</div>
-            </div>
           </div>
           <input type="text" value="6.00%" data-previous-value="6.00" class="value-input">
           <input type="range" min="1" max="10" value="6" step="0.1" class="slider">
+          <div class="range-label">
+            <span>1%</span>
+            <span>10%</span>
+          </div>
         </div>
         <div class="dropdown inline term-length">
           <div class="dropdown-field inline-label">
@@ -86,31 +93,79 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
           <div class="field-label">Amortization</div>
           <input type="text" value="25 Years" data-previous-value="25" class="value-input">
           <input type="range" min="1" max="40" value="25" step="1" class="slider">
+          <div class="range-label">
+            <span>1 Year</span>
+            <span>40 Years</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="calculator-input mortgage-calculator-input">
-      <div class="header stacked">
+    <div class="calculator-input mortgage-calculator-input calculator-settings">
+      <div class="header">
         <div class="title-wrapper">
-          <img src="${PayMortgageFasterIcon}" alt="Pay your mortgage faster icon"/>
-          <div class="title">Pay your mortgage faster</div>
+          <img src="${CalculatorSettingsIcon}" alt="Calculator Settings icon"/>
+          <div class="title">Calculator Settings</div>
+        </div>
+        <div class="btn-group-selector">
+          <div class="selector active">Regular</div>
+          <div class="selector">Interest Only</div>
+        </div>
+      </div>
+      <div class="input-fields single-field">
+        <div class="dropdown inline term-length">
+          <div class="dropdown-field inline-label">
+            <div class="field-label">Compounding</div>
+            <span>Semi-Annual</span>
+            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+          </div>
+          <div class="dropdown-opts">
+            <div class="dropdown-opt">Daily</div>
+            <div class="dropdown-opt">Weekly</div>
+            <div class="dropdown-opt">Bi-Weekly</div>
+            <div class="dropdown-opt">Monthly</div>
+            <div class="dropdown-opt">Quarterly</div>
+            <div class="dropdown-opt">Semi-Annual</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calculator-input mortgage-calculator-input pay-mortgage-faster">
+      <div class="header stacked">
+        <div class="title-toggle-wrapper">
+          <div class="title-wrapper">
+            <img src="${PayMortgageFasterIcon}" alt="Pay your mortgage faster icon"/>
+            <div class="title">Pay your mortgage faster</div>
+          </div>
+          <div class="toggle">
+            <div class="opt off selected"></div>
+            <div class="opt on"></div>
+          </div>
         </div>
         <div class="mortgage-calculator-info">Increasing your mortgage payments or paying a lump sum towards your principal have a huge impact. You'll pay off your mortgage much sooner and save tons of interest.</div>
       </div>
-      <div class="input-fields single-field">
+      <div class="input-fields single-field expandable">
         <div class="input-field payment-increase">
           <div class="field-label">Payment Increase</div>
           <div class="downpayment-percentage-wrapper">
-            <input type="text" value="$  400" data-previous-value="400" class="value-input">
-            <input type="text" value="20%" data-previous-value="20" class="percentage-value-input" disabled>
+            <input type="text" value="$  0" data-previous-value="0" class="value-input">
+            <input type="text" value="0%" data-previous-value="0" class="percentage-value-input" disabled>
           </div>
-          <input type="range" min="0" max="2000" value="400" step="25" class="slider">
+          <input type="range" min="0" max="2000" value="0" step="25" class="slider">
+          <div class="range-label">
+            <span>$0</span>
+            <span>$2,000</span>
+          </div>
         </div>
         <div class="input-field one-time-pre-payment">
           <div class="field-label">One time Pre-Payment</div>
-          <input type="text" value="$  1000" data-previous-value="1000" class="value-input">
-          <input type="range" min="0" max="100000" value="1000" step="1000" class="slider">
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <input type="range" min="0" max="100000" value="0" step="1000" class="slider">
+          <div class="range-label">
+            <span>$0</span>
+            <span>$100K</span>
+          </div>
         </div>
       </div>
     </div>
@@ -299,7 +354,9 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
 
   const paymentIncreasePercentageElement = document.querySelector('.mortgage-calculator-input .payment-increase .percentage-value-input') as HTMLInputElement;
   
-  const interestRateTypeSelectorElements = document.querySelectorAll('.fixed-variable-selector .selector');
+  const calculatorSettingsSelectorElements = document.querySelectorAll('.calculator-settings .btn-group-selector .selector');
+  const compoundingValueElement = document.querySelector('.calculator-settings .dropdown-field span') as HTMLInputElement;
+  const PayMortgageFasterToggleSelectorElements = document.querySelectorAll('.pay-mortgage-faster .opt');
 
   const tooltipElements = document.querySelectorAll("[data-tooltip]");
 
@@ -314,12 +371,15 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
       }
 
       dropdownOpt.parentElement?.classList.remove("expanded");
+      prevEl?.classList.remove('dropdown-expanded');
       updateResults();
     });
   });
 
   document.querySelectorAll('.dropdown-field').forEach(field => {
     field.addEventListener('click', (e) => {
+      e.stopPropagation();
+      field.classList.remove('dropdown-expanded');
       document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
         opt.classList.remove('expanded');
       });
@@ -327,7 +387,10 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
       const opts = field.nextElementSibling as HTMLElement;
       opts?.classList.toggle('expanded');
 
-      e.stopPropagation();
+      if (opts?.classList.contains('expanded') && opts.previousElementSibling) {
+        opts.style.top = `${opts.previousElementSibling.clientHeight + 5}px`;
+        field.classList.add('dropdown-expanded');
+      }    
     });
   });
 
@@ -336,18 +399,45 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
 
     if (!target.closest('.dropdown')) {
       document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+        opt.previousElementSibling?.classList.remove('dropdown-expanded');
         opt.classList.remove('expanded');
       });
     }
   });
 
-  interestRateTypeSelectorElements.forEach((selector, index) => {
+  calculatorSettingsSelectorElements.forEach((selector, index) => {
     selector.addEventListener('click', () => {
-      interestRateTypeSelectorElements.forEach(h => h.classList.remove('active'));
+      calculatorSettingsSelectorElements.forEach(h => h.classList.remove('active'));
       selector.classList.add('active');
       updateResults();
     });
   });
+
+  PayMortgageFasterToggleSelectorElements.forEach((selector, index) => {
+    selector.addEventListener('click', () => {
+      PayMortgageFasterToggleSelectorElements.forEach(h => h.classList.remove('selected'));
+      selector.classList.add('selected');
+
+      selector.parentElement?.classList.remove('switched-on');
+      selector.parentElement?.parentElement?.parentElement?.nextElementSibling?.classList.remove('expanded');
+      if (selector.classList.contains('on')) {
+        selector.parentElement?.classList.add('switched-on');
+        selector.parentElement?.parentElement?.parentElement?.nextElementSibling?.classList.add('expanded');
+      } else {
+        paymentIncreaseInput.value = '$  0';
+        paymentIncreaseInput.dataset.previousValue = '0';
+        paymentIncreaseInputSlider.value = '0';
+        updateSliderBackground(paymentIncreaseInputSlider);
+
+        oneTimePrePaymentInput.value = '$  0';
+        oneTimePrePaymentInput.dataset.previousValue = '0';
+        oneTimePrePaymentInputSlider.value = '0';
+        updateSliderBackground(oneTimePrePaymentInputSlider);
+      }
+      
+      updateResults();
+    });
+  }); 
 
   tooltipElements.forEach(el => {
     const tooltipText = el.getAttribute("data-tooltip");
@@ -501,8 +591,9 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
     const amortizationValue = amortizationInput.dataset.previousValue ? parseInt(amortizationInput.dataset.previousValue) : 1;
     const paymentFrequencyValue = paymentFrequencyValueElement.textContent ? paymentFrequencyValueElement.textContent.toLowerCase() : "monthly";
     const paymentIncreaseValue = paymentIncreaseInput.dataset.previousValue ? parseInt(paymentIncreaseInput.dataset.previousValue) : 0;
+    const loanTypeActiveSelector = document.querySelector('.calculator-settings .btn-group-selector .selector.active');
 
-    if (paymentIncreaseValue === 0) return 0;
+    // if (paymentIncreaseValue === 0) return 0;
     
     // Calculate the original base payment without any acceleration
     const annualRate = interestRateValue / 100;
@@ -532,8 +623,8 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
       rateTerm: termLengthValueElement.textContent ? parseInt(termLengthValueElement.textContent.replace(" years", "").replace(" year", "")) : 5,
       amortization: amortizationValue,
       paymentFrequency: paymentFrequencyValue,
-      loanType: 'regular',
-      compounding: 'semi-annual',
+      loanType: loanTypeActiveSelector?.textContent?.toLowerCase(),
+      compounding: compoundingValueElement.textContent ? compoundingValueElement.textContent.toLocaleLowerCase() : 'semi-annual',
       paymentIncrease: paymentIncreaseValue,
       paymentIncreaseType: 'dollar',
       oneTimePrePayment: oneTimePrePaymentInput.dataset.previousValue ? parseInt(oneTimePrePaymentInput.dataset.previousValue) : 0,
