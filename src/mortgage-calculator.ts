@@ -524,7 +524,7 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
   });
 
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
-    inputElement.addEventListener('input', (event) => {
+    inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target) {
         let value = target.value;
