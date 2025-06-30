@@ -482,7 +482,6 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
   const tooltipElements = document.querySelectorAll("[data-tooltip]");
 
   const dropdownOpts = document.querySelectorAll('.dropdown-opt');
-
   dropdownOpts.forEach(dropdownOpt => {
     dropdownOpt.addEventListener('click', () => {
       const prevEl = dropdownOpt.parentElement?.previousElementSibling;
@@ -493,20 +492,37 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
       }
 
       dropdownOpt.parentElement?.classList.remove("expanded");
+      prevEl?.classList.remove('dropdown-expanded');
       updateResults();
     });
   });
 
   document.querySelectorAll('.dropdown-field').forEach(field => {
     field.addEventListener('click', (e) => {
-      document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
-        opt.classList.remove('expanded');
-      });
-
-      const opts = field.nextElementSibling as HTMLElement;
-      opts?.classList.toggle('expanded');
-
       e.stopPropagation();
+      const expandedDropdownElement = (e.target as HTMLElement)?.closest('.dropdown-expanded');
+      if (expandedDropdownElement) {
+        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+          opt.previousElementSibling?.classList.remove('dropdown-expanded');
+          opt.classList.remove('expanded');
+        });
+      } else {
+        // field.classList.remove('dropdown-expanded');
+        document.querySelectorAll('.dropdown-field.dropdown-expanded').forEach(dropdown => {
+          dropdown.classList.remove('dropdown-expanded');
+        });
+        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+          opt.classList.remove('expanded');
+        });
+
+        const opts = field.nextElementSibling as HTMLElement;
+        opts?.classList.toggle('expanded');
+
+        if (opts?.classList.contains('expanded') && opts.previousElementSibling) {
+          opts.style.top = `${opts.previousElementSibling.clientHeight + 5}px`;
+          field.classList.add('dropdown-expanded');
+        }
+      }
     });
   });
 
@@ -515,6 +531,7 @@ export function initCalculator(container: HTMLElement, applyUrl: string) {
 
     if (!target.closest('.dropdown')) {
       document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+        opt.previousElementSibling?.classList.remove('dropdown-expanded');
         opt.classList.remove('expanded');
       });
     }

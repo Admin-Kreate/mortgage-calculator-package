@@ -321,12 +321,12 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
 
   const oneTimePrePaymentInput = document.querySelector('.one-time-pre-payment .value-input') as HTMLInputElement;
   const oneTimePrePaymentInputSlider = document.querySelector('.one-time-pre-payment .slider') as HTMLInputElement;
-  
+
   const paymentFrequencyValueElement = document.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
   const termLengthValueElement = document.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
 
   const mortgagePaymentResultsElement = document.querySelector('.mortgage-calculator-results .mortgage-payment .value') as HTMLInputElement;
-  
+
   const principalPaidResultsElement = document.querySelector('.mortgage-calculator-results .payment-breakdown .principal-paid .value') as HTMLInputElement;
   const interestPaidResultsElement = document.querySelector('.mortgage-calculator-results .payment-breakdown .interest-paid .value') as HTMLInputElement;
   const breakdownTotalPaymentResultsElement = document.querySelector('.mortgage-calculator-results .payment-breakdown .breakdown-total-payment .value') as HTMLInputElement;
@@ -342,18 +342,18 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
   const fiveYearBreakdownInterestPaidResultsElement = document.querySelector('.mortgage-calculator-results .five-year-breakdown .info-row:nth-of-type(3) .value') as HTMLInputElement;
   const fiveYearBreakdownPrincipalPaidResultsElement = document.querySelector('.mortgage-calculator-results .five-year-breakdown .info-row:nth-of-type(4) .value') as HTMLInputElement;
   const fiveYearBreakdownBalanceRemainingResultsElement = document.querySelector('.mortgage-calculator-results .five-year-breakdown .info-row:nth-of-type(5) .value') as HTMLInputElement;
-  
+
   const totalBreakdownPrincipalPaidResultsElement = document.querySelector('.mortgage-calculator-results .total-breakdown .info-row:nth-of-type(2) .value') as HTMLInputElement;
   const totalBreakdownInterestPaidResultsElement = document.querySelector('.mortgage-calculator-results .total-breakdown .info-row:nth-of-type(3) .value') as HTMLInputElement;
   const totalBreakdownTotalCostResultsElement = document.querySelector('.mortgage-calculator-results .total-breakdown .info-row:nth-of-type(4) .value') as HTMLInputElement;
-  
+
   const savingsWithAcceleratedPaymentsResultsElement = document.querySelector('.savings-with-accelerated-payments') as HTMLInputElement;
   const totalSavingsInterestResultsElement = document.querySelector('.mortgage-calculator-results .savings-with-accelerated-payments .info-row:nth-of-type(1) .value') as HTMLInputElement;
   const totalSavingsTimeResultsElement = document.querySelector('.mortgage-calculator-results .savings-with-accelerated-payments .info-row:nth-of-type(2) .value') as HTMLInputElement;
   const totalSavingsTotalMoneyResultsElement = document.querySelector('.mortgage-calculator-results .savings-with-accelerated-payments .total-money-saved .btn-value') as HTMLInputElement;
 
   const paymentIncreasePercentageElement = document.querySelector('.mortgage-calculator-input .payment-increase .percentage-value-input') as HTMLInputElement;
-  
+
   const calculatorSettingsSelectorElements = document.querySelectorAll('.calculator-settings .btn-group-selector .selector');
   const compoundingValueElement = document.querySelector('.calculator-settings .dropdown-field span') as HTMLInputElement;
   const PayMortgageFasterToggleSelectorElements = document.querySelectorAll('.pay-mortgage-faster .opt');
@@ -379,18 +379,29 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
   document.querySelectorAll('.dropdown-field').forEach(field => {
     field.addEventListener('click', (e) => {
       e.stopPropagation();
-      field.classList.remove('dropdown-expanded');
-      document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
-        opt.classList.remove('expanded');
-      });
+      const expandedDropdownElement = (e.target as HTMLElement)?.closest('.dropdown-expanded');
+      if (expandedDropdownElement) {
+        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+          opt.previousElementSibling?.classList.remove('dropdown-expanded');
+          opt.classList.remove('expanded');
+        });
+      } else {
+        // field.classList.remove('dropdown-expanded');
+        document.querySelectorAll('.dropdown-field.dropdown-expanded').forEach(dropdown => {
+          dropdown.classList.remove('dropdown-expanded');
+        });
+        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+          opt.classList.remove('expanded');
+        });
 
-      const opts = field.nextElementSibling as HTMLElement;
-      opts?.classList.toggle('expanded');
+        const opts = field.nextElementSibling as HTMLElement;
+        opts?.classList.toggle('expanded');
 
-      if (opts?.classList.contains('expanded') && opts.previousElementSibling) {
-        opts.style.top = `${opts.previousElementSibling.clientHeight + 5}px`;
-        field.classList.add('dropdown-expanded');
-      }    
+        if (opts?.classList.contains('expanded') && opts.previousElementSibling) {
+          opts.style.top = `${opts.previousElementSibling.clientHeight + 5}px`;
+          field.classList.add('dropdown-expanded');
+        }
+      }
     });
   });
 
@@ -434,10 +445,10 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
         oneTimePrePaymentInputSlider.value = '0';
         updateSliderBackground(oneTimePrePaymentInputSlider);
       }
-      
+
       updateResults();
     });
-  }); 
+  });
 
   tooltipElements.forEach(el => {
     const tooltipText = el.getAttribute("data-tooltip");
@@ -543,7 +554,7 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
               target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
             }
             break;
-          
+
           case "amortization-period":
             if (1 <= numericValue && numericValue <= 40) {
               amortizationInputSlider.value = numericValue.toString();
@@ -554,7 +565,7 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
               target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')} ${symbol}`;
             }
             break;
-          
+
           case "payment-increase":
             if (0 <= numericValue && numericValue <= 2000) {
               paymentIncreaseInputSlider.value = numericValue.toString();
@@ -594,12 +605,12 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
     const loanTypeActiveSelector = document.querySelector('.calculator-settings .btn-group-selector .selector.active');
 
     // if (paymentIncreaseValue === 0) return 0;
-    
+
     // Calculate the original base payment without any acceleration
     const annualRate = interestRateValue / 100;
     const monthlyRate = annualRate / 12;
     const totalPayments = amortizationValue * 12;
-    
+
     let basePayment;
     if (paymentFrequencyValue === 'monthly') {
       basePayment = loanAmountValue * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
@@ -612,11 +623,11 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
       const weeklyPayments = amortizationValue * 52;
       basePayment = loanAmountValue * (weeklyRate * Math.pow(1 + weeklyRate, weeklyPayments)) / (Math.pow(1 + weeklyRate, weeklyPayments) - 1);
     }
-    
+
     const paymentIncreasePercentage = ((paymentIncreaseValue / basePayment) * 100);
     paymentIncreasePercentageElement.value = `${paymentIncreasePercentage.toFixed(2)}%`
     paymentIncreasePercentageElement.dataset.previousValue = paymentIncreasePercentage.toFixed(2).toString();
-    
+
     const inputData: any = {
       loanAmount: loanAmountValue,
       interestRate: interestRateValue,
@@ -634,20 +645,20 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
 
     const principalPercent = (resultObj.principal / resultObj.mortgagePayment) * 100;
     const interestPercent = 100 - principalPercent;
-    
+
     // console.log("resultObj - ", resultObj, principalPercent, interestPercent);
 
     mortgagePaymentResultsElement.textContent = resultObj.acceleratedResults ? formatCurrency(resultObj.acceleratedResults.adjustedPayment) : formatCurrency(resultObj.mortgagePayment);
-    
+
     principalPaidResultsElement.textContent = formatCurrency(resultObj.principal);
     interestPaidResultsElement.textContent = formatCurrency(resultObj.interest);
     breakdownTotalPaymentResultsElement.textContent = resultObj.acceleratedResults ? formatCurrency(resultObj.acceleratedResults.adjustedPayment) : formatCurrency(resultObj.mortgagePayment);
     breakdownBarPrincipalResultsElement.style.width = `${principalPercent.toString()}%`;
     breakdownBarInterestResultsElement.style.width = `${interestPercent.toString()}%`;
-    
+
     balanceEndOfTermResultsElement.textContent = formatCurrency(resultObj.balanceEndOfTerm);
     effectiveAmortizationResultsElement.textContent = resultObj.acceleratedResults ? `${Math.floor(resultObj.acceleratedResults.payoffYears)} Years ${Math.round((resultObj.acceleratedResults.payoffYears - Math.floor(resultObj.acceleratedResults.payoffYears)) * 12)} Months` : `${amortizationValue || 25} Years`;
-    if(resultObj.acceleratedResults) {
+    if (resultObj.acceleratedResults) {
       acceleratedResultsTimeSavedResultsElement.textContent = resultObj.acceleratedResults.timeSaved;
       acceleratedResultsTimeSavedResultsElement.style.display = 'unset';
     } else {
@@ -658,11 +669,11 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
     fiveYearBreakdownInterestPaidResultsElement.textContent = formatCurrency(resultObj.fiveYearBreakdown.interestPaid);
     fiveYearBreakdownPrincipalPaidResultsElement.textContent = formatCurrency(resultObj.fiveYearBreakdown.principalPaid);
     fiveYearBreakdownBalanceRemainingResultsElement.textContent = formatCurrency(resultObj.fiveYearBreakdown.balanceRemaining);
-    
+
     totalBreakdownPrincipalPaidResultsElement.textContent = formatCurrency(resultObj.loanAmount);
     totalBreakdownInterestPaidResultsElement.textContent = formatCurrency(resultObj.totalInterest);
     totalBreakdownTotalCostResultsElement.textContent = formatCurrency(resultObj.totalCost);
-    
+
     if (resultObj.acceleratedResults) {
       totalSavingsInterestResultsElement.textContent = formatCurrency(resultObj.acceleratedResults.totalInterestSaved);
       totalSavingsTimeResultsElement.textContent = resultObj.acceleratedResults.timeSaved;
