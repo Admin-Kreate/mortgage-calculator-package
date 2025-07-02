@@ -139,8 +139,8 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
             <div class="title">Pay your mortgage faster</div>
           </div>
           <div class="toggle">
-            <div class="opt off selected"></div>
-            <div class="opt on"></div>
+            <div class="opt off selected" data-value="off"></div>
+            <div class="opt on" data-value="on"></div>
           </div>
         </div>
         <div class="mortgage-calculator-info">Increasing your mortgage payments or paying a lump sum towards your principal have a huge impact. You'll pay off your mortgage much sooner and save tons of interest.</div>
@@ -426,12 +426,21 @@ export function initMortgageCalculator(container: HTMLElement, applyUrl: string)
 
   PayMortgageFasterToggleSelectorElements.forEach((selector, index) => {
     selector.addEventListener('click', () => {
+      const prevValue = (document.querySelector('.title-toggle-wrapper .toggle .selected') as HTMLElement)?.dataset?.value;
+      const newValue = prevValue === 'off' ? 'on' : 'off';
+
       PayMortgageFasterToggleSelectorElements.forEach(h => h.classList.remove('selected'));
-      selector.classList.add('selected');
+
+      if (newValue === 'on') {
+        (document.querySelector('.title-toggle-wrapper .toggle .on') as HTMLElement).classList.add('selected');
+      } else {
+        (document.querySelector('.title-toggle-wrapper .toggle .off') as HTMLElement).classList.add('selected');
+      }
 
       selector.parentElement?.classList.remove('switched-on');
       selector.parentElement?.parentElement?.parentElement?.nextElementSibling?.classList.remove('expanded');
-      if (selector.classList.contains('on')) {
+
+      if (newValue === 'on') {
         selector.parentElement?.classList.add('switched-on');
         selector.parentElement?.parentElement?.parentElement?.nextElementSibling?.classList.add('expanded');
       } else {
