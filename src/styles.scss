@@ -114,6 +114,26 @@ body {
                     grid-gap: 1rem;
                     margin-bottom: 2rem;
 
+                    &.debt-service-rate,
+                    &.add-rental-income,
+                    &.stress-test-rule,
+                    &.rental-income-rule {
+                        .header {
+                            @include respond-to-mobile {
+                                grid-template-columns: auto;
+                            }
+                        }
+
+                        &.debt-service-rate {
+                            .header .btn-group-selector {
+                                @include respond-to-mobile {
+                                    grid-column: 1 / span 2;
+                                    justify-content: start;
+                                }
+                            }
+                        }
+                    }
+
                     @include respond-to-mobile {
                         grid-gap: 0.5rem;
                         margin-bottom: 1rem;
@@ -343,6 +363,10 @@ body {
 
                         &.half-width-fields {
                             grid-template-columns: repeat(2, 1fr);
+
+                            @include respond-to-mobile {
+                                grid-template-columns: 1fr;
+                            }
                         }
 
 
