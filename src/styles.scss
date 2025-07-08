@@ -124,9 +124,10 @@ body {
                         grid-template-columns: repeat(2, auto);
                         justify-content: space-between;
                         align-items: center;
+                        grid-gap: 0.5rem;
 
                         &.stacked {
-                            grid-template-columns: auto;
+                            grid-template-columns: 1fr;
                             grid-gap: 1rem;
                         }
 
@@ -197,6 +198,10 @@ body {
                             font-weight: 500;
                             line-height: 16px;
                             opacity: 0.8;
+
+                            &.full-row-width {
+                                grid-column: 1 / span 2;
+                            }
                         }
 
                         .info-icon {
@@ -208,6 +213,10 @@ body {
                             display: grid;
                             grid-template-columns: repeat(2, auto);
                             align-items: center;
+
+                            &.btn-group-selector {
+                                justify-content: end;
+                            }
 
                             @include respond-to-mobile {
                                 justify-content: start;
@@ -330,6 +339,10 @@ body {
 
                         &.single-field {
                             grid-template-columns: 1fr;
+                        }
+
+                        &.half-width-fields {
+                            grid-template-columns: repeat(2, 1fr);
                         }
 
 
@@ -606,6 +619,190 @@ body {
 
                 @include respond-to-mobile {
                     grid-gap: 0.5rem;
+                }
+
+                &.debt-service-calculator-results {
+                    .debt-service-ratios {
+                        border-radius: 20px;
+                        border: 1px solid rgba(35, 38, 55, 0.20);
+                        background: #FFF;
+                        box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
+
+                        .label {
+                            color: #000;
+                            font-family: "DM Sans";
+                            font-size: 20px;
+                            font-style: normal;
+                            font-weight: 700;
+                            line-height: normal;
+                            padding: 1rem;
+                            text-align: left;
+                            border-bottom: 1px solid rgba(35, 38, 55, .2);
+                        }
+
+                        .ratios {
+                            display: grid;
+                            grid-template-columns: repeat(2, auto);
+                            align-items: center;
+                            justify-content: space-around;
+                            padding: 1rem;
+                            border-bottom: 1px solid rgba(35, 38, 55, .2);
+
+                            .ratio {
+                                display: grid;
+                                grid-template-columns: auto;
+                                align-items: center;
+                                justify-items: center;
+                                grid-gap: 0.5rem;
+
+                                .value {
+                                    color: #1A4383;
+                                    font-family: "DM Sans";
+                                    font-size: 30px;
+                                    font-style: normal;
+                                    font-weight: 800;
+                                    line-height: normal;
+                                }
+
+                                .value-label {
+                                    color: #000;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 500;
+                                    line-height: normal;
+                                    letter-spacing: 1.6px;
+                                }
+                            }
+                        }
+
+                        .details {
+                            padding: 1rem 1rem 3rem 1rem;
+                            display: grid;
+                            grid-template-columns: 1fr;
+                            grid-gap: 1rem;
+
+                            .st-rate {
+                                display: grid;
+                                grid-template-columns: repeat(2, auto);
+                                align-items: center;
+                                justify-content: space-between;
+
+                                .st-rate-label {
+                                    color: #000;
+                                    font-family: "DM Sans";
+                                    font-size: 14px;
+                                    font-style: normal;
+                                    font-weight: 600;
+                                    line-height: normal;
+                                }
+
+                                .st-rate-value {
+                                    color: #000;
+                                    text-align: right;
+                                    font-family: "DM Sans";
+                                    font-size: 18px;
+                                    font-style: normal;
+                                    font-weight: 700;
+                                    line-height: normal;
+                                }
+                            }
+
+                            .ratio-tags {
+                                display: grid;
+                                grid-template-columns: repeat(3, 1fr);
+                                grid-gap: 0.5rem;
+                                align-items: center;
+                                justify-content: start;
+
+                                .ratio-tag {
+                                    color: #FFF;
+                                    text-align: center;
+                                    font-family: "DM Sans";
+                                    font-size: 14px;
+                                    font-style: normal;
+                                    font-weight: 700;
+                                    line-height: 42px;
+                                    border-radius: 5px;
+                                    box-shadow: 0px 8px 20px 0px rgba(57, 40, 123, 0.05);
+                                    height: 42px;
+                                    cursor: pointer;
+                                    transition: filter 0.2s ease;
+
+                                    &:hover {
+                                        filter: brightness(115%);
+                                    }
+
+                                    &:nth-child(1) {
+                                        background: #1A4383;
+                                    }
+
+                                    &:nth-child(2) {
+                                        background: #3378E3;
+                                    }
+
+                                    &:nth-child(3) {
+                                        background: #3378E3;
+                                    }
+                                }
+                            }
+
+                            .debt-service-details {
+                                display: grid;
+                                grid-template-columns: 1fr;
+                                grid-gap: 0.5rem;
+
+                                .service-detail {
+                                    display: grid;
+                                    grid-template-columns: 15px 1fr auto;
+                                    align-items: center;
+                                    justify-content: start;
+                                    grid-gap: 0.5rem;
+
+                                    .service-detail-icon {
+                                        width: 12px;
+                                        height: 12px;
+                                        border-radius: 50%;
+                                    }
+
+                                    .service-detail-name {
+                                        color: #000;
+                                        font-family: "DM Sans";
+                                        font-size: 14px;
+                                        font-style: normal;
+                                        font-weight: 600;
+                                        line-height: normal;
+                                    }
+
+                                    .service-detail-value {
+                                        color: #000;
+                                        text-align: right;
+                                        font-family: "DM Sans";
+                                        font-size: 14px;
+                                        font-style: normal;
+                                        font-weight: 800;
+                                        line-height: normal;
+                                    }
+
+                                    &.monthly-mortgage .service-detail-icon {
+                                        background: #0157FF;
+                                    }
+
+                                    &.debt-payment .service-detail-icon {
+                                        background: #FFC400;
+                                    }
+
+                                    &.home-expenses .service-detail-icon {
+                                        background: #023AA6;
+                                    }
+
+                                    &.cash-left .service-detail-icon {
+                                        background: #99A5BD;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 &.mortgage-calculator-results {

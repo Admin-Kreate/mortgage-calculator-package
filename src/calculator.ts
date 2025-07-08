@@ -13,7 +13,7 @@ import CondoFeesIcon from './assets/icons/condo-fees.svg';
 import ExtraPaymentsIcon from './assets/icons/extra-payments.svg';
 import InfoIcon from './assets/icons/info.svg';
 
-export function initCalculator(container: HTMLElement, applyUrl: string) {
+export function initCalculator(container: HTMLElement) {
   const calculatorInputsHTML = `
     <div class="calculator-input purchase-price">
       <div class="header stacked">

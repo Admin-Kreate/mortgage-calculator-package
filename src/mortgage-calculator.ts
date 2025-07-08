@@ -6,7 +6,7 @@ import PayMortgageFasterIcon from './assets/icons/pay-mortgage-faster.svg';
 import AmortizationPeriodIcon from './assets/icons/amortization-period.svg';
 import DropdownIcon from './assets/icons/dropdown-icon.svg';
 
-export function initMortgageCalculator(container: HTMLElement, applyUrl: string) {
+export function initMortgageCalculator(container: HTMLElement) {
   const calculatorInputsHTML = `
     <div class="calculator-input mortgage-calculator-input">
       <div class="header stacked">
