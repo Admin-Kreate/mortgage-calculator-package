@@ -117,7 +117,8 @@ body {
                     &.debt-service-rate,
                     &.add-rental-income,
                     &.stress-test-rule,
-                    &.rental-income-rule {
+                    &.rental-income-rule,
+                    &.calculation-rules {
                         .header {
                             @include respond-to-mobile {
                                 grid-template-columns: auto;
@@ -322,6 +323,138 @@ body {
                                 &:nth-child(3) {
                                     border-radius: 0px 12px 12px 0px;
                                 }
+                            }
+                        }
+                    }
+
+                    .sub-header {
+                        display: grid;
+                        grid-template-columns: repeat(2, auto);
+                        align-items: center;
+                        justify-content: space-between;
+
+                        .title {
+                            color: #000;
+                            font-family: "DM Sans";
+                            font-size: 14px;
+                            font-style: normal;
+                            font-weight: 700;
+                            line-height: normal;
+                        }
+
+                        &.rental-income-rule {
+                            margin-top: 2rem;
+                        }
+                    }
+
+                    .current-calculated-ratios {
+                        display: grid;
+                        justify-content: center;
+
+                        .label {
+                            color: rgba(22, 24, 25, 0.80);
+                            text-align: center;
+                            font-family: "DM Sans";
+                            font-size: 14px;
+                            font-style: normal;
+                            font-weight: 500;
+                            line-height: 24px;
+                        }
+
+                        .value {
+                            color: #161819;
+                            font-family: "DM Sans";
+                            font-size: 16px;
+                            font-style: normal;
+                            font-weight: 800;
+                            line-height: 24px;
+                        }
+                    }
+
+                    .btn-group-selector {
+                        display: grid;
+                        grid-template-columns: repeat(2, auto);
+                        align-items: center;
+
+                        &.btn-group-selector {
+                            justify-content: end;
+                        }
+
+                        &.full-width {
+                            grid-template-columns: repeat(2, 1fr);
+                            justify-content: start;
+
+                            .selector {
+                                width: auto !important;
+                                padding: 0.5rem;
+                                border-radius: 6px 0px 0px 6px;
+
+                                &:nth-child(2) {
+                                    border-radius: 0px 6px 6px 0px;
+                                }
+                            }
+                        }
+
+                        @include respond-to-mobile {
+                            justify-content: start;
+                        }
+
+                        &.btn-group-selector {
+                            .selector {
+                                width: 120px;
+
+                                &.active {
+                                    font-weight: 500;
+                                }
+                            }
+                        }
+
+                        .selector {
+                            color: #1A4383;
+                            font-family: "DM Sans";
+                            font-size: 16px;
+                            font-style: normal;
+                            font-weight: 400;
+                            line-height: normal;
+                            border-radius: 12px 0px 0px 12px;
+                            border: 1px solid #1A4383;
+
+                            width: 75px;
+                            text-align: center;
+                            padding: 0.25rem 0;
+                            cursor: pointer;
+
+                            @include respond-to-mobile {
+                                font-size: 14px;
+                            }
+
+                            &.active {
+                                background: #1A4383;
+                                color: #FFFFFF;
+                            }
+
+                            &:nth-child(2) {
+                                border-radius: 0px 12px 12px 0px;
+                            }
+                        }
+                    }
+
+                    .foot-notes {
+                        display: grid;
+                        align-items: center;
+                        justify-content: start;
+
+                        .foot-note {
+                            opacity: 0.8;
+                            color: #000;
+                            font-family: "DM Sans";
+                            font-size: 10px;
+                            font-style: normal;
+                            font-weight: 500;
+                            line-height: 18px;
+
+                            span {
+                                opacity: 1;
                             }
                         }
                     }
@@ -645,8 +778,60 @@ body {
                     grid-gap: 0.5rem;
                 }
 
-                &.debt-service-calculator-results {
-                    .debt-service-ratios {
+                &.debt-service-calculator-results,
+                &.max-mortgage-calculator-results {
+
+                    .max-mortgage-results .details .debt-service-details {
+                        .monthly-mortgage .service-detail-icon {
+                            background: #0157FF !important;
+                        }
+
+                        .debt-payment .service-detail-icon {
+                            background: #F00 !important;
+                        }
+
+                        .home-expenses .service-detail-icon {
+                            background: #023AA6 !important;
+                        }
+
+                        .cash-left .service-detail-icon {
+                            background: #69D900 !important;
+                        }
+                    }
+
+                    .max-mortgage-results .details {
+                        .breakdown-bar-container {
+                            width: 100%;
+                            height: 0.5rem;
+                            display: flex;
+                            gap: 0.5rem;
+                            overflow: hidden;
+                            margin-bottom: 0.75rem;
+
+                            .breakdown-bar-monthly-mortgage {
+                                width: 43%;
+                                background-color: #0157FF;
+                            }
+
+                            .breakdown-bar-debt-payment {
+                                width: 20%;
+                                background-color: #FF0000;
+                            }
+
+                            .breakdown-bar-home-expenses {
+                                width: 16%;
+                                background-color: #023AA6;
+                            }
+
+                            .breakdown-bar-cash-left {
+                                width: 21%;
+                                background-color: #69D900;
+                            }
+                        }
+                    }
+
+                    .debt-service-ratios,
+                    .max-mortgage-results {
                         border-radius: 20px;
                         border: 1px solid rgba(35, 38, 55, 0.20);
                         background: #FFF;
@@ -662,6 +847,56 @@ body {
                             padding: 1rem;
                             text-align: left;
                             border-bottom: 1px solid rgba(35, 38, 55, .2);
+                        }
+
+                        .max-mortgage-amount {
+                            padding: 1rem 0;
+                            border-bottom: 1px solid rgba(35, 38, 55, .2);
+
+                            .amount {
+                                color: #1A4383;
+                                text-align: center;
+                                font-family: "DM Sans";
+                                font-size: 30px;
+                                font-style: normal;
+                                font-weight: 800;
+                                line-height: normal;
+                            }
+                        }
+
+                        .ratios-wrapper {
+                            display: grid;
+                            grid-gap: 1rem;
+                            padding: 1rem;
+                            border-bottom: 1px solid rgba(35, 38, 55, .2);
+
+                            .item {
+                                display: grid;
+                                grid-template-columns: repeat(2, auto);
+                                justify-content: space-between;
+                                align-items: center;
+
+                                .item-label {
+                                    color: #000;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 500;
+                                    line-height: normal;
+                                    opacity: 0.8;
+                                }
+
+                                .item-value {
+                                    color: #000;
+                                    text-align: right;
+                                    font-family: "DM Sans";
+                                    font-size: 16px;
+                                    font-style: normal;
+                                    font-weight: 500;
+                                    line-height: normal;
+                                    opacity: 0.8;
+                                }
+                            }
                         }
 
                         .ratios {

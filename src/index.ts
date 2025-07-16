@@ -2,6 +2,7 @@ import './styles.scss';
 import { initCalculator } from './calculator';
 import { initMortgageCalculator } from './mortgage-calculator';
 import { initDebtServiceCalculator } from './debt-service-calculator';
+import { initMaxMortgageCalculator } from './max-mortgage-calculator';
 import { initMarketTrendVideos } from './market-trend-videos';
 import { initFaqs } from './faqs';
 import { initResearchArticles } from './research-articles';
@@ -14,10 +15,7 @@ import { initMortgageCalendar } from './mortgage-calendar';
 
 interface InitParams {
   containerId: string;
-  product: "calculator" | "mortgage-calculator" | "debt-service-calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos" | "cockpit" | "free-guides" | "mortgage-calender";
-  options?: {
-    applyUrl?: string;
-  };
+  product: "calculator" | "mortgage-calculator" | "debt-service-calculator" | "max-mortgage-calculator" | "market-trend-videos" | "faqs" | "research-articles" | "mortgage-news" | "mortgage-glossary" | "educational-videos" | "cockpit" | "free-guides" | "mortgage-calender";
 }
 
 export function init(initParams: InitParams) {
@@ -37,6 +35,9 @@ export function init(initParams: InitParams) {
       break;
     case "debt-service-calculator":
       initDebtServiceCalculator(container);
+      break;
+    case "max-mortgage-calculator":
+      initMaxMortgageCalculator(container);
       break;
     case "cockpit":
       initCockpit(container);
