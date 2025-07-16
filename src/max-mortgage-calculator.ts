@@ -377,9 +377,6 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
   const amortizationInputSlider = document.querySelector('.amortization .slider') as HTMLInputElement;
   
   const maxMortgageAmountResultsElement = document.querySelector('.max-mortgage-calculator-results .max-mortgage-amount .amount') as HTMLInputElement;
-  // const gdsRatioResultsElement = document.querySelector('.max-mortgage-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(1) .value') as HTMLInputElement;
-  // const tdsRatioResultsElement = document.querySelector('.max-mortgage-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(2) .value') as HTMLInputElement;
-  // const stressTestRateTypeResultsElement = document.querySelector('.max-mortgage-calculator-results .debt-service-ratios .details .st-rate .st-rate-label span') as HTMLInputElement;
   const stressTestRateResultsElement = document.querySelector('.max-mortgage-calculator-results .ratios-wrapper .item:nth-of-type(1) .item-value') as HTMLInputElement;
   const gdsTdsRatioResultElements = document.querySelector('.max-mortgage-calculator-results .ratios-wrapper .item:nth-of-type(2) .item-value') as HTMLInputElement;
   
