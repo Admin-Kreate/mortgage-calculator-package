@@ -22,7 +22,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           <input type="range" min="100000" max="2000000" value="500000" step="10000" class="slider">
           <div class="range-label">
             <span>$100K</span>
-            <span>$2M</span>
+            <span>$2M+</span>
           </div>
         </div>
         <div class="dropdown inline payment-frequency">
@@ -155,7 +155,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           <input type="range" min="0" max="2000" value="0" step="25" class="slider">
           <div class="range-label">
             <span>$0</span>
-            <span>$2,000</span>
+            <span>$2,000+</span>
           </div>
         </div>
         <div class="input-field one-time-pre-payment">
@@ -164,7 +164,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           <input type="range" min="0" max="100000" value="0" step="1000" class="slider">
           <div class="range-label">
             <span>$0</span>
-            <span>$100K</span>
+            <span>$100K+</span>
           </div>
         </div>
       </div>
@@ -542,7 +542,7 @@ export function initMortgageCalculator(container: HTMLElement) {
 
         switch (type) {
           case "purchase-price":
-            if (0 <= numericValue && numericValue <= 2000000) {
+            if (100000 <= numericValue) {
               purchasePriceInputSlider.value = numericValue.toString();
               updateSliderBackground(purchasePriceInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -576,7 +576,7 @@ export function initMortgageCalculator(container: HTMLElement) {
             break;
 
           case "payment-increase":
-            if (0 <= numericValue && numericValue <= 2000) {
+            if (0 <= numericValue) {
               paymentIncreaseInputSlider.value = numericValue.toString();
               updateSliderBackground(paymentIncreaseInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -587,7 +587,7 @@ export function initMortgageCalculator(container: HTMLElement) {
             break;
 
           case "one-time-pre-payment":
-            if (0 <= numericValue && numericValue <= 100000) {
+            if (0 <= numericValue) {
               oneTimePrePaymentInputSlider.value = numericValue.toString();
               updateSliderBackground(oneTimePrePaymentInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;

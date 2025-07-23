@@ -61,11 +61,11 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       <div class="input-fields half-width-fields">
         <div class="input-field home-expense-monthly">
           <div class="field-label">Property Tax (Monthly)</div>
-          <input type="text" value="$  833.33" data-previous-value="833.33" class="value-input">
+          <input type="text" value="$  200" data-previous-value="200" class="value-input">
         </div>
         <div class="input-field home-expense-yearly">
           <div class="field-label">Property Tax (Yearly)</div>
-          <input type="text" value="$  10,000" data-previous-value="10000" class="value-input">
+          <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
         </div>
       </div>
       <div class="input-fields half-width-fields">
@@ -74,7 +74,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
         </div>
         <div class="input-field home-expense-heat">
-          <div class="field-label">Heat</div>
+          <div class="field-label">Heat (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
         </div>
       </div>
@@ -113,7 +113,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field rate">
           <div class="field-label">Rate</div>
           <input type="text" value="6.29%" data-previous-value="6.29" class="value-input">
-          <input type="range" min="0" max="10" value="6.29" step="0.01" class="slider">
+          <input type="range" min="0" max="10" value="6.29" step="0.05" class="slider">
         </div>
         <div class="dropdown inline rate-term">
           <div class="dropdown-field inline-label">
@@ -173,11 +173,11 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       <div class="input-fields half-width-fields expandable">
         <div class="input-field add-rental-income-monthly">
           <div class="field-label">Monthly</div>
-          <input type="text" value="$  833.33" data-previous-value="833.33" class="value-input">
+          <input type="text" value="$  200" data-previous-value="200" class="value-input">
         </div>
         <div class="input-field add-rental-income-yearly">
           <div class="field-label">Yearly</div>
-          <input type="text" value="$  10,000" data-previous-value="10000" class="value-input">
+          <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
         </div>
       </div>
     </div>
@@ -189,8 +189,8 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           <div class="title">Stress Test Rule</div>
         </div>
         <div class="btn-group-selector">
-          <div class="selector active">Contract</div>
-          <div class="selector">B20</div>
+          <div class="selector">Contract</div>
+          <div class="selector active">B20</div>
         </div>
       </div>
       <div class="input-fields single-field">
@@ -216,15 +216,15 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           <div class="title">Rental Income Rule</div>
         </div>
         <div class="btn-group-selector">
-          <div class="selector active">Add Back</div>
-          <div class="selector">Offset</div>
+          <div class="selector">Add Back</div>
+          <div class="selector active">Offset</div>
         </div>
       </div>
       <div class="input-fields single-field">
         <div class="dropdown inline rental-income-portion">
           <div class="dropdown-field inline-label">
             <div class="field-label">Rental Income Portion</div>
-            <span>100%</span>
+            <span>50%</span>
             <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
           </div>
           <div class="dropdown-opts">
@@ -610,7 +610,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
         switch (type) {
           case "loan-amount":
-            if (0 <= numericValue && numericValue <= 1500000) {
+            if (0 <= numericValue) {
               loanAmountInputSlider.value = numericValue.toString();
               updateSliderBackground(loanAmountInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -621,7 +621,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             break;
 
           case "gross-annual-income":
-            if (0 <= numericValue && numericValue <= 500000) {
+            if (0 <= numericValue) {
               grossAnnualIncomeInputSlider.value = numericValue.toString();
               updateSliderBackground(grossAnnualIncomeInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -632,7 +632,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             break;
 
           case "monthly-debt-payments":
-            if (0 <= numericValue && numericValue <= 5000) {
+            if (0 <= numericValue) {
               monthlyDebtPaymentsInputSlider.value = numericValue.toString();
               updateSliderBackground(monthlyDebtPaymentsInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -648,11 +648,41 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           case "home-expense-heat":
           case "add-rental-income-monthly":
           case "add-rental-income-yearly":
-            if (0 <= numericValue && numericValue <= 5000) {
+            if (0 <= numericValue) {
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
               target.dataset.previousValue = value;
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+            }
+
+            if (type === "home-expense-monthly") {
+              const prevValueStr = target.dataset.previousValue;
+              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
+              const rawYearlyValue = prevValue * 12;
+
+              homeExpenseYearlyInput.value = `${symbol} ${rawYearlyValue.toLocaleString('en-US')}`;
+              homeExpenseYearlyInput.dataset.previousValue = rawYearlyValue.toString();
+            } else if (type === "home-expense-yearly") {
+              const prevValueStr = target.dataset.previousValue;
+              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
+              const rawMonthlyValue = prevValue / 12;
+
+              homeExpenseMonthlyInput.value = `${symbol} ${rawMonthlyValue.toLocaleString('en-US')}`;
+              homeExpenseMonthlyInput.dataset.previousValue = rawMonthlyValue.toString();
+            } else if (type === "add-rental-income-monthly") {
+              const prevValueStr = target.dataset.previousValue;
+              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
+              const rawYearlyValue = prevValue * 12;
+
+              addRentalIncomeYearlyInput.value = `${symbol} ${rawYearlyValue.toLocaleString('en-US')}`;
+              addRentalIncomeYearlyInput.dataset.previousValue = rawYearlyValue.toString();
+            } else if (type === "add-rental-income-yearly") {
+              const prevValueStr = target.dataset.previousValue;
+              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
+              const rawMonthlyValue = prevValue / 12;
+
+              addRentalIncomeMonthlyInput.value = `${symbol} ${rawMonthlyValue.toLocaleString('en-US')}`;
+              addRentalIncomeMonthlyInput.dataset.previousValue = rawMonthlyValue.toString();
             }
             break;
 

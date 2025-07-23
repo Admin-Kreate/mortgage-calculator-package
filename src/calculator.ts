@@ -25,10 +25,10 @@ export function initCalculator(container: HTMLElement) {
       </div>
       <div class="input-field">
         <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
-        <input type="range" min="0" max="2000000" value="500000" class="slider">
+        <input type="range" min="0" max="2000000" value="500000" step="10000" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$2M</span>
+          <span>$2M+</span>
         </div>
       </div>
     </div>
@@ -67,10 +67,10 @@ export function initCalculator(container: HTMLElement) {
       </div>
       <div class="input-field">
         <input type="text" value="6.00%" data-previous-value="6.00" class="value-input">
-        <input type="range" min="0.1" max="40" value="6" step="0.1" class="slider">
+        <input type="range" min="1" max="15" value="6" step="0.1" class="slider">
         <div class="range-label">
-          <span>0.1%</span>
-          <span>40%</span>
+          <span>1%</span>
+          <span>15%+</span>
         </div>
       </div>
     </div>
@@ -251,10 +251,10 @@ export function initCalculator(container: HTMLElement) {
       </div>
       <div class="input-field">
         <input type="text" value="$  9,600" data-previous-value="9600" class="value-input">
-        <input type="range" min="0" max="100000" value="9600" class="slider">
+        <input type="range" min="0" max="100000" value="9600" step="2000" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$100,000</span>
+          <span>$100,000+</span>
         </div>
       </div>
     </div>
@@ -269,10 +269,10 @@ export function initCalculator(container: HTMLElement) {
       </div>
       <div class="input-field">
         <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
-        <input type="range" min="0" max="5000" value="2400" class="slider">
+        <input type="range" min="0" max="5000" value="2400" step="100" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$5,000</span>
+          <span>$5,000+</span>
         </div>
       </div>
     </div>
@@ -287,10 +287,10 @@ export function initCalculator(container: HTMLElement) {
       </div>
       <div class="input-field">
         <input type="text" value="$  250" data-previous-value="250" class="value-input">
-        <input type="range" min="0" max="1500" value="250" class="slider">
+        <input type="range" min="0" max="1500" value="250" step="50" class="slider">
         <div class="range-label">
           <span>$0</span>
-          <span>$1,500</span>
+          <span>$1,500+</span>
         </div>
       </div>
     </div>
@@ -689,7 +689,7 @@ export function initCalculator(container: HTMLElement) {
 
         switch (type) {
           case "purchase-price":
-            if (0 <= numericValue && numericValue <= 2000000) {
+            if (0 <= numericValue) {
               purchasePriceInputSlider.value = numericValue.toString();
               updateSliderBackground(purchasePriceInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -741,7 +741,7 @@ export function initCalculator(container: HTMLElement) {
 
           case "interest-rate":
             const floatValue = value ? parseFloat(value) : 0.00;
-            if (0.1 <= floatValue && floatValue <= 40) {
+            if (1 <= floatValue) {
               interestRateInputSlider.value = floatValue.toFixed(2);
               updateSliderBackground(interestRateInputSlider);
               target.value = `${floatValue.toFixed(2)}%`;
@@ -752,7 +752,7 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "property-taxes":
-            if (0 <= numericValue && numericValue <= 100000) {
+            if (0 <= numericValue) {
               propertyTaxesInputSlider.value = numericValue.toString();
               updateSliderBackground(propertyTaxesInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -763,7 +763,7 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "heating-costs":
-            if (0 <= numericValue && numericValue <= 5000) {
+            if (0 <= numericValue) {
               heatingCostsInputSlider.value = numericValue.toString();
               updateSliderBackground(heatingCostsInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -774,7 +774,7 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "condo-fees":
-            if (0 <= numericValue && numericValue <= 1500) {
+            if (0 <= numericValue) {
               condoFeesInputSlider.value = numericValue.toString();
               updateSliderBackground(condoFeesInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
