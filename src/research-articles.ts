@@ -3,6 +3,7 @@ import { getFirestoreInstance } from "./firebase";
 import {
     collection,
     query,
+    where,
     orderBy,
     limit,
     getDocs,
@@ -13,17 +14,27 @@ import { formatDate } from './utils';
 const FIRESTORE_COLLECTION = "research_articles";
 const PAGE_SIZE = 9;
 let lastDocument: any = null;
+let selectedCategory = "";
 
 export function initResearchArticles(container: HTMLElement) {
     container.innerHTML = `
       <div class="research-articles">
         <div class="section-heading">Research Articles</div>
+        <div class="filters">
+            <div class="filter selected">All Articles</div>
+            <div class="filter">First time home buyer</div>
+            <div class="filter">General</div>
+            <div class="filter">HELOC</div>
+            <div class="filter">Refinance</div>
+            <div class="filter">Renewal</div>
+        </div>
         <div class="research-articles-list"></div>
       </div>
     `;
 
     const researchArticles = container.querySelector(".research-articles") as HTMLElement;
     const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
+    const filtersList = container.querySelector(".filters") as HTMLElement;
     const researchArticlesList = container.querySelector(".research-articles-list") as HTMLUListElement;
     if (!researchArticles || !sectionHeading || !researchArticlesList) return;
 
@@ -70,6 +81,25 @@ export function initResearchArticles(container: HTMLElement) {
     };
 
     window.addEventListener("scroll", throttle(handleScroll, 200));
+
+    filtersList.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest(".filter")) {
+            const filterElements = filtersList.querySelectorAll(".filter");
+            filterElements.forEach(filterElement => {
+                filterElement.classList.remove("selected");
+            });
+            target.classList.add("selected");
+
+            const text = target.textContent === "All Articles" ? "" : target.textContent;
+            selectedCategory = text ? text : "";
+            lastDocument = null;
+
+            researchArticlesList.innerHTML = "";
+
+            loadResearchArticles(container);
+        }
+    });
 }
 
 async function loadResearchArticles(container: HTMLElement): Promise<boolean> {
@@ -84,6 +114,11 @@ async function loadResearchArticles(container: HTMLElement): Promise<boolean> {
             orderBy("date", "desc"),
             limit(PAGE_SIZE)
         );
+                        
+        // Conditionally apply the "where" clause if categoryToFilter is available
+        if (selectedCategory) {
+            researchArticlesQuery = query(researchArticlesQuery, where("category", "==", selectedCategory));
+        }
 
         if (lastDocument) {
             researchArticlesQuery = query(researchArticlesQuery, startAfter(lastDocument));
@@ -98,8 +133,6 @@ async function loadResearchArticles(container: HTMLElement): Promise<boolean> {
 
         querySnapshot.forEach((doc) => {
             const researchArticleData = doc.data();
-            console.log("researchArticleData - ", researchArticleData);
-
             const researchArticleElement = document.createElement("div");
             researchArticleElement.classList.add("research-article");
             researchArticleElement.innerHTML = `

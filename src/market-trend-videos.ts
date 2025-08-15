@@ -3,6 +3,7 @@ import { getFirestoreInstance } from "./firebase";
 import {
     collection,
     query,
+    where,
     orderBy,
     limit,
     getDocs,
@@ -15,11 +16,19 @@ import { formatDate } from './utils';
 const FIRESTORE_COLLECTION = "market_trend_videos";
 const PAGE_SIZE = 9;
 let lastDocument: any = null;
+let selectedCategory = "";
 
 export function initMarketTrendVideos(container: HTMLElement) {
     container.innerHTML = `
       <div class="market-trend-videos">
         <div class="section-heading">Market Trend Videos</div>
+        <div class="filters">
+            <div class="filter selected">All Videos</div>
+            <div class="filter">First time home buyer</div>
+            <div class="filter">General</div>
+            <div class="filter">HELOC</div>
+            <div class="filter">Renewal</div>
+        </div>
         <div class="videos"></div>
         <div id="video-player" class="modal" style="display: none;">
             <div class="modal-content">
@@ -32,6 +41,7 @@ export function initMarketTrendVideos(container: HTMLElement) {
 
     const marketTrendVideos = container.querySelector(".market-trend-videos") as HTMLElement;
     const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
+    const filtersList = container.querySelector(".filters") as HTMLElement;
     const videosList = container.querySelector(".videos") as HTMLUListElement;
     if (!marketTrendVideos || !sectionHeading || !videosList) return;
 
@@ -78,6 +88,25 @@ export function initMarketTrendVideos(container: HTMLElement) {
     };
 
     window.addEventListener("scroll", throttle(handleScroll, 200));
+
+    filtersList.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest(".filter")) {
+            const filterElements = filtersList.querySelectorAll(".filter");
+            filterElements.forEach(filterElement => {
+                filterElement.classList.remove("selected");
+            });
+            target.classList.add("selected");
+
+            const text = target.textContent === "All Videos" ? "" : target.textContent;
+            selectedCategory = text ? text : "";
+            lastDocument = null;
+
+            videosList.innerHTML = "";
+
+            loadTrendingVideos(container);
+        }
+    });
 }
 
 async function loadTrendingVideos(container: HTMLElement): Promise<boolean> {
@@ -92,6 +121,11 @@ async function loadTrendingVideos(container: HTMLElement): Promise<boolean> {
             orderBy("date", "desc"),
             limit(PAGE_SIZE)
         );
+                
+        // Conditionally apply the "where" clause if categoryToFilter is available
+        if (selectedCategory) {
+            videosQuery = query(videosQuery, where("category", "==", selectedCategory));
+        }
 
         if (lastDocument) {
             videosQuery = query(videosQuery, startAfter(lastDocument));
@@ -106,8 +140,6 @@ async function loadTrendingVideos(container: HTMLElement): Promise<boolean> {
 
         querySnapshot.forEach((doc) => {
             const videoData = doc.data();
-            console.log("videoData - ", videoData);
-
             const videoElement = document.createElement("div");
             videoElement.classList.add("video");
             videoElement.setAttribute("data-video-url", videoData.video_link);

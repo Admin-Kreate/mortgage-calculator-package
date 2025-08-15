@@ -3,6 +3,7 @@ import { getFirestoreInstance } from "./firebase";
 import {
     collection,
     query,
+    where,
     orderBy,
     getDocs,
 } from "firebase/firestore";
@@ -10,17 +11,27 @@ import {
 import chevronDown from './assets/icons/chevron-down.svg';
 
 const FIRESTORE_COLLECTION = "faqs";
+let selectedCategory = "";
 
 export function initFaqs(container: HTMLElement) {
     container.innerHTML = `
       <div class="faqs">
         <div class="section-heading">Frequently Asked Questions</div>
+        <div class="filters">
+            <div class="filter selected">All</div>
+            <div class="filter">Basic</div>
+            <div class="filter">First time home buyer</div>
+            <div class="filter">HELOC</div>
+            <div class="filter">Refinance</div>
+            <div class="filter">Renewal</div>
+        </div>
         <div class="faq-list"></div>
       </div>
     `;
 
     const faqs = container.querySelector(".faqs") as HTMLElement;
     const sectionHeading = container.querySelector(".section-heading") as HTMLElement;
+    const filtersList = container.querySelector(".filters") as HTMLElement;
     const faqList = container.querySelector(".faq-list") as HTMLUListElement;
     if (!faqs || !sectionHeading || !faqList) return;
 
@@ -49,6 +60,25 @@ export function initFaqs(container: HTMLElement) {
     // };
 
     // window.addEventListener("scroll", throttle(handleScroll, 200));
+
+    filtersList.addEventListener("click", (event) => {
+        const target = event.target as HTMLElement;
+        if (target.closest(".filter")) {
+            const filterElements = filtersList.querySelectorAll(".filter");
+            filterElements.forEach(filterElement => {
+                filterElement.classList.remove("selected");
+            });
+            target.classList.add("selected");
+
+            const text = target.textContent === "All" ? "" : target.textContent;
+            selectedCategory = text ? text : "";
+            // lastDocument = null;
+
+            faqList.innerHTML = "";
+
+            loadFaqs(container);
+        }
+    });
 }
 
 async function loadFaqs(container: HTMLElement) {
@@ -62,6 +92,11 @@ async function loadFaqs(container: HTMLElement) {
             collection(db, FIRESTORE_COLLECTION),
             orderBy("question", "asc")
         );
+
+        // Conditionally apply the "where" clause if categoryToFilter is available
+        if (selectedCategory) {
+            faqsQuery = query(faqsQuery, where("category", "==", selectedCategory));
+        }
 
         const querySnapshot = await getDocs(faqsQuery);
 
