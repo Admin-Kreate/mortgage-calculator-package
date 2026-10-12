@@ -18,6 +18,7 @@ export interface MortgageData {
 
 export interface MortgageResults {
     mortgagePayment: number;
+    basePayment: number; // payment amount before any payment-increase acceleration (used for % calcs)
     principal: number;
     interest: number;
     totalInterest: number;
@@ -488,6 +489,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         // Return accelerated results as the main results
         return {
             mortgagePayment: adjustedPayment,
+            basePayment: mortgagePayment,
             principal: accPrincipalPayment,
             interest: accInterestPayment,
             totalInterest: reportedTotalInterest,
@@ -508,6 +510,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
 
     return {
         mortgagePayment,
+        basePayment: mortgagePayment,
         principal: periodicPrincipal,
         interest: periodicInterest,
         totalInterest,
