@@ -76,61 +76,79 @@ export function parseCurrency(value: string): number {
     return parseFloat(value.replace(/[,$]/g, '')) || 0;
 }
 
+// M-1: periods per year for each supported payment frequency.
+function getPeriodsPerYear(frequency: MortgageData['paymentFrequency']): number {
+    switch (frequency) {
+        case 'biweekly':
+            return 26;
+        case 'weekly':
+            return 52;
+        case 'monthly':
+        default:
+            return 12;
+    }
+}
+
+// M-1: the periodic-rate conversion from a nominal annual rate compounded `compounding`-many
+// times/year to an equivalent rate per payment period, generalised over the chosen payment
+// frequency's periodsPerYear - instead of always assuming monthly (m/12) payments regardless
+// of data.paymentFrequency.
+function getPeriodicRate(annualRate: number, compounding: MortgageData['compounding'], periodsPerYear: number): number {
+    switch (compounding) {
+        case 'semi-annual':
+            return Math.pow(1 + annualRate / 2, 2 / periodsPerYear) - 1;
+        case 'monthly':
+            return Math.pow(1 + annualRate / 12, 12 / periodsPerYear) - 1;
+        case 'quarterly':
+            return Math.pow(1 + annualRate / 4, 4 / periodsPerYear) - 1;
+        case 'daily':
+            return Math.pow(1 + annualRate / 365, 365 / periodsPerYear) - 1;
+        case 'weekly':
+            return Math.pow(1 + annualRate / 52, 52 / periodsPerYear) - 1;
+        case 'bi-weekly':
+            return Math.pow(1 + annualRate / 26, 26 / periodsPerYear) - 1;
+        default:
+            return Math.pow(1 + annualRate / 2, 2 / periodsPerYear) - 1;
+    }
+}
+
 export function calculateMortgage(data: MortgageData): MortgageResults {
     const principal = data.loanAmount;
 
-    // Calculate monthly interest rate based on Canadian standards
-    let monthlyRate: number;
     const annualRate = data.interestRate / 100;
+    const periodsPerYear = getPeriodsPerYear(data.paymentFrequency);
 
-    // Canadian mortgages use semi-annual compounding by default
-    switch (data.compounding) {
-        case 'semi-annual':
-            monthlyRate = Math.pow(1 + annualRate / 2, 1 / 6) - 1;
-            break;
-        case 'monthly':
-            monthlyRate = annualRate / 12;
-            break;
-        case 'quarterly':
-            monthlyRate = Math.pow(1 + annualRate / 4, 1 / 3) - 1;
-            break;
-        case 'daily':
-            monthlyRate = Math.pow(1 + annualRate / 365, 365 / 12) - 1;
-            break;
-        case 'weekly':
-            monthlyRate = Math.pow(1 + annualRate / 52, 52 / 12) - 1;
-            break;
-        case 'bi-weekly':
-            monthlyRate = Math.pow(1 + annualRate / 26, 26 / 12) - 1;
-            break;
-        default:
-            monthlyRate = Math.pow(1 + annualRate / 2, 1 / 6) - 1;
-    }
+    // M-1: the periodic interest rate based on Canadian standards, generalised over the
+    // chosen payment frequency (periodsPerYear) instead of always assuming monthly payments.
+    const periodicRate = getPeriodicRate(annualRate, data.compounding, periodsPerYear);
 
-    const totalPayments = data.amortization * 12;
+    // M-1: selecting "Bi-Weekly" or "Weekly" used to still solve (and display) a monthly
+    // annuity under the wrong label - totalPayments now reflects the TRUE number of payments
+    // at the selected frequency.
+    const totalPayments = data.amortization * periodsPerYear;
 
     // Calculate base mortgage payment
     let mortgagePayment: number;
     if (data.loanType === 'interest only') {
-        mortgagePayment = principal * monthlyRate;
+        mortgagePayment = principal * periodicRate;
     } else {
-        if (monthlyRate === 0) {
+        if (periodicRate === 0) {
             mortgagePayment = principal / totalPayments;
         } else {
-            mortgagePayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
+            mortgagePayment = principal * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / (Math.pow(1 + periodicRate, totalPayments) - 1);
         }
     }
 
     // Calculate first payment breakdown
-    const monthlyInterest = principal * monthlyRate;
-    const monthlyPrincipal = mortgagePayment - monthlyInterest;
+    const periodicInterest = principal * periodicRate;
+    const periodicPrincipal = mortgagePayment - periodicInterest;
 
     // Calculate balance at end of rate term (regular mortgage)
     let balanceEndOfTerm = principal;
-    const termPayments = data.rateTerm * 12;
+    const termPayments = data.rateTerm * periodsPerYear;
 
     for (let i = 0; i < termPayments; i++) {
-        const interestPayment = balanceEndOfTerm * monthlyRate;
+        const interestPayment = balanceEndOfTerm * periodicRate;
         const principalPayment = mortgagePayment - interestPayment;
         balanceEndOfTerm = Math.max(0, balanceEndOfTerm - principalPayment);
         if (balanceEndOfTerm <= 0) break;
@@ -140,10 +158,10 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
     let fiveYearBalance = principal;
     let fiveYearInterest = 0;
     let fiveYearPrincipal = 0;
-    const fiveYearPayments = Math.min(60, totalPayments);
+    const fiveYearPayments = Math.min(5 * periodsPerYear, totalPayments);
 
     for (let i = 0; i < fiveYearPayments; i++) {
-        const interestPayment = fiveYearBalance * monthlyRate;
+        const interestPayment = fiveYearBalance * periodicRate;
         const principalPayment = mortgagePayment - interestPayment;
         fiveYearBalance = Math.max(0, fiveYearBalance - principalPayment);
         fiveYearInterest += interestPayment;
@@ -173,7 +191,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         while (accBalance > 0.01 && accPayments < totalPayments * 2) {
             accPayments++;
 
-            const interestPayment = accBalance * monthlyRate;
+            const interestPayment = accBalance * periodicRate;
             let paymentAmount = adjustedPayment;
 
             // Apply one-time prepayment in first year
@@ -216,7 +234,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
 
             // Regular balance
             while (regPaymentCount < targetPayments && regBalance > 0.01) {
-                const interest = regBalance * monthlyRate;
+                const interest = regBalance * periodicRate;
                 const principal = mortgagePayment - interest;
                 regBalance = Math.max(0, regBalance - principal);
                 regPaymentCount++;
@@ -225,7 +243,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
             // Accelerated balance
             while (accPaymentCount < targetPayments && accBalanceChart > 0.01) {
                 accPaymentCount++;
-                const interest = accBalanceChart * monthlyRate;
+                const interest = accBalanceChart * periodicRate;
                 let payment = adjustedPayment;
 
                 if (!oneTimeAppliedChart && accPaymentCount <= 12 && data.oneTimePrePayment > 0) {
@@ -255,8 +273,8 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         let accFiveYearTotalPaid = 0;
         let fiveYearOneTimeApplied = false;
 
-        for (let i = 0; i < Math.min(60, totalPayments); i++) {
-            const interestPayment = accFiveYearBalance * monthlyRate;
+        for (let i = 0; i < fiveYearPayments; i++) {
+            const interestPayment = accFiveYearBalance * periodicRate;
             let paymentAmount = adjustedPayment;
 
             if (!fiveYearOneTimeApplied && i < 12 && data.oneTimePrePayment > 0) {
@@ -282,7 +300,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         let termOneTimeApplied = false;
 
         for (let i = 0; i < termPayments; i++) {
-            const interestPayment = accBalanceEndOfTerm * monthlyRate;
+            const interestPayment = accBalanceEndOfTerm * periodicRate;
             let paymentAmount = adjustedPayment;
 
             if (!termOneTimeApplied && i < 12 && data.oneTimePrePayment > 0) {
@@ -311,7 +329,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         };
 
         // Calculate accelerated payment breakdown
-        const accInterestPayment = principal * monthlyRate;
+        const accInterestPayment = principal * periodicRate;
         const accPrincipalPayment = adjustedPayment - accInterestPayment;
 
         // Return accelerated results as the main results
@@ -335,8 +353,8 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
 
     return {
         mortgagePayment,
-        principal: monthlyPrincipal,
-        interest: monthlyInterest,
+        principal: periodicPrincipal,
+        interest: periodicInterest,
         totalInterest,
         totalCost,
         loanAmount: principal,
