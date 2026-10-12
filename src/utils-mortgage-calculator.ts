@@ -139,6 +139,50 @@ function annuityPayment(principal: number, periodicRate: number, totalPayments: 
     return principal * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / (Math.pow(1 + periodicRate, totalPayments) - 1);
 }
 
+// M-5: single shared step used by every accelerated-simulation call site (main payoff loop,
+// comparison chart, 5-year breakdown, and rate-term breakdown) so their prepayment timing
+// rules cannot drift apart from one another - previously there were ~4 near-duplicate copies
+// of this logic, each applying the one-time prepayment on the FIRST iteration (payment #1,
+// i.e. at closing) instead of the 1-year anniversary the UI tooltip promises, and the annual
+// prepayment on a hardcoded "every 12th payment" which was wrong for true bi-weekly/weekly
+// periodicities.
+//
+// - The one-time prepayment is applied once, on the anniversary of the first year
+//   (periodIndex === periodsPerYear) rather than on payment #1 / at closing.
+// - The annual prepayment is applied once per year, on every anniversary starting with year 1.
+function applyAcceleratedPayment(
+    balance: number,
+    periodicRate: number,
+    basePaymentAmount: number,
+    periodIndex: number, // 1-based count of this payment within the simulation
+    periodsPerYear: number,
+    oneTimePrePayment: number,
+    oneTimeApplied: boolean,
+    annualPrePayment: number
+): { balance: number; interestPaid: number; principalPaid: number; oneTimeApplied: boolean } {
+    const interestPayment = balance * periodicRate;
+    let paymentAmount = basePaymentAmount;
+
+    if (!oneTimeApplied && periodIndex === periodsPerYear && oneTimePrePayment > 0) {
+        paymentAmount += oneTimePrePayment;
+        oneTimeApplied = true;
+    }
+
+    if (periodIndex % periodsPerYear === 0 && annualPrePayment > 0) {
+        paymentAmount += annualPrePayment;
+    }
+
+    const principalPayment = Math.min(Math.max(paymentAmount - interestPayment, 0), balance);
+    const newBalance = Math.max(0, balance - principalPayment);
+
+    return {
+        balance: newBalance,
+        interestPaid: interestPayment,
+        principalPaid: principalPayment,
+        oneTimeApplied
+    };
+}
+
 export function calculateMortgage(data: MortgageData): MortgageResults {
     const principal = data.loanAmount;
 
@@ -292,24 +336,11 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         while (accBalance > 0.01 && accPayments < maxIterations) {
             accPayments++;
 
-            const interestPayment = accBalance * periodicRate;
-            let paymentAmount = adjustedPayment;
-
-            // Apply one-time prepayment in first year
-            if (!oneTimeApplied && accPayments <= 12 && data.oneTimePrePayment > 0) {
-                paymentAmount += data.oneTimePrePayment;
-                oneTimeApplied = true;
-            }
-
-            // Apply annual prepayment once per year starting from year 1
-            if (accPayments % 12 === 0 && accPayments >= 12 && data.annualPrePayment > 0) {
-                paymentAmount += data.annualPrePayment;
-            }
-
-            const principalPayment = Math.min(paymentAmount - interestPayment, accBalance);
-            accBalance -= principalPayment;
-            accTotalInterest += interestPayment;
-            accTotalPrincipal += principalPayment;
+            const step = applyAcceleratedPayment(accBalance, periodicRate, adjustedPayment, accPayments, periodsPerYear, data.oneTimePrePayment, oneTimeApplied, data.annualPrePayment);
+            accBalance = step.balance;
+            accTotalInterest += step.interestPaid;
+            accTotalPrincipal += step.principalPaid;
+            oneTimeApplied = step.oneTimeApplied;
 
             if (accPayments <= totalPayments) {
                 interestAtNominalHorizon = accTotalInterest;
@@ -358,33 +389,22 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         let oneTimeAppliedChart = false;
 
         for (let year = 0; year <= 25; year += 5) {
-            const targetPayments = year * 12;
+            const targetPayments = year * periodsPerYear;
 
             // Regular balance
             while (regPaymentCount < targetPayments && regBalance > 0.01) {
-                const interest = regBalance * periodicRate;
-                const principal = mortgagePayment - interest;
-                regBalance = Math.max(0, regBalance - principal);
                 regPaymentCount++;
+                const interest = regBalance * periodicRate;
+                const principalPortion = Math.min(mortgagePayment - interest, regBalance);
+                regBalance = Math.max(0, regBalance - principalPortion);
             }
 
-            // Accelerated balance
+            // Accelerated balance - shares the same step logic as every other simulation loop
             while (accPaymentCount < targetPayments && accBalanceChart > 0.01) {
                 accPaymentCount++;
-                const interest = accBalanceChart * periodicRate;
-                let payment = adjustedPayment;
-
-                if (!oneTimeAppliedChart && accPaymentCount <= 12 && data.oneTimePrePayment > 0) {
-                    payment += data.oneTimePrePayment;
-                    oneTimeAppliedChart = true;
-                }
-
-                if (accPaymentCount % 12 === 0 && data.annualPrePayment > 0) {
-                    payment += data.annualPrePayment;
-                }
-
-                const principal = Math.min(payment - interest, accBalanceChart);
-                accBalanceChart = Math.max(0, accBalanceChart - principal);
+                const step = applyAcceleratedPayment(accBalanceChart, periodicRate, adjustedPayment, accPaymentCount, periodsPerYear, data.oneTimePrePayment, oneTimeAppliedChart, data.annualPrePayment);
+                accBalanceChart = step.balance;
+                oneTimeAppliedChart = step.oneTimeApplied;
             }
 
             balanceComparison.push({
@@ -402,23 +422,13 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         let fiveYearOneTimeApplied = false;
 
         for (let i = 0; i < fiveYearPayments; i++) {
-            const interestPayment = accFiveYearBalance * periodicRate;
-            let paymentAmount = adjustedPayment;
-
-            if (!fiveYearOneTimeApplied && i < 12 && data.oneTimePrePayment > 0) {
-                paymentAmount += data.oneTimePrePayment;
-                fiveYearOneTimeApplied = true;
-            }
-
-            if ((i + 1) % 12 === 0 && (i + 1) >= 12 && data.annualPrePayment > 0) {
-                paymentAmount += data.annualPrePayment;
-            }
-
-            const principalPayment = Math.min(paymentAmount - interestPayment, accFiveYearBalance);
-            accFiveYearBalance = Math.max(0, accFiveYearBalance - principalPayment);
-            accFiveYearInterest += interestPayment;
-            accFiveYearPrincipal += principalPayment;
-            accFiveYearTotalPaid += paymentAmount;
+            const periodIndex = i + 1;
+            const step = applyAcceleratedPayment(accFiveYearBalance, periodicRate, adjustedPayment, periodIndex, periodsPerYear, data.oneTimePrePayment, fiveYearOneTimeApplied, data.annualPrePayment);
+            accFiveYearInterest += step.interestPaid;
+            accFiveYearPrincipal += step.principalPaid;
+            accFiveYearTotalPaid += step.interestPaid + step.principalPaid;
+            accFiveYearBalance = step.balance;
+            fiveYearOneTimeApplied = step.oneTimeApplied;
 
             if (accFiveYearBalance <= 0) break;
         }
@@ -428,20 +438,10 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         let termOneTimeApplied = false;
 
         for (let i = 0; i < termPayments; i++) {
-            const interestPayment = accBalanceEndOfTerm * periodicRate;
-            let paymentAmount = adjustedPayment;
-
-            if (!termOneTimeApplied && i < 12 && data.oneTimePrePayment > 0) {
-                paymentAmount += data.oneTimePrePayment;
-                termOneTimeApplied = true;
-            }
-
-            if ((i + 1) % 12 === 0 && (i + 1) >= 12 && data.annualPrePayment > 0) {
-                paymentAmount += data.annualPrePayment;
-            }
-
-            const principalPayment = Math.min(paymentAmount - interestPayment, accBalanceEndOfTerm);
-            accBalanceEndOfTerm = Math.max(0, accBalanceEndOfTerm - principalPayment);
+            const periodIndex = i + 1;
+            const step = applyAcceleratedPayment(accBalanceEndOfTerm, periodicRate, adjustedPayment, periodIndex, periodsPerYear, data.oneTimePrePayment, termOneTimeApplied, data.annualPrePayment);
+            accBalanceEndOfTerm = step.balance;
+            termOneTimeApplied = step.oneTimeApplied;
 
             if (accBalanceEndOfTerm <= 0) break;
         }
