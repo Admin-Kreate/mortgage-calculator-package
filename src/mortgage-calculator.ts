@@ -747,10 +747,15 @@ export function initMortgageCalculator(container: HTMLElement) {
     paymentIncreasePercentageElement.value = `${paymentIncreasePercentage.toFixed(2)}%`
     paymentIncreasePercentageElement.dataset.previousValue = paymentIncreasePercentage.toFixed(2).toString();
 
+    // M-9: a rate term longer than the amortization period is nonsensical - clamp it here
+    // too so the label/selection shown to the user lines up with what the math actually uses.
+    const rawRateTerm = termLengthValueElement.textContent ? parseInt(termLengthValueElement.textContent.replace(" years", "").replace(" year", "")) : 5;
+    const rateTermValue = Math.min(rawRateTerm, amortizationValue);
+
     const inputData: any = {
       loanAmount: loanAmountValue,
       interestRate: interestRateValue,
-      rateTerm: termLengthValueElement.textContent ? parseInt(termLengthValueElement.textContent.replace(" years", "").replace(" year", "")) : 5,
+      rateTerm: rateTermValue,
       amortization: amortizationValue,
       paymentFrequency: paymentFrequencyValue,
       loanType: loanTypeActiveSelector?.textContent?.toLowerCase(),
