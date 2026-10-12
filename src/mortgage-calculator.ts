@@ -351,6 +351,134 @@ export function initMortgageCalculator(container: HTMLElement) {
     </div>
   `;
 
+  // F5: first-visit onboarding, built as a guided walkthrough rather than a plain form. Each
+  // step collects ONE value the user will realistically want to change, and explains the
+  // concept behind it at the same time - the explanation is the point, not a preamble to it.
+  // The steps are ordered the way someone actually reasons about a mortgage: how much, at
+  // what rate, over how long, paid how often.
+  //
+  // Term-vs-amortization (step 3/4) and regular-vs-accelerated frequency (step 5) get the
+  // most space because they're the two things people most commonly misunderstand, and both
+  // materially change the numbers this calculator reports.
+  const onboardingModalHTML = `
+    <div class="onboarding-overlay">
+      <div class="onboarding-modal">
+        <div class="onboarding-progress">
+          <span class="dot" data-dot="1"></span>
+          <span class="dot" data-dot="2"></span>
+          <span class="dot" data-dot="3"></span>
+          <span class="dot" data-dot="4"></span>
+          <span class="dot" data-dot="5"></span>
+          <span class="dot" data-dot="6"></span>
+        </div>
+
+        <div class="onboarding-step" data-step="1">
+          <div class="onboarding-icon"><img src="${LoadDetailsIcon}" alt=""/></div>
+          <div class="onboarding-title">Let's find your real mortgage payment</div>
+          <div class="onboarding-subtitle">Five quick questions. Along the way we'll explain what each number actually means, so the result makes sense instead of just appearing.</div>
+          <div class="onboarding-note">
+            <strong>Two things worth knowing up front:</strong>
+            <ul>
+              <li>Your <em>term</em> and your <em>amortization</em> are different things, and mixing them up is the single most common mortgage mistake. We'll cover both.</li>
+              <li>How <em>often</em> you pay can save you tens of thousands in interest, without meaningfully changing your budget.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="2">
+          <div class="onboarding-title">How much are you borrowing?</div>
+          <div class="onboarding-subtitle">This is your <strong>mortgage amount</strong>, not the price of the home. If you're buying at $600,000 with $120,000 down, you're borrowing $480,000.</div>
+          <div class="onboarding-slider-field">
+            <div class="onboarding-readout" data-readout="loan">$500,000</div>
+            <input type="range" id="onboarding-loan-amount" class="onboarding-slider" min="100000" max="2000000" step="10000" value="500000"/>
+            <div class="onboarding-range-label"><span>$100K</span><span>$2M</span></div>
+          </div>
+          <div class="onboarding-hint">Drag to set. Most Canadian mortgages fall between $200,000 and $900,000.</div>
+        </div>
+
+        <div class="onboarding-step" data-step="3">
+          <div class="onboarding-title">What rate, and for how long?</div>
+          <div class="onboarding-subtitle">Your <strong>rate</strong> is the annual interest your lender charges. Your <strong>term</strong> is how long that rate stays locked in, usually 5 years.</div>
+          <div class="onboarding-slider-field">
+            <div class="onboarding-readout" data-readout="rate">6.00%</div>
+            <input type="range" id="onboarding-rate" class="onboarding-slider" min="0.1" max="10" step="0.1" value="6"/>
+            <div class="onboarding-range-label"><span>0.1%</span><span>10%</span></div>
+          </div>
+          <div class="onboarding-field onboarding-field-spaced">
+            <label for="onboarding-term">Rate Term</label>
+            <select id="onboarding-term">
+              <option>1 year</option>
+              <option>2 years</option>
+              <option>3 years</option>
+              <option>4 years</option>
+              <option selected>5 years</option>
+              <option>7 years</option>
+              <option>10 years</option>
+            </select>
+          </div>
+          <div class="onboarding-note">
+            <strong>The term is not how long you have the mortgage.</strong> When your term ends you'll still owe a balance, and you renew it at whatever rate is available then. That leftover balance is the "Balance end of Term" figure in your results.
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="4">
+          <div class="onboarding-title">How long to pay it off completely?</div>
+          <div class="onboarding-subtitle">This is your <strong>amortization</strong>: the total time to bring the balance all the way to zero. In Canada it's typically 25 years, or 30 if you qualify.</div>
+          <div class="onboarding-slider-field">
+            <div class="onboarding-readout" data-readout="amortization">25 Years</div>
+            <input type="range" id="onboarding-amortization" class="onboarding-slider" min="1" max="40" step="1" value="25"/>
+            <div class="onboarding-range-label"><span>1 Year</span><span>40 Years</span></div>
+          </div>
+          <div class="onboarding-note">
+            <strong>The trade-off:</strong> a longer amortization lowers each payment but means far more interest overall. Stretching 25 years to 30 might save you a couple hundred a month, and cost you six figures across the life of the loan. Try both and compare the "Total Interest Paid".
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="5">
+          <div class="onboarding-title">How often will you pay?</div>
+          <div class="onboarding-subtitle">This is the setting people most often leave on default, and it's quietly one of the most powerful.</div>
+          <div class="onboarding-field">
+            <label for="onboarding-frequency">Payment Frequency</label>
+            <select id="onboarding-frequency">
+              <option selected>Monthly</option>
+              <option>Bi-Weekly</option>
+              <option>Weekly</option>
+              <option>Accelerated Bi-Weekly</option>
+              <option>Accelerated Weekly</option>
+            </select>
+          </div>
+          <div class="onboarding-note">
+            <strong>Regular vs Accelerated, the real difference:</strong>
+            <ul>
+              <li><em>Monthly</em> is 12 payments a year.</li>
+              <li><em>Bi-Weekly</em> and <em>Weekly</em> just split that same annual total into smaller, more frequent pieces. You pay the same amount per year.</li>
+              <li><em>Accelerated</em> takes your full monthly payment and charges half of it every two weeks (or a quarter every week). Because a year holds 26 two-week periods, you end up paying the equivalent of <strong>13 monthly payments instead of 12</strong>.</li>
+            </ul>
+            That one extra payment a year typically cuts <strong>3 to 4 years</strong> off a 25-year mortgage and saves tens of thousands in interest.
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="6">
+          <div class="onboarding-icon"><img src="${PayMortgageFasterIcon}" alt=""/></div>
+          <div class="onboarding-title">You're set. Here's what to explore.</div>
+          <div class="onboarding-note">
+            <ul>
+              <li><strong>Hover any label with a dotted underline</strong> to see exactly what it means, on both the inputs and your results.</li>
+              <li><strong>Flip on "Pay your mortgage faster"</strong> to model extra payments. Even $50 more per payment shows up as real years and real dollars saved.</li>
+              <li><strong>Watch "Total Interest Paid"</strong>, not just the monthly payment. Two mortgages with similar payments can differ enormously in what they truly cost.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="onboarding-actions">
+          <button type="button" class="onboarding-back">Back</button>
+          <button type="button" class="onboarding-continue">Next</button>
+        </div>
+        <button type="button" class="onboarding-skip">Skip, I know my way around</button>
+      </div>
+    </div>
+  `;
+
   container.innerHTML = `
     <div class="mortgage-calculator compare-theme">
         <div class="section-heading">Mortgage Calculator</div>
@@ -364,6 +492,7 @@ export function initMortgageCalculator(container: HTMLElement) {
             </div>
           </div>
         </div>
+        ${onboardingModalHTML}
     </div>
   `;
 
@@ -1239,6 +1368,160 @@ export function initMortgageCalculator(container: HTMLElement) {
     const scenarioLabel = container.querySelector('.rate-scenario-label') as HTMLElement;
     if (scenarioLabel) scenarioLabel.textContent = rateScenarioLabelCopy[initialRateType];
   })();
+
+  // F5: first-visit onboarding walkthrough (6 steps), gated on a localStorage key so it only
+  // shows once.
+  const ONBOARDING_STORAGE_KEY = 'mortgageCalculatorOnboardingSeen';
+  const TOTAL_ONBOARDING_STEPS = 6;
+
+  const onboardingOverlay = container.querySelector('.onboarding-overlay') as HTMLElement;
+  const onboardingLoanAmountInput = container.querySelector('#onboarding-loan-amount') as HTMLInputElement;
+  const onboardingRateInput = container.querySelector('#onboarding-rate') as HTMLInputElement;
+  const onboardingTermSelect = container.querySelector('#onboarding-term') as HTMLSelectElement;
+  const onboardingAmortizationInput = container.querySelector('#onboarding-amortization') as HTMLInputElement;
+  const onboardingFrequencySelect = container.querySelector('#onboarding-frequency') as HTMLSelectElement;
+  const onboardingContinueButton = container.querySelector('.onboarding-continue') as HTMLElement;
+  const onboardingBackButton = container.querySelector('.onboarding-back') as HTMLElement;
+  const onboardingSkipButton = container.querySelector('.onboarding-skip') as HTMLElement;
+  const onboardingSteps = container.querySelectorAll('.onboarding-step');
+  const onboardingDots = container.querySelectorAll('.onboarding-progress .dot');
+
+  let currentOnboardingStep = 1;
+
+  const renderOnboardingStep = () => {
+    onboardingSteps.forEach(step => {
+      const stepNumber = Number((step as HTMLElement).dataset.step);
+      (step as HTMLElement).style.display = stepNumber === currentOnboardingStep ? 'block' : 'none';
+    });
+    onboardingDots.forEach(dot => {
+      const dotNumber = Number((dot as HTMLElement).dataset.dot);
+      dot.classList.toggle('active', dotNumber === currentOnboardingStep);
+      dot.classList.toggle('done', dotNumber < currentOnboardingStep);
+    });
+    // Step 1 has nothing to go back to; the last step finishes rather than continuing.
+    onboardingBackButton.style.visibility = currentOnboardingStep === 1 ? 'hidden' : 'visible';
+    onboardingContinueButton.textContent =
+      currentOnboardingStep === TOTAL_ONBOARDING_STEPS ? 'See my results'
+        : currentOnboardingStep === 1 ? "Let's go"
+          : 'Next';
+  };
+
+  // Push whatever the wizard collected into the real fields. Text inputs route through the
+  // same 'change' path a real typed entry uses, so out-of-range values get validated and
+  // reverted exactly as they would on the field itself rather than bypassing validation.
+  // The two dropdowns are custom (a div + span, not a <select>), so their display text is
+  // set directly - updateResults() reads that text back out.
+  // The three numeric onboarding inputs are drag sliders, not free-text fields - a text box
+  // that happily accepts "abc years" is a bad way to ask someone for a number. Sliders can
+  // only ever produce an in-range value, so there is nothing to validate or reject here.
+  const onboardingLoanReadout = container.querySelector('[data-readout="loan"]') as HTMLElement;
+  const onboardingRateReadout = container.querySelector('[data-readout="rate"]') as HTMLElement;
+  const onboardingAmortizationReadout = container.querySelector('[data-readout="amortization"]') as HTMLElement;
+
+  const renderOnboardingReadouts = () => {
+    if (onboardingLoanReadout) {
+      onboardingLoanReadout.textContent = `$${Number(onboardingLoanAmountInput.value).toLocaleString('en-US')}`;
+    }
+    if (onboardingRateReadout) {
+      onboardingRateReadout.textContent = `${Number(onboardingRateInput.value).toFixed(2)}%`;
+    }
+    if (onboardingAmortizationReadout) {
+      const years = Number(onboardingAmortizationInput.value);
+      onboardingAmortizationReadout.textContent = `${years} ${years === 1 ? 'Year' : 'Years'}`;
+    }
+    updateSliderBackground(onboardingLoanAmountInput);
+    updateSliderBackground(onboardingRateInput);
+    updateSliderBackground(onboardingAmortizationInput);
+  };
+
+  [onboardingLoanAmountInput, onboardingRateInput, onboardingAmortizationInput].forEach(slider => {
+    slider?.addEventListener('input', renderOnboardingReadouts);
+  });
+
+  // Push the wizard's values into the real calculator by driving its own sliders and
+  // dispatching their 'input' event - that reuses the exact same code path a real drag
+  // takes (text field, dataset, slider fill, updateResults), rather than re-implementing
+  // any of it here.
+  const applyOnboardingValues = () => {
+    purchasePriceInputSlider.value = onboardingLoanAmountInput.value;
+    purchasePriceInputSlider.dispatchEvent(new Event('input'));
+
+    interestRateInputSlider.value = onboardingRateInput.value;
+    interestRateInputSlider.dispatchEvent(new Event('input'));
+
+    amortizationInputSlider.value = onboardingAmortizationInput.value;
+    amortizationInputSlider.dispatchEvent(new Event('input'));
+
+    if (termLengthValueElement && onboardingTermSelect?.value) {
+      termLengthValueElement.textContent = onboardingTermSelect.value;
+    }
+    if (paymentFrequencyValueElement && onboardingFrequencySelect?.value) {
+      paymentFrequencyValueElement.textContent = onboardingFrequencySelect.value;
+    }
+    updateResults();
+  };
+
+  const openOnboarding = () => {
+    // Seed the wizard from the calculator's current state, so reopening mid-session shows
+    // what's actually set rather than silently reverting to the static markup defaults.
+    if (purchasePriceInput.dataset.previousValue) {
+      onboardingLoanAmountInput.value = purchasePriceInput.dataset.previousValue;
+    }
+    if (interestRateInput.dataset.previousValue) {
+      onboardingRateInput.value = interestRateInput.dataset.previousValue;
+    }
+    if (amortizationInput.dataset.previousValue) {
+      onboardingAmortizationInput.value = amortizationInput.dataset.previousValue;
+    }
+    if (termLengthValueElement?.textContent) {
+      onboardingTermSelect.value = termLengthValueElement.textContent.trim();
+    }
+    if (paymentFrequencyValueElement?.textContent) {
+      onboardingFrequencySelect.value = paymentFrequencyValueElement.textContent.trim();
+    }
+    renderOnboardingReadouts();
+    currentOnboardingStep = 1;
+    renderOnboardingStep();
+    onboardingOverlay.classList.add('open');
+  };
+
+  const closeOnboarding = () => {
+    onboardingOverlay.classList.remove('open');
+    try { localStorage.setItem(ONBOARDING_STORAGE_KEY, '1'); } catch { /* private browsing etc - non-fatal, just re-shows next visit */ }
+  };
+
+  onboardingContinueButton?.addEventListener('click', () => {
+    if (currentOnboardingStep === TOTAL_ONBOARDING_STEPS) {
+      applyOnboardingValues();
+      closeOnboarding();
+      return;
+    }
+    currentOnboardingStep += 1;
+    renderOnboardingStep();
+  });
+
+  onboardingBackButton?.addEventListener('click', () => {
+    if (currentOnboardingStep > 1) {
+      currentOnboardingStep -= 1;
+      renderOnboardingStep();
+    }
+  });
+
+  // Skipping still keeps anything already entered - abandoning the wizard shouldn't silently
+  // discard values the user just typed into it.
+  onboardingSkipButton?.addEventListener('click', () => {
+    applyOnboardingValues();
+    closeOnboarding();
+  });
+
+  renderOnboardingStep();
+  renderOnboardingReadouts();
+
+  let hasSeenOnboarding = false;
+  try { hasSeenOnboarding = localStorage.getItem(ONBOARDING_STORAGE_KEY) === '1'; } catch { /* private browsing etc - just show it every visit */ }
+  if (!hasSeenOnboarding) {
+    openOnboarding();
+  }
 
   updateResults();
 }
