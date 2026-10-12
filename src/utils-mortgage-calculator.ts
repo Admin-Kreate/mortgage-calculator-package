@@ -184,6 +184,73 @@ function applyAcceleratedPayment(
     };
 }
 
+export interface AnnualRateChangeScenario {
+    firstPayment: number;
+    paymentAtTermEnd: number;
+    rateAtTermEnd: number;
+    interestOverTerm: number;
+    balanceAtTermEnd: number;
+}
+
+// F6: models a rate that moves by a set amount EVERY YEAR, which is what a variable rate
+// actually does - it drifts over time, it doesn't take one instant step and then freeze.
+// Each year the rate is re-set and the payment is re-solved over the remaining amortization
+// (adjustable-rate behaviour, where the payment moves rather than the term), so the figures
+// show what a borrower would really be asked to pay as rates climb.
+export function simulateAnnualRateChange(data: MortgageData, annualRateChangePercent: number): AnnualRateChangeScenario {
+    const periodsPerYear = getPeriodsPerYear(data.paymentFrequency);
+    const termYears = Math.min(data.rateTerm, data.amortization);
+
+    let balance = data.loanAmount;
+    let interestOverTerm = 0;
+    let firstPayment = 0;
+    let paymentThisYear = 0;
+    let rateThisYear = data.interestRate;
+
+    for (let year = 0; year < data.amortization; year++) {
+        // Clamp to the same range the rate field itself accepts, so the scenario can never
+        // drift into a rate the calculator would reject.
+        rateThisYear = Math.min(25, Math.max(0.1, data.interestRate + annualRateChangePercent * year));
+        // getPeriodicRate takes the annual rate as a DECIMAL (calculateMortgage passes it
+        // data.interestRate / 100), so convert here too.
+        const periodicRate = getPeriodicRate(rateThisYear / 100, data.compounding, periodsPerYear);
+        const remainingPeriods = (data.amortization - year) * periodsPerYear;
+
+        paymentThisYear = data.loanType === 'interest only'
+            ? balance * periodicRate
+            : annuityPayment(balance, periodicRate, remainingPeriods);
+        if (year === 0) firstPayment = paymentThisYear;
+
+        for (let p = 0; p < periodsPerYear && balance > 0.01; p++) {
+            const interest = balance * periodicRate;
+            const principalPortion = data.loanType === 'interest only'
+                ? 0
+                : Math.min(paymentThisYear - interest, balance);
+            balance = Math.max(0, balance - principalPortion);
+            if (year < termYears) interestOverTerm += interest;
+        }
+
+        if (year === termYears - 1) {
+            return {
+                firstPayment,
+                paymentAtTermEnd: paymentThisYear,
+                rateAtTermEnd: rateThisYear,
+                interestOverTerm,
+                balanceAtTermEnd: balance,
+            };
+        }
+        if (balance <= 0.01) break;
+    }
+
+    return {
+        firstPayment,
+        paymentAtTermEnd: paymentThisYear,
+        rateAtTermEnd: rateThisYear,
+        interestOverTerm,
+        balanceAtTermEnd: balance,
+    };
+}
+
 export function calculateMortgage(data: MortgageData): MortgageResults {
     const principal = data.loanAmount;
 

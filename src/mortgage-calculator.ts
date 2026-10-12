@@ -1,4 +1,4 @@
-import { calculateMortgage, formatCurrency, MortgageData } from './utils-mortgage-calculator';
+import { calculateMortgage, formatCurrency, simulateAnnualRateChange, MortgageData } from './utils-mortgage-calculator';
 import RateIcon from './assets/icons/rate.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
 import CalculatorSettingsIcon from './assets/icons/calculator-settings.svg'
@@ -45,12 +45,16 @@ export function initMortgageCalculator(container: HTMLElement) {
 
     
     <div class="calculator-input mortgage-calculator-input">
-      <div class="header stacked">
+      <div class="header">
         <div class="title-wrapper">
           <img src="${RateIcon}" alt="Rate icon"/>
           <div class="title">Rate</div>
         </div>
-        <div class="mortgage-calculator-info">Your mortgage interest rate can either be Fixed for the term or Variable (which changes with the prime rate). The Rate Term is the contract length with a lender.</div>
+        <div class="btn-group-selector rate-type-selector">
+          <div class="selector active">Fixed</div>
+          <div class="selector">Variable</div>
+        </div>
+        <div class="mortgage-calculator-info full-row-width rate-type-info">Your payment is locked in for the rate term. The Rate Term is the contract length with your lender.</div>
       </div>
       <div class="input-fields">
         <div class="input-field interest-rate">
@@ -69,7 +73,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           <div class="dropdown-field inline-label">
             <div class="field-label">Rate Term</div>
             <span>5 years</span>
-            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
           <div class="dropdown-opts">
             <div class="dropdown-opt">1 year</div>
@@ -80,6 +84,30 @@ export function initMortgageCalculator(container: HTMLElement) {
             <div class="dropdown-opt">7 years</div>
             <div class="dropdown-opt">10 years</div>
           </div>
+        </div>
+      </div>
+      <!-- F6: the Fixed/Variable choice now genuinely does something. Nobody can predict a
+           variable rate, but that's exactly why a rate-change scenario is the right tool: the
+           user models the risk instead of the calculator pretending to forecast it. Variable
+           frames it as "your rate can move during the term"; Fixed frames the same control as
+           renewal risk at the end of the term. Fixed/Variable itself deliberately never feeds
+           into calculateMortgage - rates can't be forecast, this only toggles the panel below. -->
+      <div class="input-fields single-field rate-scenario">
+        <div class="input-field rate-scenario-field">
+          <div class="field-label rate-scenario-label">If your rate changes each year</div>
+          <div class="rate-scenario-readout">
+            <span class="rate-scenario-delta">No change</span>
+            <span class="rate-scenario-payment"></span>
+          </div>
+          <input type="range" min="-1" max="3" value="0" step="0.25" class="slider rate-scenario-slider">
+          <div class="rate-scenario-ticks">
+            <span class="tick"><i></i>-1%</span>
+            <span class="tick"><i></i>0%</span>
+            <span class="tick"><i></i>+1%</span>
+            <span class="tick"><i></i>+2%</span>
+            <span class="tick"><i></i>+3%</span>
+          </div>
+          <div class="rate-scenario-impact"></div>
         </div>
       </div>
     </div>
@@ -355,6 +383,11 @@ export function initMortgageCalculator(container: HTMLElement) {
   const paymentFrequencyValueElement = container.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
   const termLengthValueElement = container.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
 
+  // F6: Fixed/Variable is presentational only (see rateTypeSelectorElements handler below) -
+  // it deliberately never feeds into calculateMortgage.
+  const rateTypeSelectorElements = container.querySelectorAll('.rate-type-selector .selector');
+  const rateTypeInfoElement = container.querySelector('.rate-type-info') as HTMLElement;
+
   const mortgagePaymentResultsElement = container.querySelector('.mortgage-calculator-results .mortgage-payment .value') as HTMLInputElement;
   const mortgagePaymentFrequencyLabelElement = container.querySelector('.mortgage-calculator-results .mortgage-payment .frequency') as HTMLElement;
 
@@ -452,6 +485,42 @@ export function initMortgageCalculator(container: HTMLElement) {
     selector.addEventListener('click', () => {
       calculatorSettingsSelectorElements.forEach(h => h.classList.remove('active'));
       selector.classList.add('active');
+      updateResults();
+    });
+  });
+
+  // F6: Fixed/Variable is now functional. It can't predict a rate - nothing can - but it
+  // changes what the rate-change scenario below it *means*, and that scenario recalculates
+  // real payments. Variable = your rate can move during the term. Fixed = your rate holds,
+  // but you renew at an unknown rate when the term ends. Same control, different risk.
+  const rateTypeInfoCopy: Record<'Fixed' | 'Variable', string> = {
+    Fixed: 'Your payment is locked in for the rate term. When the term ends you renew at whatever rate is available then - use the scenario below to check that you could still afford it.',
+    Variable: "Your rate moves with the prime rate, so your payment can change during the term. Nobody can predict by how much, so use the scenario below to see what you'd be paying if it does.",
+  };
+  const rateScenarioLabelCopy: Record<'Fixed' | 'Variable', string> = {
+    // Fixed hides this section entirely (a fixed rate can't move mid-term), so its label is
+    // only a fallback that shouldn't normally be seen.
+    Fixed: 'If you renew at a different rate',
+    Variable: 'If your rate changes each year',
+  };
+
+  const getActiveRateType = (): 'Fixed' | 'Variable' => {
+    const active = container.querySelector('.rate-type-selector .selector.active');
+    return (active?.textContent?.trim() as 'Fixed' | 'Variable') || 'Fixed';
+  };
+
+  rateTypeSelectorElements.forEach((selector) => {
+    selector.addEventListener('click', () => {
+      rateTypeSelectorElements.forEach(h => h.classList.remove('active'));
+      selector.classList.add('active');
+      const key = (selector.textContent?.trim() as 'Fixed' | 'Variable') || 'Fixed';
+      if (rateTypeInfoElement) {
+        rateTypeInfoElement.textContent = rateTypeInfoCopy[key] ?? rateTypeInfoCopy.Fixed;
+      }
+      const scenarioLabel = container.querySelector('.rate-scenario-label') as HTMLElement;
+      if (scenarioLabel) {
+        scenarioLabel.textContent = rateScenarioLabelCopy[key] ?? rateScenarioLabelCopy.Fixed;
+      }
       updateResults();
     });
   });
@@ -900,7 +969,65 @@ export function initMortgageCalculator(container: HTMLElement) {
       // figure) when the accelerated loan didn't actually clear within the simulation.
       savingsWithAcceleratedPaymentsResultsElement.style.display = 'none';
     }
+
+    renderRateScenario(inputData, resultObj);
   }
+
+  // ---- F6: rate-change scenario ----
+  // Re-runs the real engine at a shifted rate. This is the honest answer to "what does the
+  // Variable toggle do?" - it can't forecast, but it can show whether the payment would
+  // still be affordable if the rate moved, which is the actual decision being made.
+  const rateScenarioSlider = container.querySelector('.rate-scenario-slider') as HTMLInputElement;
+  const rateScenarioDeltaElement = container.querySelector('.rate-scenario-delta') as HTMLElement;
+  const rateScenarioPaymentElement = container.querySelector('.rate-scenario-payment') as HTMLElement;
+  const rateScenarioImpactElement = container.querySelector('.rate-scenario-impact') as HTMLElement;
+
+  function renderRateScenario(inputData: any, resultObj: any) {
+    if (!rateScenarioSlider) return;
+
+    // A fixed rate cannot move during its term - that is the entire point of fixing it - so
+    // an in-term rate-change scenario is only meaningful for Variable. Showing it under
+    // Fixed would be modelling something that contractually cannot happen.
+    const rateScenarioSection = container.querySelector('.rate-scenario') as HTMLElement;
+    if (getActiveRateType() === 'Fixed') {
+      if (rateScenarioSection) rateScenarioSection.style.display = 'none';
+      return;
+    }
+    if (rateScenarioSection) rateScenarioSection.style.display = '';
+
+    const annualChange = parseFloat(rateScenarioSlider.value);
+    updateSliderBackground(rateScenarioSlider);
+
+    const termYears = Math.min(inputData.rateTerm, inputData.amortization);
+
+    if (annualChange === 0) {
+      rateScenarioDeltaElement.textContent = 'Rate holds steady';
+      rateScenarioPaymentElement.textContent = '';
+      rateScenarioImpactElement.textContent = 'Drag to set how much your rate moves each year, then see what your payment becomes by the end of your term.';
+      rateScenarioImpactElement.classList.remove('negative', 'positive');
+      return;
+    }
+
+    const scenario = simulateAnnualRateChange(inputData, annualChange);
+    const baseline = simulateAnnualRateChange(inputData, 0);
+    const paymentDifference = scenario.paymentAtTermEnd - baseline.firstPayment;
+    const extraInterest = scenario.interestOverTerm - baseline.interestOverTerm;
+
+    rateScenarioDeltaElement.textContent =
+      `${annualChange > 0 ? '+' : ''}${annualChange.toFixed(2)}%/yr → ${scenario.rateAtTermEnd.toFixed(2)}% by year ${termYears}`;
+    rateScenarioPaymentElement.textContent = formatCurrency(scenario.paymentAtTermEnd);
+
+    const dir = paymentDifference >= 0 ? 'more' : 'less';
+    const interestDir = extraInterest >= 0 ? 'extra' : 'less';
+    rateScenarioImpactElement.textContent =
+      `Payment goes from ${formatCurrency(baseline.firstPayment)} to ${formatCurrency(scenario.paymentAtTermEnd)} `
+      + `(${formatCurrency(Math.abs(paymentDifference))} ${dir}) · `
+      + `${formatCurrency(Math.abs(extraInterest))} ${interestDir} interest over the ${termYears}-year term`;
+    rateScenarioImpactElement.classList.toggle('negative', paymentDifference > 0);
+    rateScenarioImpactElement.classList.toggle('positive', paymentDifference < 0);
+  }
+
+  rateScenarioSlider?.addEventListener('input', () => updateResults());
 
   formatInput(purchasePriceInput, '$', 'purchase-price', purchasePriceErrorElement);
   updateSliderBackground(purchasePriceInputSlider);
@@ -921,6 +1048,16 @@ export function initMortgageCalculator(container: HTMLElement) {
   // F2: Annual Pre-Payment.
   formatInput(annualPrePaymentInput, '$', 'annual-pre-payment', annualPrePaymentErrorElement);
   updateSliderBackground(annualPrePaymentInputSlider);
+
+  // F6: seed the rate-type copy from whichever option is active in the markup, so the Fixed
+  // default shows Fixed's wording on load instead of only correcting itself after the user
+  // happens to click something.
+  (() => {
+    const initialRateType = getActiveRateType();
+    if (rateTypeInfoElement) rateTypeInfoElement.textContent = rateTypeInfoCopy[initialRateType];
+    const scenarioLabel = container.querySelector('.rate-scenario-label') as HTMLElement;
+    if (scenarioLabel) scenarioLabel.textContent = rateScenarioLabelCopy[initialRateType];
+  })();
 
   updateResults();
 }
