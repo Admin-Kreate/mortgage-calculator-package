@@ -1,10 +1,15 @@
 import { calculateMortgage, formatCurrency, simulateAnnualRateChange, MortgageData } from './utils-mortgage-calculator';
-import RateIcon from './assets/icons/rate.svg';
-import LoadDetailsIcon from './assets/icons/loan-details.svg';
+// F5 (compare-theme reskin): rate/loan-details/amortization-period icons are shared with
+// other calculators (debt-service, max-mortgage, purchase), which still use the navy theme -
+// green-recolored copies are used here instead of editing the shared files, so this
+// calculator's green reskin doesn't leak into the other three.
+import RateIcon from './assets/icons/rate-green.svg';
+import LoadDetailsIcon from './assets/icons/loan-details-green.svg';
 import CalculatorSettingsIcon from './assets/icons/calculator-settings.svg'
 import PayMortgageFasterIcon from './assets/icons/pay-mortgage-faster.svg';
-import AmortizationPeriodIcon from './assets/icons/amortization-period.svg';
+import AmortizationPeriodIcon from './assets/icons/amortization-period-green.svg';
 import DropdownIcon from './assets/icons/dropdown-icon.svg';
+import InfoIcon from './assets/icons/info-green.svg';
 
 export function initMortgageCalculator(container: HTMLElement) {
   const calculatorInputsHTML = `
@@ -17,7 +22,7 @@ export function initMortgageCalculator(container: HTMLElement) {
       </div>
       <div class="input-fields">
         <div class="input-field purchase-price">
-          <div class="field-label">Loan Amount</div>
+          <div class="field-label" data-tooltip="The amount you're borrowing, not the price of the home. Buying a $600,000 home with 20% down means a $480,000 loan amount.">Loan Amount</div>
           <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="100000" max="2000000" value="500000" step="10000" class="slider">
@@ -28,7 +33,7 @@ export function initMortgageCalculator(container: HTMLElement) {
         </div>
         <div class="dropdown inline payment-frequency">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Payment Frequency</div>
+            <div class="field-label" data-tooltip="How often you pay. Accelerated Bi-Weekly and Accelerated Weekly pay slightly more per year than Monthly, paying off your mortgage faster and saving interest.">Payment Frequency</div>
             <span>Monthly</span>
             <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
@@ -59,7 +64,7 @@ export function initMortgageCalculator(container: HTMLElement) {
       <div class="input-fields">
         <div class="input-field interest-rate">
           <div class="title-wrapper">
-            <div class="field-label">Rate</div>
+            <div class="field-label" data-tooltip="Your mortgage's annual interest rate, set by your lender.">Rate</div>
           </div>
           <input type="text" value="6.00%" data-previous-value="6.00" class="value-input">
           <div class="field-error"></div>
@@ -71,7 +76,7 @@ export function initMortgageCalculator(container: HTMLElement) {
         </div>
         <div class="dropdown inline term-length">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Rate Term</div>
+            <div class="field-label" data-tooltip="How long your current rate is locked in for, not how long it takes to pay off the mortgage. When the term ends, you renew at whatever rate is available then.">Rate Term</div>
             <span>5 years</span>
             <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
@@ -94,7 +99,7 @@ export function initMortgageCalculator(container: HTMLElement) {
            into calculateMortgage - rates can't be forecast, this only toggles the panel below. -->
       <div class="input-fields single-field rate-scenario">
         <div class="input-field rate-scenario-field">
-          <div class="field-label rate-scenario-label">If your rate changes each year</div>
+          <div class="field-label rate-scenario-label" data-tooltip="A variable rate drifts over time rather than jumping once. Set how much it moves each year and see what your payment climbs to by the end of your term.">If your rate changes each year</div>
           <div class="rate-scenario-readout">
             <span class="rate-scenario-delta">No change</span>
             <span class="rate-scenario-payment"></span>
@@ -122,7 +127,7 @@ export function initMortgageCalculator(container: HTMLElement) {
       </div>
       <div class="input-fields single-field">
         <div class="input-field amortization">
-          <div class="field-label">Amortization</div>
+          <div class="field-label" data-tooltip="The total time it will take to pay off your mortgage in full at your current payment.">Amortization</div>
           <input type="text" value="25 Years" data-previous-value="25" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="1" max="40" value="25" step="1" class="slider">
@@ -138,7 +143,7 @@ export function initMortgageCalculator(container: HTMLElement) {
       <div class="header">
         <div class="title-wrapper">
           <img src="${CalculatorSettingsIcon}" alt="Calculator Settings icon"/>
-          <div class="title">Calculator Settings</div>
+          <div class="title" data-tooltip="Regular payments pay down both principal and interest. Interest Only payments cover just the interest, so your balance never goes down on its own.">Calculator Settings</div>
         </div>
         <div class="btn-group-selector">
           <div class="selector active">Regular</div>
@@ -148,7 +153,7 @@ export function initMortgageCalculator(container: HTMLElement) {
       <div class="input-fields single-field">
         <div class="dropdown inline term-length">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Compounding</div>
+            <div class="field-label" data-tooltip="How often interest is calculated and added to your balance. Canadian mortgages compound semi-annually by default, even though you pay monthly.">Compounding</div>
             <span>Semi-Annual</span>
             <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
           </div>
@@ -180,7 +185,7 @@ export function initMortgageCalculator(container: HTMLElement) {
       </div>
       <div class="input-fields single-field expandable">
         <div class="input-field payment-increase">
-          <div class="field-label">Payment Increase</div>
+          <div class="field-label" data-tooltip="An extra amount added to every regular payment. Even a small increase adds up to real interest savings over the life of the loan.">Payment Increase</div>
           <div class="downpayment-percentage-wrapper">
             <input type="text" value="$  0" data-previous-value="0" class="value-input">
             <input type="text" value="0%" data-previous-value="0" class="percentage-value-input" disabled>
@@ -193,7 +198,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           </div>
         </div>
         <div class="input-field one-time-pre-payment">
-          <div class="field-label">One time Pre-Payment</div>
+          <div class="field-label" data-tooltip="A single lump sum applied to your principal, made once at your mortgage's 1-year anniversary.">One time Pre-Payment</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="0" max="100000" value="0" step="1000" class="slider">
@@ -203,7 +208,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           </div>
         </div>
         <div class="input-field annual-pre-payment">
-          <div class="field-label">Annual Pre-Payment</div>
+          <div class="field-label" data-tooltip="An extra lump sum applied to your principal once a year, every year, on top of any one-time prepayment.">Annual Pre-Payment</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="0" max="25000" value="0" step="500" class="slider">
@@ -219,14 +224,14 @@ export function initMortgageCalculator(container: HTMLElement) {
   const calculatorResultsHTML = `
     <div class="mortgage-payment">
       <div class="mortgage-payment-wrapper">
-        <div class="label">Mortgage Payment</div>
+        <div class="label" data-tooltip="Your regular payment amount at the selected frequency, before any extra payments you've added below.">Mortgage Payment</div>
         <div class="value">$2,902</div>
         <div class="frequency">Monthly Payment</div>
       </div>
     </div>
 
     <div class="payment-breakdown">
-      <div class="section-label">Payment Breakdown</div>
+      <div class="section-label" data-tooltip="How your very next payment splits between paying down what you owe and covering interest.">Payment Breakdown</div>
       <div class="section-wrapper">
         <div class="breakdown-details">
           <div class="breakdown-detail">
@@ -237,14 +242,14 @@ export function initMortgageCalculator(container: HTMLElement) {
             <div class="principal-paid">
               <div class="icon-name-wrapper">
                 <div class="detail-icon principal"></div>
-                <div class="detail-name">Principal Paid</div>
+                <div class="detail-name" data-tooltip="The portion of your next payment that goes toward paying down what you owe.">Principal Paid</div>
               </div>
               <div class="value">$698.59</div>
             </div>
             <div class="interest-paid">
               <div class="icon-name-wrapper">
                 <div class="detail-icon interest"></div>
-                <div class="detail-name">Interest Paid</div>
+                <div class="detail-name" data-tooltip="The portion of your next payment that goes toward interest, the cost of borrowing.">Interest Paid</div>
               </div>
               <div class="value">$2,587.14</div>
             </div>
@@ -260,11 +265,11 @@ export function initMortgageCalculator(container: HTMLElement) {
     <div class="balance-amortization">
       <div class="section-wrapper">
         <div class="info-row balance">
-          <div class="label">Balance end of Term</div>
+          <div class="label" data-tooltip="How much you'd still owe when your current rate term ends. You'll need to renew or pay it off at that point.">Balance end of Term</div>
           <div class="value">$450,996.52</div>
         </div>
         <div class="info-row amortization">
-          <div class="label">Effective Amortization</div>
+          <div class="label" data-tooltip="How long it will actually take to pay off your mortgage in full at your current settings.">Effective Amortization</div>
           <div class="value">IO Years 9 Months</div>
         </div>
         <div class="info-row duration">
@@ -275,7 +280,7 @@ export function initMortgageCalculator(container: HTMLElement) {
 
     <div class="five-year-breakdown">
       <div class="section-wrapper">
-        <div class="sec-heading">Breakdown Over 5 Years</div>
+        <div class="sec-heading" data-tooltip="What you'll have paid, and what you'll still owe, after this many years at your current settings.">Breakdown Over 5 Years</div>
         <div class="info-row">
           <div class="label">Total Paid</div>
           <div class="value">$481,277</div>
@@ -297,7 +302,7 @@ export function initMortgageCalculator(container: HTMLElement) {
 
     <div class="total-breakdown">
       <div class="section-wrapper">
-        <div class="sec-heading">Total Breakdown</div>
+        <div class="sec-heading" data-tooltip="The full picture over your entire amortization: every dollar of principal and interest you'd pay if nothing changes.">Total Breakdown</div>
         <div class="info-row">
           <div class="label">Total Principal Paid</div>
           <div class="value">$232,688</div>
@@ -319,7 +324,7 @@ export function initMortgageCalculator(container: HTMLElement) {
          applied with one click. -->
     <div class="ways-to-save">
       <div class="section-wrapper">
-        <div class="sec-heading">Ways to pay less</div>
+        <div class="sec-heading" data-tooltip="Real options based on the numbers you've entered, ranked by how much interest each one saves. Click Apply to try any of them.">Ways to pay less</div>
         <div class="ways-to-save-intro"></div>
         <div class="ways-to-save-list"></div>
       </div>
@@ -327,7 +332,7 @@ export function initMortgageCalculator(container: HTMLElement) {
 
     <div class="savings-with-accelerated-payments">
       <div class="section-wrapper">
-        <div class="sec-heading">Total Savings with Accelerated Payments</div>
+        <div class="sec-heading" data-tooltip="How much faster you'll pay off your mortgage, and how much interest you'll save, thanks to your payment increase or extra prepayments.">Total Savings with Accelerated Payments</div>
         <div class="info-wrapper">
           <div class="info-row">
             <div class="label">Interest Savings</div>
@@ -347,7 +352,7 @@ export function initMortgageCalculator(container: HTMLElement) {
   `;
 
   container.innerHTML = `
-    <div class="mortgage-calculator">
+    <div class="mortgage-calculator compare-theme">
         <div class="section-heading">Mortgage Calculator</div>
         <div class="tab-layout">
           <div class="tab-content active">
@@ -586,7 +591,13 @@ export function initMortgageCalculator(container: HTMLElement) {
     const tooltipText = el.getAttribute("data-tooltip");
 
     const tooltip = document.createElement("div");
-    tooltip.className = "custom-tooltip";
+    // This calculator's tooltip content is full sentences, not the short labels the shared
+    // .custom-tooltip (nowrap, no max-width) was designed for - "mortgage-calculator-tooltip"
+    // is a second class scoped to just this calculator's own tooltip elements (appended to
+    // document.body, outside .compare-theme, so a descendant selector can't reach them) so a
+    // wrap/width fix can't affect the other three calculators' tooltips, which still use bare
+    // .custom-tooltip.
+    tooltip.className = "custom-tooltip mortgage-calculator-tooltip";
     tooltip.textContent = tooltipText;
     document.body.appendChild(tooltip);
 
