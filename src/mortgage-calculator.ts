@@ -723,30 +723,6 @@ export function initMortgageCalculator(container: HTMLElement) {
     const paymentIncreaseValue = paymentIncreaseInput.dataset.previousValue ? parseInt(paymentIncreaseInput.dataset.previousValue) : 0;
     const loanTypeActiveSelector = container.querySelector('.calculator-settings .btn-group-selector .selector.active');
 
-    // if (paymentIncreaseValue === 0) return 0;
-
-    // Calculate the original base payment without any acceleration
-    const annualRate = interestRateValue / 100;
-    const monthlyRate = annualRate / 12;
-    const totalPayments = amortizationValue * 12;
-
-    let basePayment;
-    if (paymentFrequencyValue === 'monthly') {
-      basePayment = loanAmountValue * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
-    } else if (paymentFrequencyValue === 'biweekly') {
-      const biweeklyRate = annualRate / 26;
-      const biweeklyPayments = amortizationValue * 26;
-      basePayment = loanAmountValue * (biweeklyRate * Math.pow(1 + biweeklyRate, biweeklyPayments)) / (Math.pow(1 + biweeklyRate, biweeklyPayments) - 1);
-    } else { // weekly
-      const weeklyRate = annualRate / 52;
-      const weeklyPayments = amortizationValue * 52;
-      basePayment = loanAmountValue * (weeklyRate * Math.pow(1 + weeklyRate, weeklyPayments)) / (Math.pow(1 + weeklyRate, weeklyPayments) - 1);
-    }
-
-    const paymentIncreasePercentage = ((paymentIncreaseValue / basePayment) * 100);
-    paymentIncreasePercentageElement.value = `${paymentIncreasePercentage.toFixed(2)}%`
-    paymentIncreasePercentageElement.dataset.previousValue = paymentIncreasePercentage.toFixed(2).toString();
-
     // M-9: a rate term longer than the amortization period is nonsensical - clamp it here
     // too so the label/selection shown to the user lines up with what the math actually uses.
     const rawRateTerm = termLengthValueElement.textContent ? parseInt(termLengthValueElement.textContent.replace(" years", "").replace(" year", "")) : 5;
@@ -766,6 +742,15 @@ export function initMortgageCalculator(container: HTMLElement) {
       annualPrePayment: 0
     };
     const resultObj = calculateMortgage(inputData);
+
+    // M-4: derive the payment-increase percentage from the real base payment the
+    // calculation engine returns (basePayment), instead of re-deriving the payment with a
+    // different, buggy formula (annualRate/12 for every frequency, and a string-mismatched
+    // 'biweekly' check). Also guards divide-by-zero so a $0 loan amount renders "0.00%"
+    // instead of "Infinity%".
+    const paymentIncreasePercentage = resultObj.basePayment > 0 ? (paymentIncreaseValue / resultObj.basePayment) * 100 : 0;
+    paymentIncreasePercentageElement.value = `${paymentIncreasePercentage.toFixed(2)}%`;
+    paymentIncreasePercentageElement.dataset.previousValue = paymentIncreasePercentage.toFixed(2).toString();
 
     const principalPercent = (resultObj.principal / resultObj.mortgagePayment) * 100;
     const interestPercent = 100 - principalPercent;
