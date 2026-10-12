@@ -2986,6 +2986,22 @@ body {
     }
 }
 
+// F4: inline per-field validation message, shown when a typed entry is rejected and cleared
+// on the next valid entry. Reuses the same error red already used for .status.error above.
+.field-error {
+    color: #dc4d4d;
+    font-family: "DM Sans";
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    margin: 0.25rem 0;
+
+    &:empty {
+        display: none;
+    }
+}
+
 .slider {
     -webkit-appearance: none;
     appearance: none;
