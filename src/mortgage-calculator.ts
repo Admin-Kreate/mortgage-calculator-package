@@ -353,6 +353,7 @@ export function initMortgageCalculator(container: HTMLElement) {
   const acceleratedResultsTimeSavedResultsElement = container.querySelector('.mortgage-calculator-results .balance-amortization .duration .tag') as HTMLInputElement;
 
 
+  const fiveYearBreakdownHeadingElement = container.querySelector('.mortgage-calculator-results .five-year-breakdown .sec-heading') as HTMLElement;
   const fiveYearBreakdownTotalPaidResultsElement = container.querySelector('.mortgage-calculator-results .five-year-breakdown .info-row:nth-of-type(2) .value') as HTMLInputElement;
   const fiveYearBreakdownInterestPaidResultsElement = container.querySelector('.mortgage-calculator-results .five-year-breakdown .info-row:nth-of-type(3) .value') as HTMLInputElement;
   const fiveYearBreakdownPrincipalPaidResultsElement = container.querySelector('.mortgage-calculator-results .five-year-breakdown .info-row:nth-of-type(4) .value') as HTMLInputElement;
@@ -814,6 +815,13 @@ export function initMortgageCalculator(container: HTMLElement) {
       // genuinely shorter than amortizationValue.
       effectiveAmortizationResultsElement.textContent = formatYearsMonths(resultObj.effectiveAmortizationYears || amortizationValue || 25);
       acceleratedResultsTimeSavedResultsElement.style.display = 'none';
+    }
+
+    // M-7: the "Breakdown Over 5 Years" heading should reflect the actual period covered,
+    // which is shorter than 5 years when the amortization itself is shorter than 5 years.
+    const breakdownYears = Math.min(5, amortizationValue || 5);
+    if (fiveYearBreakdownHeadingElement) {
+      fiveYearBreakdownHeadingElement.textContent = `Breakdown Over ${breakdownYears} Year${breakdownYears === 1 ? '' : 's'}`;
     }
 
     fiveYearBreakdownTotalPaidResultsElement.textContent = formatCurrency(resultObj.fiveYearBreakdown.totalPaid);
