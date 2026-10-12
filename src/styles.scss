@@ -3177,6 +3177,288 @@ body {
         width: fit-content;
     }
 
+    // ---- F5: first-visit onboarding wizard ----
+    .onboarding-overlay {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        border-radius: 24px;
+
+        &.open {
+            display: flex;
+        }
+    }
+
+    .onboarding-modal {
+        background: #FFFFFF;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        padding: 2rem;
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        // Steps carry real explanatory content, so the modal has to be able to scroll
+        // rather than overflow the calculator card it's absolutely positioned inside.
+        max-height: 100%;
+        overflow-y: auto;
+        box-sizing: border-box;
+
+        @include respond-to-mobile {
+            padding: 1.5rem;
+        }
+    }
+
+    .onboarding-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 9999px;
+        background: #EFF1EC;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem auto;
+
+        img {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    .onboarding-title {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        color: #0F172A;
+        margin-bottom: 0.5rem;
+    }
+
+    .onboarding-subtitle {
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #475569;
+        margin-bottom: 1.5rem;
+    }
+
+    // Progress dots across the top of the wizard.
+    .onboarding-progress {
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-bottom: 1.25rem;
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 9999px;
+            background: #E3E5DD;
+            transition: all 0.2s ease;
+
+            &.done {
+                background: #B7791F;
+            }
+
+            &.active {
+                background: #00422F;
+                width: 22px;
+            }
+        }
+    }
+
+    // Numeric onboarding questions are drag sliders with a big live readout, not free-text
+    // boxes - a text field that accepts "abc" for a year count is just a bad question. A
+    // slider can only ever produce a valid, in-range number.
+    .onboarding-slider-field {
+        margin-top: 0.25rem;
+    }
+
+    .onboarding-readout {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-weight: 700;
+        font-size: 30px;
+        color: #00422F;
+        margin-bottom: 0.5rem;
+    }
+
+    .onboarding-slider {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        border-radius: 9999px;
+        background: #E3E5DD;
+        outline: none;
+        cursor: pointer;
+
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #00422F;
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            cursor: grab;
+        }
+
+        &::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #00422F;
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            cursor: grab;
+        }
+    }
+
+    .onboarding-range-label {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.4rem;
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        color: #64748B;
+    }
+
+    .onboarding-field-spaced {
+        margin-top: 1.25rem;
+    }
+
+    .onboarding-field {
+        display: grid;
+        gap: 0.35rem;
+        text-align: left;
+
+        label {
+            font-family: "Inter", sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #00422F;
+        }
+
+        input,
+        select {
+            font-family: "Inter", sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0F172A;
+            background: #FFFFFF;
+            border: 1px solid #E3E5DD;
+            border-radius: 8px;
+            padding: 0.6rem 0.75rem;
+            width: 100%;
+            box-sizing: border-box;
+
+            &:focus {
+                outline: none;
+                border-color: #00422F;
+            }
+        }
+    }
+
+    // The teaching block on each step - this is where the actual explanation lives, so it
+    // gets a tinted panel to read as substance rather than fine print.
+    .onboarding-note {
+        margin-top: 1.25rem;
+        background: #F7F9F5;
+        border: 1px solid #E3E5DD;
+        border-radius: 12px;
+        padding: 0.9rem 1rem;
+        text-align: left;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        line-height: 1.55;
+        color: #475569;
+
+        strong {
+            color: #0F172A;
+        }
+
+        em {
+            font-style: normal;
+            font-weight: 600;
+            color: #00422F;
+        }
+
+        ul {
+            margin: 0.5rem 0 0 0;
+            padding-left: 1.1rem;
+        }
+
+        li {
+            margin-bottom: 0.4rem;
+        }
+    }
+
+    .onboarding-hint {
+        margin-top: 0.6rem;
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        color: #64748B;
+        text-align: left;
+    }
+
+    .onboarding-actions {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.75rem;
+        align-items: center;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .onboarding-back {
+        background: none;
+        border: 1px solid #E3E5DD;
+        color: #475569;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 9999px;
+        padding: 0.8rem 1.25rem;
+        cursor: pointer;
+
+        &:hover {
+            border-color: #00422F;
+            color: #00422F;
+        }
+    }
+
+    .onboarding-continue {
+        width: 100%;
+        background: #00422F;
+        color: #FFFFFF;
+        font-family: "Inter", sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        border-radius: 9999px;
+        padding: 0.85rem;
+        cursor: pointer;
+
+        &:hover {
+            background: #15311f;
+        }
+    }
+
+    .onboarding-skip {
+        background: none;
+        border: none;
+        color: #475569;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
     // ---- F6: rate-change scenario (makes Fixed/Variable functional) ----
     .rate-scenario-field {
         background: #F7F9F5 !important;
