@@ -19,6 +19,7 @@ export function initMortgageCalculator(container: HTMLElement) {
         <div class="input-field purchase-price">
           <div class="field-label">Loan Amount</div>
           <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="100000" max="2000000" value="500000" step="10000" class="slider">
           <div class="range-label">
             <span>$100K</span>
@@ -55,6 +56,7 @@ export function initMortgageCalculator(container: HTMLElement) {
             <div class="field-label">Rate</div>
           </div>
           <input type="text" value="6.00%" data-previous-value="6.00" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="1" max="10" value="6" step="0.1" class="slider">
           <div class="range-label">
             <span>1%</span>
@@ -92,6 +94,7 @@ export function initMortgageCalculator(container: HTMLElement) {
         <div class="input-field amortization">
           <div class="field-label">Amortization</div>
           <input type="text" value="25 Years" data-previous-value="25" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="1" max="40" value="25" step="1" class="slider">
           <div class="range-label">
             <span>1 Year</span>
@@ -152,6 +155,7 @@ export function initMortgageCalculator(container: HTMLElement) {
             <input type="text" value="$  0" data-previous-value="0" class="value-input">
             <input type="text" value="0%" data-previous-value="0" class="percentage-value-input" disabled>
           </div>
+          <div class="field-error"></div>
           <input type="range" min="0" max="2000" value="0" step="25" class="slider">
           <div class="range-label">
             <span>$0</span>
@@ -161,6 +165,7 @@ export function initMortgageCalculator(container: HTMLElement) {
         <div class="input-field one-time-pre-payment">
           <div class="field-label">One time Pre-Payment</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="0" max="100000" value="0" step="1000" class="slider">
           <div class="range-label">
             <span>$0</span>
@@ -321,6 +326,13 @@ export function initMortgageCalculator(container: HTMLElement) {
 
   const oneTimePrePaymentInput = container.querySelector('.one-time-pre-payment .value-input') as HTMLInputElement;
   const oneTimePrePaymentInputSlider = container.querySelector('.one-time-pre-payment .slider') as HTMLInputElement;
+
+  // F4: inline validation-message elements, one per validated field.
+  const purchasePriceErrorElement = container.querySelector('.purchase-price .field-error') as HTMLElement;
+  const interestRateErrorElement = container.querySelector('.interest-rate .field-error') as HTMLElement;
+  const amortizationErrorElement = container.querySelector('.amortization .field-error') as HTMLElement;
+  const paymentIncreaseErrorElement = container.querySelector('.payment-increase .field-error') as HTMLElement;
+  const oneTimePrePaymentErrorElement = container.querySelector('.one-time-pre-payment .field-error') as HTMLElement;
 
   const paymentFrequencyValueElement = container.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
   const termLengthValueElement = container.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
@@ -492,11 +504,15 @@ export function initMortgageCalculator(container: HTMLElement) {
     slider.style.background = `linear-gradient(to right, #1A4383 ${percent}%, #1A43832f ${percent}%)`;
   }
 
+  // F4: dragging a slider always produces a value already within bounds, so it's also a
+  // "next valid entry" for that field - clear any lingering error message from a previous
+  // rejected typed entry so nothing goes stale.
   purchasePriceInputSlider.addEventListener("input", () => {
     const inputValue = purchasePriceInputSlider.value.replace(/[^0-9.]/g, '');
     purchasePriceInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     purchasePriceInput.dataset.previousValue = inputValue;
     updateSliderBackground(purchasePriceInputSlider);
+    if (purchasePriceErrorElement) purchasePriceErrorElement.textContent = '';
     updateResults();
   });
 
@@ -505,6 +521,7 @@ export function initMortgageCalculator(container: HTMLElement) {
     interestRateInput.value = inputValue ? `${parseFloat(inputValue).toFixed(2)}%` : '';
     interestRateInput.dataset.previousValue = inputValue;
     updateSliderBackground(interestRateInputSlider);
+    if (interestRateErrorElement) interestRateErrorElement.textContent = '';
     updateResults();
   });
 
@@ -513,6 +530,7 @@ export function initMortgageCalculator(container: HTMLElement) {
     amortizationInput.value = inputValue ? `${parseInt(inputValue).toLocaleString('en-US')} Years` : '';
     amortizationInput.dataset.previousValue = inputValue;
     updateSliderBackground(amortizationInputSlider);
+    if (amortizationErrorElement) amortizationErrorElement.textContent = '';
     updateResults();
   });
 
@@ -521,6 +539,7 @@ export function initMortgageCalculator(container: HTMLElement) {
     paymentIncreaseInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     paymentIncreaseInput.dataset.previousValue = inputValue;
     updateSliderBackground(paymentIncreaseInputSlider);
+    if (paymentIncreaseErrorElement) paymentIncreaseErrorElement.textContent = '';
     updateResults();
   });
 
@@ -529,6 +548,7 @@ export function initMortgageCalculator(container: HTMLElement) {
     oneTimePrePaymentInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     oneTimePrePaymentInput.dataset.previousValue = inputValue;
     updateSliderBackground(oneTimePrePaymentInputSlider);
+    if (oneTimePrePaymentErrorElement) oneTimePrePaymentErrorElement.textContent = '';
     updateResults();
   });
 
@@ -547,7 +567,24 @@ export function initMortgageCalculator(container: HTMLElement) {
     return parsed;
   };
 
-  const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
+  // F4: one validation message per validated field, reflecting its actual current bounds.
+  // Shown the instant a typed entry is rejected, cleared the instant a valid one lands.
+  const validationMessages: Record<string, string> = {
+    'purchase-price': 'Enter an amount between $100,000 and $2,000,000.',
+    'interest-rate': 'Enter a rate between 0.1% and 10%.',
+    'amortization-period': 'Enter a term between 1 and 40 years.',
+    'payment-increase': 'Enter an amount up to $2,000.',
+    'one-time-pre-payment': 'Enter an amount up to $100,000.',
+  };
+
+  const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string, errorElement?: HTMLElement) => {
+    const showError = () => {
+      if (errorElement) errorElement.textContent = validationMessages[type] ?? '';
+    };
+    const clearError = () => {
+      if (errorElement) errorElement.textContent = '';
+    };
+
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target) {
@@ -567,6 +604,7 @@ export function initMortgageCalculator(container: HTMLElement) {
         if (parsedValue === null) {
           // Non-numeric / cleared input: fall back to the previous valid value instead of
           // rendering "$ NaN".
+          showError();
           if (type === 'amortization-period') {
             restorePrevious('years');
           } else if (type === 'interest-rate') {
@@ -582,13 +620,17 @@ export function initMortgageCalculator(container: HTMLElement) {
 
         switch (type) {
           case "purchase-price":
-            if (numericValue !== null && 100000 <= numericValue) {
+            // F3: keep the typed value consistent with the slider's own bounds (previously
+            // only the lower bound was enforced, so a typed value could exceed $2M).
+            if (numericValue !== null && 100000 <= numericValue && numericValue <= 2000000) {
               purchasePriceInputSlider.value = numericValue.toString();
               updateSliderBackground(purchasePriceInputSlider);
               target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
               target.dataset.previousValue = numericValue.toString();
+              clearError();
             } else {
               restorePrevious('currency');
+              showError();
             }
             break;
 
@@ -599,8 +641,12 @@ export function initMortgageCalculator(container: HTMLElement) {
               updateSliderBackground(interestRateInputSlider);
               target.value = `${floatValue.toFixed(2)}%`;
               target.dataset.previousValue = floatValue.toFixed(2);
-            } else if (target.dataset.previousValue) {
-              target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
+              clearError();
+            } else {
+              if (target.dataset.previousValue) {
+                target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
+              }
+              showError();
             }
             break;
           }
@@ -611,30 +657,38 @@ export function initMortgageCalculator(container: HTMLElement) {
               updateSliderBackground(amortizationInputSlider);
               target.value = `${numericValue.toLocaleString('en-US')} ${symbol}`;
               target.dataset.previousValue = numericValue.toString();
+              clearError();
             } else {
               restorePrevious('years');
+              showError();
             }
             break;
 
           case "payment-increase":
-            if (numericValue !== null && 0 <= numericValue) {
+            // F3: slider tops out at $2,000 - keep the typed value in line with it.
+            if (numericValue !== null && 0 <= numericValue && numericValue <= 2000) {
               paymentIncreaseInputSlider.value = numericValue.toString();
               updateSliderBackground(paymentIncreaseInputSlider);
               target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
               target.dataset.previousValue = numericValue.toString();
+              clearError();
             } else {
               restorePrevious('currency');
+              showError();
             }
             break;
 
           case "one-time-pre-payment":
-            if (numericValue !== null && 0 <= numericValue) {
+            // F3: slider tops out at $100,000 - keep the typed value in line with it.
+            if (numericValue !== null && 0 <= numericValue && numericValue <= 100000) {
               oneTimePrePaymentInputSlider.value = numericValue.toString();
               updateSliderBackground(oneTimePrePaymentInputSlider);
               target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
               target.dataset.previousValue = numericValue.toString();
+              clearError();
             } else {
               restorePrevious('currency');
+              showError();
             }
             break;
 
@@ -734,20 +788,20 @@ export function initMortgageCalculator(container: HTMLElement) {
     }
   }
 
-  formatInput(purchasePriceInput, '$', 'purchase-price');
+  formatInput(purchasePriceInput, '$', 'purchase-price', purchasePriceErrorElement);
   updateSliderBackground(purchasePriceInputSlider);
 
 
-  formatInput(interestRateInput, '%', 'interest-rate');
+  formatInput(interestRateInput, '%', 'interest-rate', interestRateErrorElement);
   updateSliderBackground(interestRateInputSlider);
 
-  formatInput(amortizationInput, 'Years', 'amortization-period');
+  formatInput(amortizationInput, 'Years', 'amortization-period', amortizationErrorElement);
   updateSliderBackground(amortizationInputSlider);
 
-  formatInput(paymentIncreaseInput, '$', 'payment-increase');
+  formatInput(paymentIncreaseInput, '$', 'payment-increase', paymentIncreaseErrorElement);
   updateSliderBackground(paymentIncreaseInputSlider);
 
-  formatInput(oneTimePrePaymentInput, '$', 'one-time-pre-payment');
+  formatInput(oneTimePrePaymentInput, '$', 'one-time-pre-payment', oneTimePrePaymentErrorElement);
   updateSliderBackground(oneTimePrePaymentInputSlider);
 
   updateResults();
