@@ -790,11 +790,33 @@ export function initMortgageCalculator(container: HTMLElement) {
     breakdownBarInterestResultsElement.style.width = `${interestPercent.toString()}%`;
 
     balanceEndOfTermResultsElement.textContent = formatCurrency(resultObj.balanceEndOfTerm);
-    effectiveAmortizationResultsElement.textContent = resultObj.acceleratedResults ? `${Math.floor(resultObj.acceleratedResults.payoffYears)} Years ${Math.round((resultObj.acceleratedResults.payoffYears - Math.floor(resultObj.acceleratedResults.payoffYears)) * 12)} Months` : `${amortizationValue || 25} Years`;
+
+    // M-2: an interest-only loan never amortizes on its own - say so instead of showing a
+    // misleading "N Years" countdown that implies the balance is being paid down.
+    const isInterestOnly = inputData.loanType === 'interest only';
+
+    // Formats a fractional-years number as "N Years" (whole) or "N Years M Months", guarding
+    // against rounding a fraction like 24.999 up into a stray "24 Years 12 Months".
+    const formatYearsMonths = (years: number): string => {
+      let wholeYears = Math.floor(years);
+      let months = Math.round((years - wholeYears) * 12);
+      if (months === 12) { months = 0; wholeYears += 1; }
+      return months > 0 ? `${wholeYears} Years ${months} Months` : `${wholeYears} Years`;
+    };
+
     if (resultObj.acceleratedResults) {
+      effectiveAmortizationResultsElement.textContent = `${Math.floor(resultObj.acceleratedResults.payoffYears)} Years ${Math.round((resultObj.acceleratedResults.payoffYears - Math.floor(resultObj.acceleratedResults.payoffYears)) * 12)} Months`;
       acceleratedResultsTimeSavedResultsElement.textContent = resultObj.acceleratedResults.timeSaved;
       acceleratedResultsTimeSavedResultsElement.style.display = 'unset';
+    } else if (isInterestOnly) {
+      effectiveAmortizationResultsElement.textContent = 'Never (Interest Only)';
+      acceleratedResultsTimeSavedResultsElement.style.display = 'none';
     } else {
+      // F1: for monthly / true bi-weekly / true weekly, effectiveAmortizationYears always
+      // equals amortizationValue exactly, so this renders identically to the old flat
+      // "${amortizationValue} Years" text. For the two accelerated frequencies it's
+      // genuinely shorter than amortizationValue.
+      effectiveAmortizationResultsElement.textContent = formatYearsMonths(resultObj.effectiveAmortizationYears || amortizationValue || 25);
       acceleratedResultsTimeSavedResultsElement.style.display = 'none';
     }
 

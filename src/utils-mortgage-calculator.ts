@@ -22,6 +22,7 @@ export interface MortgageResults {
     interest: number;
     totalInterest: number;
     totalCost: number;
+    totalPrincipalPaid: number;
     loanAmount: number;
     balanceEndOfTerm: number;
     // F1: how long it actually takes to reach a zero balance at `mortgagePayment`, ignoring
@@ -212,9 +213,25 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
 
     const fiveYearTotalPaid = fiveYearInterest + fiveYearPrincipal;
 
-    // Calculate total interest over full amortization
-    const totalInterest = (mortgagePayment * totalPayments) - principal;
-    const totalCost = principal + totalInterest;
+    // Calculate total interest / total principal paid over the full amortization.
+    let totalInterest: number;
+    let totalPrincipalPaid: number;
+
+    if (data.loanType === 'interest only') {
+        // M-2: no principal is ever repaid on an interest-only loan - every payment is
+        // 100% interest, and the full original principal remains owing as a balloon. The old
+        // `(mortgagePayment * totalPayments) - principal` shortcut assumed principal would be
+        // paid down like a regular amortizing loan, which produced a nonsense figure here.
+        totalInterest = mortgagePayment * totalPayments;
+        totalPrincipalPaid = 0;
+    } else {
+        totalInterest = (mortgagePayment * totalPayments) - principal;
+        totalPrincipalPaid = principal;
+    }
+
+    const totalCost = data.loanType === 'interest only'
+        ? principal + totalInterest // includes the balloon principal still owed at maturity
+        : totalPrincipalPaid + totalInterest;
 
     // F1: exposed so the UI can show a genuinely shortened "Effective Amortization" for the
     // accelerated frequencies even when no additional payment-increase/prepayment has been
@@ -239,6 +256,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         // Simulate accelerated mortgage
         let accBalance = principal;
         let accTotalInterest = 0;
+        let accTotalPrincipal = 0;
         let accPayments = 0;
         let oneTimeApplied = false;
 
@@ -262,6 +280,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
             const principalPayment = Math.min(paymentAmount - interestPayment, accBalance);
             accBalance -= principalPayment;
             accTotalInterest += interestPayment;
+            accTotalPrincipal += principalPayment;
 
             if (accBalance <= 0) break;
         }
@@ -393,6 +412,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
             interest: accInterestPayment,
             totalInterest: accTotalInterest,
             totalCost: principal + accTotalInterest,
+            totalPrincipalPaid: accTotalPrincipal,
             loanAmount: principal,
             balanceEndOfTerm: accBalanceEndOfTerm,
             effectiveAmortizationYears,
@@ -412,6 +432,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         interest: periodicInterest,
         totalInterest,
         totalCost,
+        totalPrincipalPaid,
         loanAmount: principal,
         balanceEndOfTerm,
         effectiveAmortizationYears,
