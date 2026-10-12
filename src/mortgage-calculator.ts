@@ -1,4 +1,4 @@
-import { calculateMortgage, formatCurrency } from './utils-mortgage-calculator';
+import { calculateMortgage, formatCurrency, MortgageData } from './utils-mortgage-calculator';
 import RateIcon from './assets/icons/rate.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
 import CalculatorSettingsIcon from './assets/icons/calculator-settings.svg'
@@ -704,7 +704,17 @@ export function initMortgageCalculator(container: HTMLElement) {
     const loanAmountValue = purchasePriceInput.dataset.previousValue ? parseInt(purchasePriceInput.dataset.previousValue) : 0;
     const interestRateValue = interestRateInput.dataset.previousValue ? parseFloat(parseFloat(interestRateInput.dataset.previousValue).toFixed(2)) : 0;
     const amortizationValue = amortizationInput.dataset.previousValue ? parseInt(amortizationInput.dataset.previousValue) : 1;
-    const paymentFrequencyValue = paymentFrequencyValueElement.textContent ? paymentFrequencyValueElement.textContent.toLowerCase() : "monthly";
+    // M-1: normalise the dropdown's display text to the paymentFrequency value the rest of
+    // the code (and MortgageData's type) expects - "Bi-Weekly" lowercased is "bi-weekly",
+    // which never matched the type's 'biweekly' literal, so calculateMortgage silently fell
+    // through to its monthly default regardless of what was actually selected.
+    const paymentFrequencyMap: Record<string, MortgageData['paymentFrequency']> = {
+      'monthly': 'monthly',
+      'bi-weekly': 'biweekly',
+      'weekly': 'weekly',
+    };
+    const rawPaymentFrequency = paymentFrequencyValueElement.textContent ? paymentFrequencyValueElement.textContent.toLowerCase() : 'monthly';
+    const paymentFrequencyValue: MortgageData['paymentFrequency'] = paymentFrequencyMap[rawPaymentFrequency] ?? 'monthly';
     const paymentIncreaseValue = paymentIncreaseInput.dataset.previousValue ? parseInt(paymentIncreaseInput.dataset.previousValue) : 0;
     const loanTypeActiveSelector = container.querySelector('.calculator-settings .btn-group-selector .selector.active');
 
