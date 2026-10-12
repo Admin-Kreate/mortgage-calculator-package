@@ -2986,6 +2986,354 @@ body {
     }
 }
 
+// F5 (compare-theme reskin): green-accented theme for this calculator only - every rule here
+// is scoped under .compare-theme (added only to this calculator's root element in
+// mortgage-calculator.ts) so it can never bleed into the other three calculators, which keep
+// their existing navy styling untouched.
+.mortgage-calculator.compare-theme {
+    background: #FAF9F5 !important;
+    border-color: #E3E5DD !important;
+    border-radius: 24px !important;
+    font-family: "Inter", sans-serif !important;
+    // Containing block for the onboarding/guide overlays' position: absolute, so they cover
+    // just the calculator card rather than the whole browser viewport (this is an embeddable
+    // widget on someone else's page).
+    position: relative;
+
+    @include respond-to-mobile {
+        border-radius: 16px !important;
+    }
+
+    * {
+        font-family: "Inter", sans-serif !important;
+    }
+
+    // Large display headings use the display font.
+    .section-heading,
+    .title-wrapper .title,
+    .sec-heading,
+    .section-label {
+        font-family: "Bricolage Grotesque", sans-serif !important;
+    }
+
+    .section-heading {
+        color: #FFFFFF !important;
+        background: #00422F !important;
+        border-radius: 24px 24px 0px 0px !important;
+        // Will hold a title + a "How this works" reopen button side by side (fix for the
+        // spotlight tour) - laid out now so that button drops in without a further change.
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+
+        @include respond-to-mobile {
+            border-radius: 16px 16px 0px 0px !important;
+        }
+    }
+
+    // Primary text (headings, values, input text) -> slate-900
+    .title-wrapper .title,
+    .dropdown-field span,
+    .dropdown-opt,
+    input[type="text"],
+    .sec-heading,
+    .section-label {
+        color: #0F172A !important;
+    }
+
+    // Secondary / muted text -> slate-600
+    .mortgage-calculator-info,
+    .mortgage-payment-wrapper .frequency {
+        color: #475569 !important;
+        opacity: 1 !important;
+    }
+
+    .range-label span {
+        color: #64748B !important;
+        opacity: 1 !important;
+    }
+
+    .field-label {
+        color: #00422F !important;
+    }
+
+    // Card recipe: neutral solid border + light shadow, applied to every card-like surface.
+    .mortgage-calculator-input,
+    .input-field,
+    .dropdown-field,
+    .percentage-value-input,
+    .dropdown-opts,
+    .mortgage-payment,
+    .payment-breakdown,
+    .balance-amortization,
+    .five-year-breakdown,
+    .total-breakdown,
+    .ways-to-save,
+    .savings-with-accelerated-payments,
+    .total-money-saved {
+        border-color: #E3E5DD !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+
+    // "Large" cards/sections -> 24px radius
+    .mortgage-calculator-input,
+    .mortgage-payment,
+    .payment-breakdown,
+    .balance-amortization,
+    .five-year-breakdown,
+    .total-breakdown,
+    .ways-to-save,
+    .savings-with-accelerated-payments,
+    .total-money-saved {
+        border-radius: 24px !important;
+    }
+
+    // Smaller form controls -> 8px radius
+    .input-field,
+    .dropdown-field,
+    .percentage-value-input,
+    .dropdown-opts {
+        border-radius: 8px !important;
+    }
+
+    .dropdown-opt:hover {
+        background-color: #EFF1EC !important;
+    }
+
+    // Segmented pill toggles: Regular/Interest Only, Fixed/Variable.
+    .btn-group-selector .selector {
+        color: #475569 !important;
+        border-color: #E3E5DD !important;
+        border-radius: 9999px 0px 0px 9999px !important;
+
+        &:nth-child(2) {
+            border-radius: 0px 9999px 9999px 0px !important;
+        }
+
+        &.active {
+            background: #00422F !important;
+            border-color: #00422F !important;
+            color: #FFFFFF !important;
+        }
+    }
+
+    // Pay-mortgage-faster on/off switch (already pill-shaped - just recolor).
+    .title-toggle-wrapper .toggle {
+        border-color: #00422F !important;
+
+        &.switched-on {
+            background: #00422F !important;
+        }
+
+        .opt.off.selected {
+            background: #00422F !important;
+        }
+    }
+
+    // Hero mortgage payment value - dark slate, not green (green is reserved for buttons,
+    // pills, and positive-delta text only, never for headline figures).
+    .mortgage-payment-wrapper .value {
+        color: #0F172A !important;
+    }
+
+    // Balance end of Term: gold highlight/warning-style panel.
+    .balance-amortization {
+        background: #FBF3E3 !important;
+
+        .info-row.balance .value {
+            color: #B7791F !important;
+        }
+    }
+
+    // Slider thumb (the filled-percentage track itself is set inline by JS, updated to
+    // #00422F there - only the thumb circle is CSS-only).
+    .slider {
+        &::-webkit-slider-thumb {
+            background: #00422F !important;
+        }
+
+        &::-moz-range-thumb {
+            background: #00422F !important;
+        }
+    }
+
+    // Inline validation messages (F4).
+    .field-error {
+        color: rgba(220, 38, 38, 0.9) !important;
+    }
+
+    // Every field-label, section-label, and sec-heading that carries a data-tooltip gets a
+    // dotted underline + help cursor, so "hover over anything" is actually discoverable
+    // rather than a bare label giving no visual hint that hovering does something. These ARE
+    // descendants of .compare-theme, unlike the tooltip bubble itself below, which is
+    // appended to document.body.
+    [data-tooltip] {
+        cursor: help;
+        border-bottom: 1px dotted #00422F;
+        // labels sit in a flex/grid row already - inline-block keeps the dotted underline
+        // hugging just the text instead of stretching the full row width.
+        display: inline-block;
+        width: fit-content;
+    }
+
+    // ---- F6: rate-change scenario (makes Fixed/Variable functional) ----
+    .rate-scenario-field {
+        background: #F7F9F5 !important;
+    }
+
+    .rate-scenario-readout {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin: 0.35rem 0 0.6rem 0;
+    }
+
+    .rate-scenario-delta {
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: #00422F;
+    }
+
+    .rate-scenario-payment {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: #0F172A;
+    }
+
+    // Scale markings under the scenario slider. The five labelled values are evenly spaced
+    // across the slider's own range, so space-between puts each one at its true position on
+    // the track.
+    .rate-scenario-ticks {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.3rem;
+
+        .tick {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: "Inter", sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748B;
+
+            i {
+                width: 1px;
+                height: 5px;
+                background: #C6CCC0;
+                margin-bottom: 2px;
+            }
+
+            // 0% is the "no change" baseline, so it reads as the anchor point.
+            &:nth-child(2) {
+                color: #00422F;
+                i { background: #00422F; height: 7px; }
+            }
+        }
+    }
+
+    .rate-scenario-impact {
+        margin-top: 0.5rem;
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #64748B;
+
+        // A higher payment is the risk being surfaced, so it reads as a warning; a lower one
+        // is a genuine saving.
+        &.negative { color: #B7791F; font-weight: 600; }
+        &.positive { color: #00422F; font-weight: 600; }
+    }
+
+    // ---- F7: "Ways to pay less" ----
+    .ways-to-save-intro {
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        color: #64748B;
+        margin: 0.35rem 0 0.9rem 0;
+    }
+
+    .ways-to-save-list {
+        display: grid;
+        gap: 0.6rem;
+    }
+
+    .way-to-save {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        border: 1px solid #E3E5DD;
+        border-radius: 12px;
+        padding: 0.75rem 0.85rem;
+        background: #FAF9F5;
+        transition: border-color 0.15s ease;
+
+        &:hover { border-color: #00422F; }
+    }
+
+    .way-to-save-label {
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        color: #0F172A;
+    }
+
+    .way-to-save-detail {
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        line-height: 1.4;
+        color: #64748B;
+        margin-top: 0.15rem;
+    }
+
+    // The payoff figure is the reason to read the row at all, so it gets the accent.
+    .way-to-save-impact {
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        color: #00422F;
+        margin-top: 0.3rem;
+    }
+
+    .way-to-save-apply {
+        flex-shrink: 0;
+        background: #00422F;
+        color: #FFFFFF;
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        border: none;
+        border-radius: 9999px;
+        padding: 0.45rem 0.95rem;
+        cursor: pointer;
+
+        &:hover { background: #15311f; }
+    }
+}
+
+// The tooltip bubble element itself lives outside .compare-theme (appended straight to
+// document.body so it can float above everything via position:absolute), so it can't be
+// reached by a ".compare-theme .thing" descendant selector - it needs its own standalone
+// class, scoped by the extra "mortgage-calculator-tooltip" class (alongside the shared
+// .custom-tooltip) added only to this calculator's own tooltip elements in
+// mortgage-calculator.ts, so the other three calculators' tooltips stay untouched, plain,
+// narrow, single-line ".custom-tooltip" bubbles.
+.mortgage-calculator-tooltip {
+    max-width: 280px;
+    white-space: normal !important;
+    font-family: "Inter", sans-serif !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    border: 1px solid #E3E5DD !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    color: #0F172A !important;
+}
+
 // F4: inline per-field validation message, shown when a typed entry is rejected and cleared
 // on the next valid entry. Reuses the same error red already used for .status.error above.
 .field-error {
