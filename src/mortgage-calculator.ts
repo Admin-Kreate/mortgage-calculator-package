@@ -174,6 +174,16 @@ export function initMortgageCalculator(container: HTMLElement) {
             <span>$100K+</span>
           </div>
         </div>
+        <div class="input-field annual-pre-payment">
+          <div class="field-label">Annual Pre-Payment</div>
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
+          <input type="range" min="0" max="25000" value="0" step="500" class="slider">
+          <div class="range-label">
+            <span>$0</span>
+            <span>$25K+</span>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -329,12 +339,18 @@ export function initMortgageCalculator(container: HTMLElement) {
   const oneTimePrePaymentInput = container.querySelector('.one-time-pre-payment .value-input') as HTMLInputElement;
   const oneTimePrePaymentInputSlider = container.querySelector('.one-time-pre-payment .slider') as HTMLInputElement;
 
+  // F2: Annual Pre-Payment - same visual pattern as One Time Pre-Payment, smaller range
+  // since a recurring annual prepayment is typically a smaller amount than a one-time lump sum.
+  const annualPrePaymentInput = container.querySelector('.annual-pre-payment .value-input') as HTMLInputElement;
+  const annualPrePaymentInputSlider = container.querySelector('.annual-pre-payment .slider') as HTMLInputElement;
+
   // F4: inline validation-message elements, one per validated field.
   const purchasePriceErrorElement = container.querySelector('.purchase-price .field-error') as HTMLElement;
   const interestRateErrorElement = container.querySelector('.interest-rate .field-error') as HTMLElement;
   const amortizationErrorElement = container.querySelector('.amortization .field-error') as HTMLElement;
   const paymentIncreaseErrorElement = container.querySelector('.payment-increase .field-error') as HTMLElement;
   const oneTimePrePaymentErrorElement = container.querySelector('.one-time-pre-payment .field-error') as HTMLElement;
+  const annualPrePaymentErrorElement = container.querySelector('.annual-pre-payment .field-error') as HTMLElement;
 
   const paymentFrequencyValueElement = container.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
   const termLengthValueElement = container.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
@@ -464,11 +480,21 @@ export function initMortgageCalculator(container: HTMLElement) {
         paymentIncreaseInput.dataset.previousValue = '0';
         paymentIncreaseInputSlider.value = '0';
         updateSliderBackground(paymentIncreaseInputSlider);
+        if (paymentIncreaseErrorElement) paymentIncreaseErrorElement.textContent = '';
 
         oneTimePrePaymentInput.value = '$  0';
         oneTimePrePaymentInput.dataset.previousValue = '0';
         oneTimePrePaymentInputSlider.value = '0';
         updateSliderBackground(oneTimePrePaymentInputSlider);
+        if (oneTimePrePaymentErrorElement) oneTimePrePaymentErrorElement.textContent = '';
+
+        // F2: reset alongside the other two accelerated-payment fields so nothing is left
+        // in a stale state when the panel collapses.
+        annualPrePaymentInput.value = '$  0';
+        annualPrePaymentInput.dataset.previousValue = '0';
+        annualPrePaymentInputSlider.value = '0';
+        updateSliderBackground(annualPrePaymentInputSlider);
+        if (annualPrePaymentErrorElement) annualPrePaymentErrorElement.textContent = '';
       }
 
       updateResults();
@@ -556,6 +582,16 @@ export function initMortgageCalculator(container: HTMLElement) {
     updateResults();
   });
 
+  // F2: Annual Pre-Payment slider - same pattern as One Time Pre-Payment.
+  annualPrePaymentInputSlider.addEventListener("input", () => {
+    const inputValue = annualPrePaymentInputSlider.value.replace(/[^0-9.]/g, '');
+    annualPrePaymentInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
+    annualPrePaymentInput.dataset.previousValue = inputValue;
+    updateSliderBackground(annualPrePaymentInputSlider);
+    if (annualPrePaymentErrorElement) annualPrePaymentErrorElement.textContent = '';
+    updateResults();
+  });
+
   // X-1/X-2: parse a typed value once, properly, instead of the old
   // `value.replace(/[^0-9.]/g, '')` + parseInt/parseFloat pattern repeated per field below -
   //  - preserve a leading minus sign instead of stripping it,
@@ -579,6 +615,7 @@ export function initMortgageCalculator(container: HTMLElement) {
     'amortization-period': 'Enter a term between 1 and 40 years.',
     'payment-increase': 'Enter an amount up to $2,000.',
     'one-time-pre-payment': 'Enter an amount up to $100,000.',
+    'annual-pre-payment': 'Enter an amount up to $25,000.',
   };
 
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string, errorElement?: HTMLElement) => {
@@ -696,6 +733,20 @@ export function initMortgageCalculator(container: HTMLElement) {
             }
             break;
 
+          case "annual-pre-payment":
+            // F2: slider tops out at $25,000 - keep the typed value in line with it.
+            if (numericValue !== null && 0 <= numericValue && numericValue <= 25000) {
+              annualPrePaymentInputSlider.value = numericValue.toString();
+              updateSliderBackground(annualPrePaymentInputSlider);
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
+              clearError();
+            } else {
+              restorePrevious('currency');
+              showError();
+            }
+            break;
+
           default:
             break;
         }
@@ -740,7 +791,9 @@ export function initMortgageCalculator(container: HTMLElement) {
       paymentIncrease: paymentIncreaseValue,
       paymentIncreaseType: 'dollar',
       oneTimePrePayment: oneTimePrePaymentInput.dataset.previousValue ? parseInt(oneTimePrePaymentInput.dataset.previousValue) : 0,
-      annualPrePayment: 0
+      // F2: wired to the real Annual Pre-Payment field (the math in calculateMortgage
+      // already fully supported this, it just had no UI control before).
+      annualPrePayment: annualPrePaymentInput.dataset.previousValue ? parseInt(annualPrePaymentInput.dataset.previousValue) : 0
     };
     const resultObj = calculateMortgage(inputData);
 
@@ -864,6 +917,10 @@ export function initMortgageCalculator(container: HTMLElement) {
 
   formatInput(oneTimePrePaymentInput, '$', 'one-time-pre-payment', oneTimePrePaymentErrorElement);
   updateSliderBackground(oneTimePrePaymentInputSlider);
+
+  // F2: Annual Pre-Payment.
+  formatInput(annualPrePaymentInput, '$', 'annual-pre-payment', annualPrePaymentErrorElement);
+  updateSliderBackground(annualPrePaymentInputSlider);
 
   updateResults();
 }
