@@ -230,9 +230,12 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
     const periodicInterest = principal * periodicRate;
     const periodicPrincipal = mortgagePayment - periodicInterest;
 
+    // M-9: a rate term longer than the amortization period makes no sense - clamp it.
+    const effectiveRateTerm = Math.min(data.rateTerm, data.amortization);
+
     // Calculate balance at end of rate term (regular mortgage)
     let balanceEndOfTerm = principal;
-    const termPayments = data.rateTerm * periodsPerYear;
+    const termPayments = effectiveRateTerm * periodsPerYear;
 
     for (let i = 0; i < termPayments; i++) {
         const interestPayment = balanceEndOfTerm * periodicRate;
