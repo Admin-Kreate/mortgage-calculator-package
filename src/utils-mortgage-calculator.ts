@@ -43,6 +43,7 @@ export interface MortgageResults {
     acceleratedResults?: {
         adjustedPayment: number;
         payoffYears: number;
+        payoffAchieved: boolean;
         totalInterestSaved: number;
         timeSaved: string;
         balanceComparison: Array<{
@@ -259,8 +260,19 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         let accTotalPrincipal = 0;
         let accPayments = 0;
         let oneTimeApplied = false;
+        const maxIterations = totalPayments * 2;
 
-        while (accBalance > 0.01 && accPayments < totalPayments * 2) {
+        // IO-1: totals measured at the user's OWN amortization horizon, captured as the
+        // simulation passes it. When the loan doesn't clear, these are what get reported -
+        // otherwise the internal 2x-amortization safety cap leaks into the user-facing
+        // numbers, e.g. an interest-only loan with a token increase reported ~2x the real
+        // amortization's worth of interest. The cap is an implementation detail and must
+        // never set the reported horizon.
+        let interestAtNominalHorizon = 0;
+        let principalAtNominalHorizon = 0;
+        let balanceAtNominalHorizon = principal;
+
+        while (accBalance > 0.01 && accPayments < maxIterations) {
             accPayments++;
 
             const interestPayment = accBalance * periodicRate;
@@ -282,8 +294,25 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
             accTotalInterest += interestPayment;
             accTotalPrincipal += principalPayment;
 
+            if (accPayments <= totalPayments) {
+                interestAtNominalHorizon = accTotalInterest;
+                principalAtNominalHorizon = accTotalPrincipal;
+                balanceAtNominalHorizon = accBalance;
+            }
+
             if (accBalance <= 0) break;
         }
+
+        // M-3: the loan may not actually clear within the simulation cap (e.g. interest-only
+        // plus a token payment increase). Detect that explicitly instead of reporting a
+        // nonsense payoff time / negative "savings".
+        const payoffAchieved = accBalance <= 0.01;
+
+        // Reported totals: the real ones when the loan clears, otherwise the ones measured
+        // at the amortization the user actually entered (IO-1).
+        const reportedTotalInterest = payoffAchieved ? accTotalInterest : interestAtNominalHorizon;
+        const reportedTotalPrincipal = payoffAchieved ? accTotalPrincipal : principalAtNominalHorizon;
+        const reportedRemainingBalance = payoffAchieved ? 0 : balanceAtNominalHorizon;
 
         const acceleratedYears = accPayments / 12;
         const timeSavedYears = data.amortization - acceleratedYears;
@@ -394,6 +423,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         acceleratedResults = {
             adjustedPayment,
             payoffYears: acceleratedYears,
+            payoffAchieved,
             totalInterestSaved: interestSaved,
             timeSaved: timeSavedWholeYears > 0
                 ? `${timeSavedWholeYears} YEARS, ${timeSavedMonths} MONTHS FASTER`
@@ -405,14 +435,18 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         const accInterestPayment = principal * periodicRate;
         const accPrincipalPayment = adjustedPayment - accInterestPayment;
 
+        // IO-1: total cost must include prepayments and any balance still owed, and must be
+        // measured over the amortization the user entered (not the internal simulation cap).
+        const accTotalCost = reportedTotalPrincipal + reportedTotalInterest + reportedRemainingBalance;
+
         // Return accelerated results as the main results
         return {
             mortgagePayment: adjustedPayment,
             principal: accPrincipalPayment,
             interest: accInterestPayment,
-            totalInterest: accTotalInterest,
-            totalCost: principal + accTotalInterest,
-            totalPrincipalPaid: accTotalPrincipal,
+            totalInterest: reportedTotalInterest,
+            totalCost: accTotalCost,
+            totalPrincipalPaid: reportedTotalPrincipal,
             loanAmount: principal,
             balanceEndOfTerm: accBalanceEndOfTerm,
             effectiveAmortizationYears,
