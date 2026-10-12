@@ -831,7 +831,11 @@ export function initMortgageCalculator(container: HTMLElement) {
     fiveYearBreakdownPrincipalPaidResultsElement.textContent = formatCurrency(resultObj.fiveYearBreakdown.principalPaid);
     fiveYearBreakdownBalanceRemainingResultsElement.textContent = formatCurrency(resultObj.fiveYearBreakdown.balanceRemaining);
 
-    totalBreakdownPrincipalPaidResultsElement.textContent = formatCurrency(resultObj.loanAmount);
+    // M-10: this used to print resultObj.loanAmount (the original loan amount) unconditionally
+    // rather than the principal actually paid down - nearly a no-op for regular loans but
+    // materially wrong for interest-only loans, which show $0 actually paid, not the full
+    // loan amount.
+    totalBreakdownPrincipalPaidResultsElement.textContent = formatCurrency(resultObj.totalPrincipalPaid);
     totalBreakdownInterestPaidResultsElement.textContent = formatCurrency(resultObj.totalInterest);
     totalBreakdownTotalCostResultsElement.textContent = formatCurrency(resultObj.totalCost);
 
