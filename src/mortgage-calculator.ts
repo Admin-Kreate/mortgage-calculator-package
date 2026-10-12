@@ -57,9 +57,9 @@ export function initMortgageCalculator(container: HTMLElement) {
           </div>
           <input type="text" value="6.00%" data-previous-value="6.00" class="value-input">
           <div class="field-error"></div>
-          <input type="range" min="1" max="10" value="6" step="0.1" class="slider">
+          <input type="range" min="0.1" max="10" value="6" step="0.1" class="slider">
           <div class="range-label">
-            <span>1%</span>
+            <span>0.1%</span>
             <span>10%</span>
           </div>
         </div>
