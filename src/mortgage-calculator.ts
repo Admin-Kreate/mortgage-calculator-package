@@ -532,28 +532,68 @@ export function initMortgageCalculator(container: HTMLElement) {
     updateResults();
   });
 
+  // X-1/X-2: parse a typed value once, properly, instead of the old
+  // `value.replace(/[^0-9.]/g, '')` + parseInt/parseFloat pattern repeated per field below -
+  //  - preserve a leading minus sign instead of stripping it,
+  //  - use parseFloat (not parseInt) so cents aren't truncated,
+  //  - and treat empty/non-finite (NaN/Infinity) input as INVALID (null) rather than
+  //    silently coercing it to 0.
+  const parseTypedNumber = (rawValue: string): number | null => {
+    const trimmed = rawValue.trim();
+    const cleaned = trimmed.replace(/[^0-9.\-+eE]/g, '');
+    if (!cleaned) return null;
+    const parsed = parseFloat(cleaned);
+    if (!Number.isFinite(parsed)) return null;
+    return parsed;
+  };
+
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target) {
-        let value = target.value;
-        value = value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters
-        const numericValue = value ? parseInt(value) : 0;
+        const parsedValue = parseTypedNumber(target.value);
+        // Dollar/year fields are whole numbers - round (not truncate) cents away. The
+        // interest-rate field keeps full decimal precision, handled separately below.
+        const numericValue = parsedValue === null ? null : Math.round(parsedValue);
+
+        const restorePrevious = (suffix: 'currency' | 'years') => {
+          if (target.dataset.previousValue === undefined) return;
+          const previous = parseInt(target.dataset.previousValue);
+          target.value = suffix === 'currency'
+            ? `${symbol}  ${previous.toLocaleString('en-US')}`
+            : `${previous.toLocaleString('en-US')} ${symbol}`;
+        };
+
+        if (parsedValue === null) {
+          // Non-numeric / cleared input: fall back to the previous valid value instead of
+          // rendering "$ NaN".
+          if (type === 'amortization-period') {
+            restorePrevious('years');
+          } else if (type === 'interest-rate') {
+            if (target.dataset.previousValue) {
+              target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
+            }
+          } else {
+            restorePrevious('currency');
+          }
+          updateResults();
+          return;
+        }
 
         switch (type) {
           case "purchase-price":
-            if (100000 <= numericValue) {
+            if (numericValue !== null && 100000 <= numericValue) {
               purchasePriceInputSlider.value = numericValue.toString();
               updateSliderBackground(purchasePriceInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
+            } else {
+              restorePrevious('currency');
             }
             break;
 
-          case "interest-rate":
-            const floatValue = value ? parseFloat(value) : 0.00;
+          case "interest-rate": {
+            const floatValue = parsedValue;
             if (0.1 <= floatValue && floatValue <= 10) {
               interestRateInputSlider.value = floatValue.toFixed(2);
               updateSliderBackground(interestRateInputSlider);
@@ -563,37 +603,38 @@ export function initMortgageCalculator(container: HTMLElement) {
               target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
             }
             break;
+          }
 
           case "amortization-period":
-            if (1 <= numericValue && numericValue <= 40) {
+            if (numericValue !== null && 1 <= numericValue && numericValue <= 40) {
               amortizationInputSlider.value = numericValue.toString();
               updateSliderBackground(amortizationInputSlider);
-              target.value = `${parseInt(value).toLocaleString('en-US')} ${symbol}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')} ${symbol}`;
+              target.value = `${numericValue.toLocaleString('en-US')} ${symbol}`;
+              target.dataset.previousValue = numericValue.toString();
+            } else {
+              restorePrevious('years');
             }
             break;
 
           case "payment-increase":
-            if (0 <= numericValue) {
+            if (numericValue !== null && 0 <= numericValue) {
               paymentIncreaseInputSlider.value = numericValue.toString();
               updateSliderBackground(paymentIncreaseInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
+            } else {
+              restorePrevious('currency');
             }
             break;
 
           case "one-time-pre-payment":
-            if (0 <= numericValue) {
+            if (numericValue !== null && 0 <= numericValue) {
               oneTimePrePaymentInputSlider.value = numericValue.toString();
               updateSliderBackground(oneTimePrePaymentInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
+            } else {
+              restorePrevious('currency');
             }
             break;
 
