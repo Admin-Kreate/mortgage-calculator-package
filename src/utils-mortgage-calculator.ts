@@ -315,10 +315,19 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         const reportedRemainingBalance = payoffAchieved ? 0 : balanceAtNominalHorizon;
 
         const acceleratedYears = accPayments / 12;
-        const timeSavedYears = data.amortization - acceleratedYears;
-        const timeSavedWholeYears = Math.floor(timeSavedYears);
-        const timeSavedMonths = Math.round((timeSavedYears - timeSavedWholeYears) * 12);
-        const interestSaved = totalInterest - accTotalInterest;
+
+        // IO-2: "time saved" is measured against the nominal amortization - but an
+        // interest-only loan never reaches that baseline at all, it never pays off on its
+        // own. Comparing against it could produce a "FASTER" claim for a loan that
+        // genuinely takes LONGER than the nominal amortization. Only claim "faster" when it
+        // actually is faster, and only when the loan actually paid off within the cap.
+        const isInterestOnlyLoan = data.loanType === 'interest only';
+        const rawTimeSavedYears = data.amortization - acceleratedYears;
+        const isGenuinelyFaster = payoffAchieved && rawTimeSavedYears > 0;
+        const timeSavedYears = isGenuinelyFaster ? rawTimeSavedYears : 0;
+        const timeSavedWholeYears = Math.max(0, Math.floor(timeSavedYears));
+        const timeSavedMonths = Math.max(0, Math.round((timeSavedYears - timeSavedWholeYears) * 12));
+        const interestSaved = payoffAchieved ? Math.max(0, totalInterest - accTotalInterest) : 0;
 
         // Generate comparison chart data
         const balanceComparison = [];
@@ -420,14 +429,31 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
             if (accBalanceEndOfTerm <= 0) break;
         }
 
+        // IO-2: describe what actually happened rather than always asserting "FASTER". For
+        // an interest-only loan the meaningful comparison isn't against the nominal
+        // amortization (which it never reaches on its own) - it's that extra payments turn a
+        // loan that never self-liquidates into one that does.
+        let timeSavedLabel: string;
+        if (!payoffAchieved) {
+            timeSavedLabel = 'STILL DOES NOT PAY OFF';
+        } else if (isGenuinelyFaster) {
+            timeSavedLabel = timeSavedWholeYears > 0
+                ? `${timeSavedWholeYears} YEARS, ${timeSavedMonths} MONTHS FASTER`
+                : `${timeSavedMonths} MONTHS FASTER`;
+        } else if (isInterestOnlyLoan) {
+            const payoffWholeYears = Math.floor(acceleratedYears);
+            const payoffMonths = Math.round((acceleratedYears - payoffWholeYears) * 12);
+            timeSavedLabel = `NOW PAYS OFF IN ${payoffWholeYears} YEARS${payoffMonths > 0 ? `, ${payoffMonths} MONTHS` : ''}`;
+        } else {
+            timeSavedLabel = 'NO TIME SAVED';
+        }
+
         acceleratedResults = {
             adjustedPayment,
             payoffYears: acceleratedYears,
             payoffAchieved,
             totalInterestSaved: interestSaved,
-            timeSaved: timeSavedWholeYears > 0
-                ? `${timeSavedWholeYears} YEARS, ${timeSavedMonths} MONTHS FASTER`
-                : `${timeSavedMonths} MONTHS FASTER`,
+            timeSaved: timeSavedLabel,
             balanceComparison
         };
 
