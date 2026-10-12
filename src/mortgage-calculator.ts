@@ -340,6 +340,7 @@ export function initMortgageCalculator(container: HTMLElement) {
   const termLengthValueElement = container.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
 
   const mortgagePaymentResultsElement = container.querySelector('.mortgage-calculator-results .mortgage-payment .value') as HTMLInputElement;
+  const mortgagePaymentFrequencyLabelElement = container.querySelector('.mortgage-calculator-results .mortgage-payment .frequency') as HTMLElement;
 
   const principalPaidResultsElement = container.querySelector('.mortgage-calculator-results .payment-breakdown .principal-paid .value') as HTMLInputElement;
   const interestPaidResultsElement = container.querySelector('.mortgage-calculator-results .payment-breakdown .interest-paid .value') as HTMLInputElement;
@@ -765,6 +766,20 @@ export function initMortgageCalculator(container: HTMLElement) {
     const interestPercent = 100 - principalPercent;
 
     // console.log("resultObj - ", resultObj, principalPercent, interestPercent);
+
+    // M-1 (extended for F1): keep the "Monthly Payment" label in sync with the selected
+    // frequency - accelerated bi-weekly/weekly get their own distinct label rather than
+    // falling through to the plain "Bi-Weekly Payment" / "Weekly Payment" text.
+    const frequencyLabelMap: Record<MortgageData['paymentFrequency'], string> = {
+      monthly: 'Monthly Payment',
+      biweekly: 'Bi-Weekly Payment',
+      weekly: 'Weekly Payment',
+      acceleratedBiweekly: 'Accelerated Bi-Weekly Payment',
+      acceleratedWeekly: 'Accelerated Weekly Payment',
+    };
+    if (mortgagePaymentFrequencyLabelElement) {
+      mortgagePaymentFrequencyLabelElement.textContent = frequencyLabelMap[paymentFrequencyValue];
+    }
 
     mortgagePaymentResultsElement.textContent = resultObj.acceleratedResults ? formatCurrency(resultObj.acceleratedResults.adjustedPayment) : formatCurrency(resultObj.mortgagePayment);
 
