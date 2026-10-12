@@ -466,6 +466,7 @@ export function initMortgageCalculator(container: HTMLElement) {
               <li><strong>Hover any label with a dotted underline</strong> to see exactly what it means, on both the inputs and your results.</li>
               <li><strong>Flip on "Pay your mortgage faster"</strong> to model extra payments. Even $50 more per payment shows up as real years and real dollars saved.</li>
               <li><strong>Watch "Total Interest Paid"</strong>, not just the monthly payment. Two mortgages with similar payments can differ enormously in what they truly cost.</li>
+              <li><strong>"How this works"</strong> in the header opens a full plain-language guide any time you want it.</li>
             </ul>
           </div>
         </div>
@@ -479,9 +480,33 @@ export function initMortgageCalculator(container: HTMLElement) {
     </div>
   `;
 
+  // F5 (revised): "How this works" is an interactive spotlight tour, not a wall of text. It
+  // dims the calculator, cuts a hole around one real section at a time, and explains that
+  // specific box - so the explanation is attached to the thing it describes instead of
+  // asking someone to read paragraphs and then go hunting for what they refer to.
+  const tourHTML = `
+    <div class="tour-layer">
+      <div class="tour-spotlight"></div>
+      <div class="tour-card">
+        <button type="button" class="tour-close" aria-label="Close tour">&times;</button>
+        <div class="tour-step-count"></div>
+        <div class="tour-title"></div>
+        <div class="tour-text"></div>
+        <div class="tour-why"></div>
+        <div class="tour-actions">
+          <button type="button" class="tour-back">Back</button>
+          <button type="button" class="tour-next">Next</button>
+        </div>
+      </div>
+    </div>
+  `;
+
   container.innerHTML = `
     <div class="mortgage-calculator compare-theme">
-        <div class="section-heading">Mortgage Calculator</div>
+        <div class="section-heading">
+          <span>Mortgage Calculator</span>
+          <button type="button" class="onboarding-reopen">How this works</button>
+        </div>
         <div class="tab-layout">
           <div class="tab-content active">
             <div class="calculator-inputs">
@@ -493,6 +518,7 @@ export function initMortgageCalculator(container: HTMLElement) {
           </div>
         </div>
         ${onboardingModalHTML}
+        ${tourHTML}
     </div>
   `;
 
@@ -1383,6 +1409,7 @@ export function initMortgageCalculator(container: HTMLElement) {
   const onboardingContinueButton = container.querySelector('.onboarding-continue') as HTMLElement;
   const onboardingBackButton = container.querySelector('.onboarding-back') as HTMLElement;
   const onboardingSkipButton = container.querySelector('.onboarding-skip') as HTMLElement;
+  const onboardingReopenButton = container.querySelector('.onboarding-reopen') as HTMLElement;
   const onboardingSteps = container.querySelectorAll('.onboarding-step');
   const onboardingDots = container.querySelectorAll('.onboarding-progress .dot');
 
@@ -1513,6 +1540,193 @@ export function initMortgageCalculator(container: HTMLElement) {
     applyOnboardingValues();
     closeOnboarding();
   });
+
+  // ---- F5 (revised): "How this works" = interactive spotlight tour ----
+  // Each step points at a real section of the calculator, dims everything else, and
+  // explains that one box. Attaching the explanation to the actual element beats a
+  // scrolling wall of prose, because there's never a gap between "what it says" and "what
+  // it's talking about".
+  const tourLayer = container.querySelector('.tour-layer') as HTMLElement;
+  const tourSpotlight = container.querySelector('.tour-spotlight') as HTMLElement;
+  const tourCard = container.querySelector('.tour-card') as HTMLElement;
+  const tourTitleElement = container.querySelector('.tour-title') as HTMLElement;
+  const tourTextElement = container.querySelector('.tour-text') as HTMLElement;
+  const tourWhyElement = container.querySelector('.tour-why') as HTMLElement;
+  const tourStepCountElement = container.querySelector('.tour-step-count') as HTMLElement;
+  const tourBackButton = container.querySelector('.tour-back') as HTMLElement;
+  const tourNextButton = container.querySelector('.tour-next') as HTMLElement;
+  const tourCloseButton = container.querySelector('.tour-close') as HTMLElement;
+  const calculatorRootElement = container.querySelector('.mortgage-calculator') as HTMLElement;
+
+  type TourStep = { selector: string; title: string; text: string; why: string };
+  const tourStepDefinitions: TourStep[] = [
+    {
+      selector: '.purchase-price',
+      title: 'Loan Amount',
+      text: "What you're actually borrowing, not the home's price. Buying at $600,000 with $120,000 down means $480,000 here.",
+      why: 'Everything else on this page is calculated from this number.',
+    },
+    {
+      selector: '.payment-frequency',
+      title: 'Payment Frequency',
+      text: 'The "Accelerated" options charge half your monthly payment every two weeks. That works out to 13 monthly payments a year instead of 12.',
+      why: 'Switching to Accelerated typically cuts 3 to 4 years off a 25-year mortgage.',
+    },
+    {
+      selector: '.interest-rate',
+      title: 'Interest Rate',
+      text: 'The annual rate your lender charges. Drag it to see how sensitive your payment is to even half a percent.',
+      why: 'On a $500,000 mortgage, 1% more costs you roughly $300 a month.',
+    },
+    {
+      selector: '.term-length',
+      title: 'Rate Term',
+      text: "How long your rate is locked in, usually 5 years. This is NOT how long you have the mortgage.",
+      why: 'When the term ends you still owe a balance and renew at whatever rate exists then.',
+    },
+    {
+      selector: '.input-field.amortization',
+      title: 'Amortization',
+      text: 'The total time to pay the balance all the way to zero. Typically 25 years in Canada.',
+      why: 'A longer amortization lowers your payment but can add six figures in interest.',
+    },
+    {
+      selector: '.calculator-settings',
+      title: 'Calculator Settings',
+      text: 'Interest Only covers just the interest, so your balance never drops. Compounding is how often interest is added, semi-annual is the Canadian standard.',
+      why: 'Leave compounding on Semi-Annual for a normal Canadian mortgage.',
+    },
+    {
+      selector: '.pay-mortgage-faster',
+      title: 'Pay your mortgage faster',
+      text: 'Turn this on to model extra payments: a bit more on every payment, a one-time lump sum, or a yearly one.',
+      why: 'Extra payments go entirely to principal, so the savings compound.',
+    },
+    {
+      selector: '.mortgage-payment',
+      title: 'Your payment',
+      text: 'Your regular payment at the frequency you picked, updating live as you change anything on the left.',
+      why: 'This is the number most people come for, but not the one that matters most.',
+    },
+    {
+      selector: '.payment-breakdown',
+      title: 'Payment Breakdown',
+      text: "How your next payment splits between principal (paying down debt) and interest (the lender's fee).",
+      why: 'Early on this looks heavily tilted to interest. That is normal.',
+    },
+    {
+      selector: '.balance-amortization',
+      title: 'Balance & Amortization',
+      text: "What you'll still owe when your term ends, and how long until you're actually mortgage-free.",
+      why: 'Effective Amortization shrinks when you use accelerated payments.',
+    },
+    {
+      selector: '.total-breakdown',
+      title: 'Total Breakdown',
+      text: 'The lifetime cost: every dollar of principal and interest across the whole amortization.',
+      why: 'Total Interest Paid is the number worth optimizing, not the monthly payment.',
+    },
+  ];
+
+  let activeTourSteps: { step: TourStep; element: HTMLElement }[] = [];
+  let currentTourIndex = 0;
+
+  const positionTour = () => {
+    const entry = activeTourSteps[currentTourIndex];
+    if (!entry || !calculatorRootElement) return;
+    const calcRect = calculatorRootElement.getBoundingClientRect();
+    const targetRect = entry.element.getBoundingClientRect();
+    const pad = 8;
+
+    const top = targetRect.top - calcRect.top - pad;
+    const left = targetRect.left - calcRect.left - pad;
+    const width = targetRect.width + pad * 2;
+    const height = targetRect.height + pad * 2;
+
+    tourSpotlight.style.top = `${top}px`;
+    tourSpotlight.style.left = `${left}px`;
+    tourSpotlight.style.width = `${width}px`;
+    tourSpotlight.style.height = `${height}px`;
+
+    // Place the caption below the highlighted box when there's room, otherwise above it,
+    // then clamp inside the calculator so it can never hang off the edge.
+    const cardHeight = tourCard.offsetHeight || 190;
+    const cardWidth = tourCard.offsetWidth || 320;
+    let cardTop = top + height + 14;
+    if (cardTop + cardHeight > calcRect.height - 12) {
+      cardTop = top - cardHeight - 14;
+    }
+    cardTop = Math.max(12, Math.min(cardTop, calcRect.height - cardHeight - 12));
+
+    let cardLeft = left;
+    cardLeft = Math.max(12, Math.min(cardLeft, calcRect.width - cardWidth - 12));
+
+    tourCard.style.top = `${cardTop}px`;
+    tourCard.style.left = `${cardLeft}px`;
+  };
+
+  const renderTourStep = () => {
+    const entry = activeTourSteps[currentTourIndex];
+    if (!entry) return;
+    tourTitleElement.textContent = entry.step.title;
+    tourTextElement.textContent = entry.step.text;
+    tourWhyElement.textContent = entry.step.why;
+    tourStepCountElement.textContent = `${currentTourIndex + 1} of ${activeTourSteps.length}`;
+    tourBackButton.style.visibility = currentTourIndex === 0 ? 'hidden' : 'visible';
+    tourNextButton.textContent = currentTourIndex === activeTourSteps.length - 1 ? 'Done' : 'Next';
+
+    // Re-trigger the pulse animation on the spotlight each time it moves to a new box.
+    tourSpotlight.classList.remove('pulse');
+    void tourSpotlight.offsetWidth;
+    tourSpotlight.classList.add('pulse');
+
+    entry.element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    // Let the smooth scroll settle before measuring, otherwise the spotlight lands where
+    // the element *was*. Position immediately too, so there's no visible lag on short hops.
+    positionTour();
+    setTimeout(positionTour, 380);
+  };
+
+  const openTour = () => {
+    // Only include steps whose target actually exists and is visible right now - e.g. the
+    // savings panel is hidden until accelerated payments are on, and highlighting an
+    // invisible element would spotlight empty space.
+    activeTourSteps = tourStepDefinitions
+      .map(step => ({ step, element: container.querySelector(step.selector) as HTMLElement }))
+      .filter(entry => entry.element && entry.element.offsetParent !== null);
+    if (!activeTourSteps.length) return;
+    currentTourIndex = 0;
+    tourLayer.classList.add('open');
+    renderTourStep();
+  };
+
+  const closeTour = () => {
+    tourLayer.classList.remove('open');
+  };
+
+  onboardingReopenButton?.addEventListener('click', openTour);
+  tourCloseButton?.addEventListener('click', closeTour);
+  tourNextButton?.addEventListener('click', () => {
+    if (currentTourIndex === activeTourSteps.length - 1) {
+      closeTour();
+      return;
+    }
+    currentTourIndex += 1;
+    renderTourStep();
+  });
+  tourBackButton?.addEventListener('click', () => {
+    if (currentTourIndex > 0) {
+      currentTourIndex -= 1;
+      renderTourStep();
+    }
+  });
+  // Clicking the dimmed area (never the caption card itself) exits the tour.
+  tourLayer?.addEventListener('click', (e) => {
+    if (e.target === tourLayer || e.target === tourSpotlight) closeTour();
+  });
+  // Keep the spotlight glued to its target if the page moves underneath it.
+  window.addEventListener('resize', () => { if (tourLayer.classList.contains('open')) positionTour(); });
+  window.addEventListener('scroll', () => { if (tourLayer.classList.contains('open')) positionTour(); }, { passive: true });
 
   renderOnboardingStep();
   renderOnboardingReadouts();

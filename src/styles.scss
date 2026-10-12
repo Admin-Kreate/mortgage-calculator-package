@@ -3020,8 +3020,7 @@ body {
         color: #FFFFFF !important;
         background: #00422F !important;
         border-radius: 24px 24px 0px 0px !important;
-        // Will hold a title + a "How this works" reopen button side by side (fix for the
-        // spotlight tour) - laid out now so that button drops in without a further change.
+        // Holds a title + the "How this works" reopen button side by side.
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -3029,6 +3028,28 @@ body {
 
         @include respond-to-mobile {
             border-radius: 16px 16px 0px 0px !important;
+        }
+
+        .onboarding-reopen {
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #FFFFFF;
+            font-family: "Inter", sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0.4rem 0.9rem;
+            border-radius: 9999px;
+            cursor: pointer;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.25);
+            }
+
+            @include respond-to-mobile {
+                font-size: 11px;
+                padding: 0.3rem 0.6rem;
+            }
         }
     }
 
@@ -3596,6 +3617,156 @@ body {
 
         &:hover { background: #15311f; }
     }
+
+    // ---- "How this works" interactive spotlight tour ----
+    // The dim is produced by an enormous box-shadow spreading out from the spotlight rect,
+    // which literally cuts a hole around the highlighted element. That avoids fighting
+    // z-index/stacking-context battles with the element itself - it stays exactly where it
+    // is, fully visible and un-restyled, while everything around it darkens.
+    .tour-layer {
+        display: none;
+        position: absolute;
+        inset: 0;
+        z-index: 120;
+
+        &.open {
+            display: block;
+        }
+    }
+
+    .tour-spotlight {
+        position: absolute;
+        border-radius: 14px;
+        box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.62);
+        border: 2px solid #B7791F;
+        pointer-events: none;
+        transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &.pulse {
+            animation: tour-pulse 1.4s ease-out;
+        }
+    }
+
+    .tour-card {
+        position: absolute;
+        width: 330px;
+        max-width: calc(100% - 24px);
+        background: #FFFFFF;
+        border-radius: 16px;
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+        padding: 1.1rem 1.2rem;
+        text-align: left;
+        transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                    left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: tour-card-in 0.3s ease-out;
+
+        @include respond-to-mobile {
+            width: calc(100% - 24px);
+        }
+    }
+
+    .tour-close {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.6rem;
+        background: none;
+        border: none;
+        font-size: 20px;
+        line-height: 1;
+        color: #94A3B8;
+        cursor: pointer;
+
+        &:hover { color: #0F172A; }
+    }
+
+    .tour-step-count {
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #B7791F;
+        margin-bottom: 0.35rem;
+    }
+
+    .tour-title {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-weight: 700;
+        font-size: 17px;
+        color: #0F172A;
+        margin-bottom: 0.4rem;
+    }
+
+    .tour-text {
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #475569;
+    }
+
+    // The "why it matters" line - the payoff of each step, so it gets its own tinted band
+    // rather than blending into the description above it.
+    .tour-why {
+        margin-top: 0.7rem;
+        background: #F7F9F5;
+        border-left: 3px solid #00422F;
+        border-radius: 0 8px 8px 0;
+        padding: 0.5rem 0.7rem;
+        font-family: "Inter", sans-serif;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #00422F;
+        font-weight: 500;
+    }
+
+    .tour-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .tour-back {
+        background: none;
+        border: 1px solid #E3E5DD;
+        color: #475569;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 9999px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+
+        &:hover { border-color: #00422F; color: #00422F; }
+    }
+
+    .tour-next {
+        flex: 1;
+        background: #00422F;
+        color: #FFFFFF;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        border-radius: 9999px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+
+        &:hover { background: #15311f; }
+    }
+}
+
+@keyframes tour-pulse {
+    0% { border-color: #B7791F; }
+    35% { border-color: rgba(183, 121, 31, 0.25); }
+    100% { border-color: #B7791F; }
+}
+
+@keyframes tour-card-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 // The tooltip bubble element itself lives outside .compare-theme (appended straight to
