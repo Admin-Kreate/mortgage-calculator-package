@@ -36,6 +36,8 @@ export function initMortgageCalculator(container: HTMLElement) {
             <div class="dropdown-opt">Monthly</div>
             <div class="dropdown-opt">Bi-Weekly</div>
             <div class="dropdown-opt">Weekly</div>
+            <div class="dropdown-opt">Accelerated Bi-Weekly</div>
+            <div class="dropdown-opt">Accelerated Weekly</div>
           </div>
         </div>
       </div>
@@ -704,14 +706,16 @@ export function initMortgageCalculator(container: HTMLElement) {
     const loanAmountValue = purchasePriceInput.dataset.previousValue ? parseInt(purchasePriceInput.dataset.previousValue) : 0;
     const interestRateValue = interestRateInput.dataset.previousValue ? parseFloat(parseFloat(interestRateInput.dataset.previousValue).toFixed(2)) : 0;
     const amortizationValue = amortizationInput.dataset.previousValue ? parseInt(amortizationInput.dataset.previousValue) : 1;
-    // M-1: normalise the dropdown's display text to the paymentFrequency value the rest of
-    // the code (and MortgageData's type) expects - "Bi-Weekly" lowercased is "bi-weekly",
-    // which never matched the type's 'biweekly' literal, so calculateMortgage silently fell
-    // through to its monthly default regardless of what was actually selected.
+    // M-1 (extended for F1): normalise the dropdown's display text to the paymentFrequency
+    // value the rest of the code (and MortgageData's type) expects. Every dropdown-opt string
+    // has an explicit entry here so a future renamed/reworded option falls through to
+    // 'monthly' loudly (via the map miss) rather than silently.
     const paymentFrequencyMap: Record<string, MortgageData['paymentFrequency']> = {
       'monthly': 'monthly',
       'bi-weekly': 'biweekly',
       'weekly': 'weekly',
+      'accelerated bi-weekly': 'acceleratedBiweekly',
+      'accelerated weekly': 'acceleratedWeekly',
     };
     const rawPaymentFrequency = paymentFrequencyValueElement.textContent ? paymentFrequencyValueElement.textContent.toLowerCase() : 'monthly';
     const paymentFrequencyValue: MortgageData['paymentFrequency'] = paymentFrequencyMap[rawPaymentFrequency] ?? 'monthly';
