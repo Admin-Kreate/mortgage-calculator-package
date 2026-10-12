@@ -313,6 +313,18 @@ export function initMortgageCalculator(container: HTMLElement) {
       </div>
     </div>
 
+    <!-- F7: "Ways to pay less" - live, ranked savings opportunities computed from whatever
+         the user currently has entered. Every option is a real simulation against their own
+         numbers (not generic advice), only appears when it actually saves money, and can be
+         applied with one click. -->
+    <div class="ways-to-save">
+      <div class="section-wrapper">
+        <div class="sec-heading">Ways to pay less</div>
+        <div class="ways-to-save-intro"></div>
+        <div class="ways-to-save-list"></div>
+      </div>
+    </div>
+
     <div class="savings-with-accelerated-payments">
       <div class="section-wrapper">
         <div class="sec-heading">Total Savings with Accelerated Payments</div>
@@ -971,6 +983,7 @@ export function initMortgageCalculator(container: HTMLElement) {
     }
 
     renderRateScenario(inputData, resultObj);
+    renderWaysToSave(inputData, resultObj);
   }
 
   // ---- F6: rate-change scenario ----
@@ -1028,6 +1041,163 @@ export function initMortgageCalculator(container: HTMLElement) {
   }
 
   rateScenarioSlider?.addEventListener('input', () => updateResults());
+
+  // ---- F7: "Ways to pay less" ----
+  // Every suggestion is a real run of the engine against the user's own numbers, so the
+  // figures are exact rather than rules of thumb. Options that don't apply (or don't
+  // actually save anything) are filtered out rather than shown as dead advice.
+  const waysToSaveElement = container.querySelector('.ways-to-save') as HTMLElement;
+  const waysToSaveListElement = container.querySelector('.ways-to-save-list') as HTMLElement;
+  const waysToSaveIntroElement = container.querySelector('.ways-to-save-intro') as HTMLElement;
+
+  type SavingOption = { label: string; detail: string; saved: number; yearsSaved: number; apply: () => void };
+
+  function renderWaysToSave(inputData: any, resultObj: any) {
+    if (!waysToSaveElement) return;
+
+    const baselineInterest = resultObj.totalInterest;
+    const baselinePayoff = resultObj.acceleratedResults?.payoffAchieved
+      ? resultObj.acceleratedResults.payoffYears
+      : resultObj.effectiveAmortizationYears;
+    const options: SavingOption[] = [];
+
+    const evaluate = (overrides: any) => {
+      const result = calculateMortgage({ ...inputData, ...overrides });
+      const payoff = result.acceleratedResults?.payoffAchieved
+        ? result.acceleratedResults.payoffYears
+        : result.effectiveAmortizationYears;
+      return {
+        saved: baselineInterest - result.totalInterest,
+        yearsSaved: baselinePayoff - payoff,
+      };
+    };
+
+    // 1) Switch to an accelerated payment frequency - usually the single biggest win that
+    //    costs almost nothing in monthly budget terms.
+    const isAlreadyAccelerated = inputData.paymentFrequency === 'acceleratedBiweekly' || inputData.paymentFrequency === 'acceleratedWeekly';
+    if (!isAlreadyAccelerated && inputData.loanType !== 'interest only') {
+      const outcome = evaluate({ paymentFrequency: 'acceleratedBiweekly' });
+      if (outcome.saved > 1) {
+        options.push({
+          label: 'Switch to Accelerated Bi-Weekly',
+          detail: 'Pay half your monthly amount every two weeks — one extra monthly payment a year.',
+          saved: outcome.saved,
+          yearsSaved: outcome.yearsSaved,
+          apply: () => {
+            if (paymentFrequencyValueElement) paymentFrequencyValueElement.textContent = 'Accelerated Bi-Weekly';
+            updateResults();
+          },
+        });
+      }
+    }
+
+    // 2) Bump the regular payment. Two sizes so there's a low-commitment option and a
+    //    meaningful one, both priced against their actual numbers.
+    [100, 250].forEach(extra => {
+      const newIncrease = (inputData.paymentIncrease || 0) + extra;
+      if (newIncrease > 2000) return;
+      const outcome = evaluate({ paymentIncrease: newIncrease });
+      if (outcome.saved > 1) {
+        options.push({
+          label: `Add ${formatCurrency(extra)} to every payment`,
+          detail: `Your payment becomes ${formatCurrency((resultObj.basePayment || 0) + newIncrease)}.`,
+          saved: outcome.saved,
+          yearsSaved: outcome.yearsSaved,
+          apply: () => {
+            paymentIncreaseInputSlider.value = String(newIncrease);
+            const toggleOn = container.querySelector('.pay-mortgage-faster .opt.on') as HTMLElement;
+            const expandable = container.querySelector('.pay-mortgage-faster .expandable') as HTMLElement;
+            if (expandable && !expandable.classList.contains('expanded')) toggleOn?.click();
+            paymentIncreaseInputSlider.value = String(newIncrease);
+            paymentIncreaseInputSlider.dispatchEvent(new Event('input'));
+          },
+        });
+      }
+    });
+
+    // 3) Shorten the amortization. Costs more per payment but is often the cheapest total.
+    if (inputData.amortization > 5 && inputData.loanType !== 'interest only') {
+      const shorter = Math.max(5, inputData.amortization - 5);
+      const outcome = evaluate({ amortization: shorter });
+      const shorterResult = calculateMortgage({ ...inputData, amortization: shorter });
+      const extraPerPayment = shorterResult.mortgagePayment - (resultObj.basePayment || resultObj.mortgagePayment);
+      if (outcome.saved > 1) {
+        options.push({
+          label: `Shorten amortization to ${shorter} years`,
+          detail: `Costs about ${formatCurrency(extraPerPayment)} more per payment.`,
+          saved: outcome.saved,
+          yearsSaved: outcome.yearsSaved,
+          apply: () => {
+            amortizationInputSlider.value = String(shorter);
+            amortizationInputSlider.dispatchEvent(new Event('input'));
+          },
+        });
+      }
+    }
+
+    // 4) Interest-only never self-liquidates, so the highest-value move is switching off it.
+    if (inputData.loanType === 'interest only') {
+      const outcome = evaluate({ loanType: 'regular' });
+      options.push({
+        label: 'Switch to Regular payments',
+        detail: 'Interest Only never reduces your balance — you would still owe the full amount at the end.',
+        saved: Math.max(0, outcome.saved),
+        yearsSaved: 0,
+        apply: () => {
+          const regular = Array.from(container.querySelectorAll('.calculator-settings .btn-group-selector .selector'))
+            .find(el => el.textContent?.trim() === 'Regular') as HTMLElement;
+          regular?.click();
+        },
+      });
+    }
+
+    options.sort((a, b) => b.saved - a.saved);
+
+    if (!options.length) {
+      waysToSaveElement.style.display = 'none';
+      return;
+    }
+    waysToSaveElement.style.display = 'unset';
+    waysToSaveIntroElement.textContent = `Based on your numbers, here ${options.length === 1 ? 'is 1 option' : `are ${options.length} options`} that would cost you less.`;
+
+    waysToSaveListElement.innerHTML = '';
+    options.forEach(option => {
+      const row = document.createElement('div');
+      row.className = 'way-to-save';
+
+      const info = document.createElement('div');
+      info.className = 'way-to-save-info';
+
+      const label = document.createElement('div');
+      label.className = 'way-to-save-label';
+      label.textContent = option.label;
+
+      const detail = document.createElement('div');
+      detail.className = 'way-to-save-detail';
+      detail.textContent = option.detail;
+
+      const impact = document.createElement('div');
+      impact.className = 'way-to-save-impact';
+      const yearsText = option.yearsSaved >= 1
+        ? ` · ${Math.floor(option.yearsSaved)} year${Math.floor(option.yearsSaved) === 1 ? '' : 's'} sooner`
+        : '';
+      impact.textContent = `Saves ${formatCurrency(option.saved)}${yearsText}`;
+
+      info.appendChild(label);
+      info.appendChild(detail);
+      info.appendChild(impact);
+
+      const applyButton = document.createElement('button');
+      applyButton.type = 'button';
+      applyButton.className = 'way-to-save-apply';
+      applyButton.textContent = 'Apply';
+      applyButton.addEventListener('click', option.apply);
+
+      row.appendChild(info);
+      row.appendChild(applyButton);
+      waysToSaveListElement.appendChild(row);
+    });
+  }
 
   formatInput(purchasePriceInput, '$', 'purchase-price', purchasePriceErrorElement);
   updateSliderBackground(purchasePriceInputSlider);
