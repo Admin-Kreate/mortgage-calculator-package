@@ -3,7 +3,11 @@ export interface MortgageData {
     interestRate: number;
     rateTerm: number; // in years
     amortization: number;
-    paymentFrequency: 'monthly' | 'biweekly' | 'weekly';
+    // F1: 'acceleratedBiweekly' / 'acceleratedWeekly' are NOT solved independently at 26/52
+    // periods - their payment amount is derived from the true monthly payment (see the
+    // isAcceleratedFrequency branch in calculateMortgage below). 'biweekly' / 'weekly' remain
+    // "true" schedules, solved independently at their own periodicity, same as before.
+    paymentFrequency: 'monthly' | 'biweekly' | 'weekly' | 'acceleratedBiweekly' | 'acceleratedWeekly';
     loanType: 'regular' | 'interest only';
     compounding: 'daily' | 'weekly' | 'bi-weekly' | 'monthly' | 'quarterly' | 'semi-annual';
     paymentIncrease: number; // dollar amount or percentage
@@ -20,6 +24,15 @@ export interface MortgageResults {
     totalCost: number;
     loanAmount: number;
     balanceEndOfTerm: number;
+    // F1: how long it actually takes to reach a zero balance at `mortgagePayment`, ignoring
+    // any payment-increase/prepayment (those are reflected in acceleratedResults.payoffYears
+    // instead). For monthly / true bi-weekly / true weekly this is always == amortization
+    // (the annuity formula solves for exactly that). For the two accelerated frequencies it
+    // comes in under amortization, because their payment is derived from the monthly payment
+    // (which pays the equivalent of 13 monthly payments a year instead of 12) - that's the
+    // whole point of "accelerated". Not meaningful for interest-only (never amortizes on its
+    // own), where it's just set to the nominal amortization.
+    effectiveAmortizationYears: number;
     fiveYearBreakdown: {
         totalPaid: number;
         interestPaid: number;
@@ -76,12 +89,17 @@ export function parseCurrency(value: string): number {
     return parseFloat(value.replace(/[,$]/g, '')) || 0;
 }
 
-// M-1: periods per year for each supported payment frequency.
+// M-1: periods per year for each supported payment frequency. The accelerated variants (F1)
+// run their interest-accrual / balance-reduction simulation at the SAME periodicity as their
+// true counterpart (26 / 52) - only the payment amount differs, see the isAcceleratedFrequency
+// branch in calculateMortgage below.
 function getPeriodsPerYear(frequency: MortgageData['paymentFrequency']): number {
     switch (frequency) {
         case 'biweekly':
+        case 'acceleratedBiweekly':
             return 26;
         case 'weekly':
+        case 'acceleratedWeekly':
             return 52;
         case 'monthly':
         default:
@@ -112,6 +130,13 @@ function getPeriodicRate(annualRate: number, compounding: MortgageData['compound
     }
 }
 
+// Standard amortization annuity-payment formula, shared by the true-frequency branch and by
+// the accelerated branch's (F1) monthly baseline.
+function annuityPayment(principal: number, periodicRate: number, totalPayments: number): number {
+    if (periodicRate === 0) return principal / totalPayments;
+    return principal * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / (Math.pow(1 + periodicRate, totalPayments) - 1);
+}
+
 export function calculateMortgage(data: MortgageData): MortgageResults {
     const principal = data.loanAmount;
 
@@ -127,16 +152,32 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
     // at the selected frequency.
     const totalPayments = data.amortization * periodsPerYear;
 
+    // F1: 'acceleratedBiweekly' / 'acceleratedWeekly' are NOT solved independently at their
+    // own periodicity (26/52) the way true bi-weekly/weekly are. Their payment is derived
+    // straight from the TRUE MONTHLY payment: accelerated bi-weekly = monthlyPayment / 2,
+    // paid 26x/yr; accelerated weekly = monthlyPayment / 4, paid 52x/yr. Because
+    // 26 * (M/2) = 13M and 52 * (M/4) = 13M, both pay the equivalent of one extra monthly
+    // payment every year versus true monthly's 12M - that extra payment is what actually
+    // shortens the amortization (see effectiveAmortizationYears below), which is the entire
+    // point of "accelerated" frequencies on a real Canadian mortgage.
+    //
+    // This derivation intentionally only applies to regular (amortizing) loans. An
+    // interest-only payment is just `principal * periodicRate` for whatever periodicity is
+    // selected - there is no amortizing schedule to accelerate, so accelerated interest-only
+    // behaves identically to true-frequency interest-only.
+    const isAcceleratedFrequency = data.paymentFrequency === 'acceleratedBiweekly' || data.paymentFrequency === 'acceleratedWeekly';
+
     // Calculate base mortgage payment
     let mortgagePayment: number;
     if (data.loanType === 'interest only') {
         mortgagePayment = principal * periodicRate;
+    } else if (isAcceleratedFrequency) {
+        const monthlyPeriodicRate = getPeriodicRate(annualRate, data.compounding, 12);
+        const monthlyTotalPayments = data.amortization * 12;
+        const monthlyPayment = annuityPayment(principal, monthlyPeriodicRate, monthlyTotalPayments);
+        mortgagePayment = data.paymentFrequency === 'acceleratedBiweekly' ? monthlyPayment / 2 : monthlyPayment / 4;
     } else {
-        if (periodicRate === 0) {
-            mortgagePayment = principal / totalPayments;
-        } else {
-            mortgagePayment = principal * (periodicRate * Math.pow(1 + periodicRate, totalPayments)) / (Math.pow(1 + periodicRate, totalPayments) - 1);
-        }
+        mortgagePayment = annuityPayment(principal, periodicRate, totalPayments);
     }
 
     // Calculate first payment breakdown
@@ -174,6 +215,19 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
     // Calculate total interest over full amortization
     const totalInterest = (mortgagePayment * totalPayments) - principal;
     const totalCost = principal + totalInterest;
+
+    // F1: exposed so the UI can show a genuinely shortened "Effective Amortization" for the
+    // accelerated frequencies even when no additional payment-increase/prepayment has been
+    // entered (that case is instead reflected in acceleratedResults.payoffYears below).
+    // Solved analytically (the inverse of the annuity formula) rather than simulated, since
+    // the base schedule (no extra payments) decays at a fixed payment/rate with no
+    // conditional prepayment logic to walk through. Interest-only never amortizes on its own
+    // regardless of frequency, so this is just the nominal amortization there.
+    const effectiveAmortizationYears = data.loanType === 'interest only'
+        ? data.amortization
+        : (periodicRate === 0
+            ? (principal / mortgagePayment) / periodsPerYear
+            : (Math.log(mortgagePayment / (mortgagePayment - periodicRate * principal)) / Math.log(1 + periodicRate)) / periodsPerYear);
 
     // Check for accelerated payments and recalculate everything if present
     const hasAcceleratedPayments = data.paymentIncrease > 0 || data.oneTimePrePayment > 0 || data.annualPrePayment > 0;
@@ -341,6 +395,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
             totalCost: principal + accTotalInterest,
             loanAmount: principal,
             balanceEndOfTerm: accBalanceEndOfTerm,
+            effectiveAmortizationYears,
             fiveYearBreakdown: {
                 totalPaid: accFiveYearTotalPaid,
                 interestPaid: accFiveYearInterest,
@@ -359,6 +414,7 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
         totalCost,
         loanAmount: principal,
         balanceEndOfTerm,
+        effectiveAmortizationYears,
         fiveYearBreakdown: {
             totalPaid: fiveYearTotalPaid,
             interestPaid: fiveYearInterest,
