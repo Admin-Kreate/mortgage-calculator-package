@@ -217,35 +217,52 @@ export function calculateMortgage(data: MortgageData): MortgageResults {
     // Calculate total interest / total principal paid over the full amortization.
     let totalInterest: number;
     let totalPrincipalPaid: number;
+    // F1: how many periods the schedule below actually takes to hit a zero balance. Equals
+    // totalPayments for monthly/true-biweekly/true-weekly (the annuity formula solves for
+    // exactly that), but comes in under totalPayments for the two accelerated frequencies,
+    // since their (monthly-derived) payment is larger than what this periodicity's own
+    // annuity formula would have solved for.
+    let periodsToPayoff = totalPayments;
 
     if (data.loanType === 'interest only') {
         // M-2: no principal is ever repaid on an interest-only loan - every payment is
-        // 100% interest, and the full original principal remains owing as a balloon. The old
-        // `(mortgagePayment * totalPayments) - principal` shortcut assumed principal would be
-        // paid down like a regular amortizing loan, which produced a nonsense figure here.
+        // 100% interest, and the full original principal remains owing as a balloon.
         totalInterest = mortgagePayment * totalPayments;
         totalPrincipalPaid = 0;
     } else {
-        totalInterest = (mortgagePayment * totalPayments) - principal;
-        totalPrincipalPaid = principal;
+        // M-11: sum the actual amortization schedule instead of `payment * n - principal`,
+        // which overstates interest because it assumes every payment (including the last)
+        // is identical, which isn't true in a real schedule.
+        let scheduleBalance = principal;
+        let scheduleInterest = 0;
+        let schedulePrincipal = 0;
+        for (let i = 0; i < totalPayments; i++) {
+            const interestPortion = scheduleBalance * periodicRate;
+            const principalPortion = Math.min(mortgagePayment - interestPortion, scheduleBalance);
+            scheduleBalance = Math.max(0, scheduleBalance - principalPortion);
+            scheduleInterest += interestPortion;
+            schedulePrincipal += principalPortion;
+            if (scheduleBalance <= 0) {
+                periodsToPayoff = i + 1;
+                break;
+            }
+        }
+        totalInterest = scheduleInterest;
+        totalPrincipalPaid = schedulePrincipal;
     }
-
-    const totalCost = data.loanType === 'interest only'
-        ? principal + totalInterest // includes the balloon principal still owed at maturity
-        : totalPrincipalPaid + totalInterest;
 
     // F1: exposed so the UI can show a genuinely shortened "Effective Amortization" for the
     // accelerated frequencies even when no additional payment-increase/prepayment has been
     // entered (that case is instead reflected in acceleratedResults.payoffYears below).
-    // Solved analytically (the inverse of the annuity formula) rather than simulated, since
-    // the base schedule (no extra payments) decays at a fixed payment/rate with no
-    // conditional prepayment logic to walk through. Interest-only never amortizes on its own
-    // regardless of frequency, so this is just the nominal amortization there.
+    // Interest-only never amortizes on its own regardless of frequency, so this is just the
+    // nominal amortization there.
     const effectiveAmortizationYears = data.loanType === 'interest only'
         ? data.amortization
-        : (periodicRate === 0
-            ? (principal / mortgagePayment) / periodsPerYear
-            : (Math.log(mortgagePayment / (mortgagePayment - periodicRate * principal)) / Math.log(1 + periodicRate)) / periodsPerYear);
+        : periodsToPayoff / periodsPerYear;
+
+    const totalCost = data.loanType === 'interest only'
+        ? principal + totalInterest // includes the balloon principal still owed at maturity
+        : totalPrincipalPaid + totalInterest;
 
     // Check for accelerated payments and recalculate everything if present
     const hasAcceleratedPayments = data.paymentIncrease > 0 || data.oneTimePrePayment > 0 || data.annualPrePayment > 0;
