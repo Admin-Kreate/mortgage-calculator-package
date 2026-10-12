@@ -805,9 +805,15 @@ export function initMortgageCalculator(container: HTMLElement) {
     };
 
     if (resultObj.acceleratedResults) {
-      effectiveAmortizationResultsElement.textContent = `${Math.floor(resultObj.acceleratedResults.payoffYears)} Years ${Math.round((resultObj.acceleratedResults.payoffYears - Math.floor(resultObj.acceleratedResults.payoffYears)) * 12)} Months`;
-      acceleratedResultsTimeSavedResultsElement.textContent = resultObj.acceleratedResults.timeSaved;
-      acceleratedResultsTimeSavedResultsElement.style.display = 'unset';
+      // M-3: don't report a payoff time when the accelerated loan never actually clears
+      // within the simulation.
+      effectiveAmortizationResultsElement.textContent = resultObj.acceleratedResults.payoffAchieved
+        ? formatYearsMonths(resultObj.acceleratedResults.payoffYears)
+        : 'Does Not Pay Off';
+      acceleratedResultsTimeSavedResultsElement.textContent = resultObj.acceleratedResults.payoffAchieved
+        ? resultObj.acceleratedResults.timeSaved
+        : '';
+      acceleratedResultsTimeSavedResultsElement.style.display = resultObj.acceleratedResults.payoffAchieved ? 'unset' : 'none';
     } else if (isInterestOnly) {
       effectiveAmortizationResultsElement.textContent = 'Never (Interest Only)';
       acceleratedResultsTimeSavedResultsElement.style.display = 'none';
@@ -829,12 +835,14 @@ export function initMortgageCalculator(container: HTMLElement) {
     totalBreakdownInterestPaidResultsElement.textContent = formatCurrency(resultObj.totalInterest);
     totalBreakdownTotalCostResultsElement.textContent = formatCurrency(resultObj.totalCost);
 
-    if (resultObj.acceleratedResults) {
+    if (resultObj.acceleratedResults && resultObj.acceleratedResults.payoffAchieved) {
       totalSavingsInterestResultsElement.textContent = formatCurrency(resultObj.acceleratedResults.totalInterestSaved);
       totalSavingsTimeResultsElement.textContent = resultObj.acceleratedResults.timeSaved;
       totalSavingsTotalMoneyResultsElement.textContent = formatCurrency(resultObj.acceleratedResults.totalInterestSaved);
       savingsWithAcceleratedPaymentsResultsElement.style.display = 'unset';
     } else {
+      // M-3: never show a payoff-time / savings panel (and never a negative "savings"
+      // figure) when the accelerated loan didn't actually clear within the simulation.
       savingsWithAcceleratedPaymentsResultsElement.style.display = 'none';
     }
   }
