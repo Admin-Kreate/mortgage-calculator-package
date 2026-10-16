@@ -23,6 +23,7 @@ export interface CalculationResults {
   stressTestTDS: number;
   cashLeftGross: number;
   totalMonthlyHousingCosts: number;
+  stressTestMonthlyPayment: number;
 }
 
 // Number of compounding periods per year for each supported compounding frequency. Used to
@@ -266,7 +267,8 @@ export function calculateAllRatios(
     stressTestGDS,
     stressTestTDS,
     cashLeftGross,
-    totalMonthlyHousingCosts
+    totalMonthlyHousingCosts,
+    stressTestMonthlyPayment: stressTestMortgagePayment
   };
 }
 
@@ -360,6 +362,38 @@ export function calculateIdealMortgageAmount(
 
 // CMHC's maximum GDS/TDS limits - used as the default basis for "what you qualify for" below.
 export const MAX_LIMITS = { gds: 39, tds: 44 } as const;
+// Most lenders' preferred (tighter) GDS/TDS limits, used alongside MAX_LIMITS to classify a
+// pair of ratios into a plain-language status below.
+export const PREFERRED_LIMITS = { gds: 32, tds: 40 } as const;
+
+export type RatioStatusLevel = 'within' | 'borderline' | 'over';
+
+// Plain-language verdict for a pair of GDS/TDS ratios: within the lender-preferred range,
+// borderline (above preferred but still within CMHC's maximum), or over the maximum limit.
+export function getRatioStatus(gds: number, tds: number): { level: RatioStatusLevel; headline: string; detail: string } {
+  const within = gds <= PREFERRED_LIMITS.gds && tds <= PREFERRED_LIMITS.tds;
+  const borderline = !within && gds <= MAX_LIMITS.gds && tds <= MAX_LIMITS.tds;
+
+  if (within) {
+    return {
+      level: 'within',
+      headline: 'Within lender guidelines',
+      detail: 'Your GDS and TDS ratios are within the range most lenders prefer for approval.'
+    };
+  }
+  if (borderline) {
+    return {
+      level: 'borderline',
+      headline: 'Borderline — CMHC maximum range',
+      detail: 'Your ratios are above what most lenders prefer but still within CMHC’s maximum limits, so approval may depend on your credit and lender.'
+    };
+  }
+  return {
+    level: 'over',
+    headline: 'Over the limit',
+    detail: 'Your ratios are above the maximum guidelines most lenders use, which will make it difficult to qualify at this amount.'
+  };
+}
 
 export interface DebtServiceSettings {
   compoundingFrequency: string;

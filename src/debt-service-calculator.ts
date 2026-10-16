@@ -1,7 +1,8 @@
 import {
   calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount, LoanType,
   DebtServiceSettings, QualificationResult, calculateQualification, MAX_LIMITS, B20_BENCHMARK_RATE,
-  DebtItems, DebtObligations, calculateDebtObligations, REVOLVING_MIN_PAYMENT_RATE, HELOC_QUALIFYING_AMORTIZATION_YEARS
+  DebtItems, DebtObligations, calculateDebtObligations, REVOLVING_MIN_PAYMENT_RATE, HELOC_QUALIFYING_AMORTIZATION_YEARS,
+  PREFERRED_LIMITS, RatioStatusLevel, getRatioStatus
 } from './utils-debt-service-calculator';
 import StressTestRuleIcon from './assets/icons/stress-test-rule.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
@@ -303,27 +304,64 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   `;
 
   const calculatorResultsHTML = `
-    <div class="debt-service-ratios">
+    <div class="dsc-verdict" data-level="within">
+      <div class="dsc-verdict-headline">Within lender guidelines</div>
+      <div class="dsc-verdict-detail"></div>
+    </div>
+
+    <div class="dsc-gauges">
       <div class="label">Debt Service Ratios</div>
-      <div class="ratios">
-        <div class="ratio">
-          <div class="value">28.546%</div>
-          <div class="value-label">GDS</div>
+      <div class="dsc-gauge" data-metric="gds">
+        <div class="dsc-gauge-header">
+          <span class="dsc-gauge-label">GDS</span>
+          <span class="dsc-gauge-value">28.55%</span>
         </div>
-        <div class="ratio">
-          <div class="value">30.946%</div>
-          <div class="value-label">TDS</div>
+        <div class="dsc-gauge-track" role="meter" aria-valuemin="0" aria-valuemax="60" aria-valuenow="28.55" aria-label="GDS ratio">
+          <div class="dsc-gauge-fill"></div>
+        </div>
+        <div class="dsc-gauge-caption">Lender preferred &le;32% &middot; CMHC max 39%</div>
+      </div>
+      <div class="dsc-gauge" data-metric="tds">
+        <div class="dsc-gauge-header">
+          <span class="dsc-gauge-label">TDS</span>
+          <span class="dsc-gauge-value">30.95%</span>
+        </div>
+        <div class="dsc-gauge-track" role="meter" aria-valuemin="0" aria-valuemax="60" aria-valuenow="30.95" aria-label="TDS ratio">
+          <div class="dsc-gauge-fill"></div>
+        </div>
+        <div class="dsc-gauge-caption">Lender preferred &le;40% &middot; CMHC max 44%</div>
+      </div>
+    </div>
+
+    <div class="dsc-stress">
+      <div class="label">Stress Test</div>
+      <div class="dsc-stress-row">
+        <div class="dsc-stress-col">
+          <div class="dsc-stress-label">Qualifying rate <span class="dsc-stress-badge">B20</span></div>
+          <div class="dsc-stress-value">8.29%</div>
+          <div class="dsc-stress-payment">$0.00/mo</div>
+        </div>
+        <div class="dsc-stress-col">
+          <div class="dsc-stress-label">Your rate</div>
+          <div class="dsc-stress-value">6.29%</div>
+          <div class="dsc-stress-payment">$0.00/mo</div>
         </div>
       </div>
+      <div class="dsc-stress-note"></div>
+    </div>
+
+    <div class="debt-service-ratios">
       <div class="details">
-        <div class="st-rate">
-          <div class="st-rate-label">Stress Test Rate (<span>CONTRACT</span>)</div>
-          <div class="st-rate-value">6.29%</div>
-        </div>
         <div class="ratio-tags">
           <div class="ratio-tag ratio-tag-32">32%/40%</div>
           <div class="ratio-tag ratio-tag-35">35%/42%</div>
           <div class="ratio-tag ratio-tag-39">39%/44%</div>
+        </div>
+        <div class="dsc-stack-bar" role="img" aria-label="Monthly breakdown of mortgage, home expenses, debts, and cash left">
+          <div class="dsc-stack-segment dsc-stack-mortgage"></div>
+          <div class="dsc-stack-segment dsc-stack-home"></div>
+          <div class="dsc-stack-segment dsc-stack-debts"></div>
+          <div class="dsc-stack-segment dsc-stack-cash"></div>
         </div>
         <div class="debt-service-details">
           <div class="service-detail monthly-mortgage">
@@ -442,11 +480,34 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   const amortizationInput = container.querySelector('.amortization .value-input') as HTMLInputElement;
   const amortizationInputSlider = container.querySelector('.amortization .slider') as HTMLInputElement;
   const amortizationErrorElement = container.querySelector('.amortization .field-error') as HTMLElement;
-  const gdsRatioResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(1) .value') as HTMLInputElement;
-  const tdsRatioResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(2) .value') as HTMLInputElement;
-  const stressTestRateTypeResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-label span') as HTMLInputElement;
-  const stressTestRateResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-value') as HTMLInputElement;
   const ratioTagsResultElements = container.querySelectorAll('.debt-service-calculator-results .debt-service-ratios .details .ratio-tags .ratio-tag') as NodeListOf<HTMLInputElement>;
+
+  // Verdict banner
+  const verdictElement = container.querySelector('.dsc-verdict') as HTMLElement;
+  const verdictHeadlineElement = container.querySelector('.dsc-verdict-headline') as HTMLElement;
+  const verdictDetailElement = container.querySelector('.dsc-verdict-detail') as HTMLElement;
+
+  // Gauges
+  const gdsGaugeValueElement = container.querySelector('.dsc-gauge[data-metric="gds"] .dsc-gauge-value') as HTMLElement;
+  const gdsGaugeFillElement = container.querySelector('.dsc-gauge[data-metric="gds"] .dsc-gauge-fill') as HTMLElement;
+  const gdsGaugeTrackElement = container.querySelector('.dsc-gauge[data-metric="gds"] .dsc-gauge-track') as HTMLElement;
+  const tdsGaugeValueElement = container.querySelector('.dsc-gauge[data-metric="tds"] .dsc-gauge-value') as HTMLElement;
+  const tdsGaugeFillElement = container.querySelector('.dsc-gauge[data-metric="tds"] .dsc-gauge-fill') as HTMLElement;
+  const tdsGaugeTrackElement = container.querySelector('.dsc-gauge[data-metric="tds"] .dsc-gauge-track') as HTMLElement;
+
+  // Stress test panel
+  const stressQualifyingRateValueElement = container.querySelector('.dsc-stress-col:nth-child(1) .dsc-stress-value') as HTMLElement;
+  const stressQualifyingRateBadgeElement = container.querySelector('.dsc-stress-col:nth-child(1) .dsc-stress-badge') as HTMLElement;
+  const stressQualifyingPaymentElement = container.querySelector('.dsc-stress-col:nth-child(1) .dsc-stress-payment') as HTMLElement;
+  const stressYourRateValueElement = container.querySelector('.dsc-stress-col:nth-child(2) .dsc-stress-value') as HTMLElement;
+  const stressYourPaymentElement = container.querySelector('.dsc-stress-col:nth-child(2) .dsc-stress-payment') as HTMLElement;
+  const stressNoteElement = container.querySelector('.dsc-stress-note') as HTMLElement;
+
+  // Monthly breakdown stacked bar
+  const stackMortgageElement = container.querySelector('.dsc-stack-mortgage') as HTMLElement;
+  const stackHomeElement = container.querySelector('.dsc-stack-home') as HTMLElement;
+  const stackDebtsElement = container.querySelector('.dsc-stack-debts') as HTMLElement;
+  const stackCashElement = container.querySelector('.dsc-stack-cash') as HTMLElement;
   const monthlyMortgageResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .monthly-mortgage .service-detail-value') as HTMLInputElement;
   const debtPaymentResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .debt-payment .service-detail-value') as HTMLInputElement;
   const homeExpenseSpanResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-name span') as HTMLInputElement;
@@ -907,6 +968,26 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     };
   }
 
+  const GAUGE_SCALE_MAX = 60;
+
+  function renderGauge(
+    fillEl: HTMLElement, trackEl: HTMLElement, valueEl: HTMLElement,
+    ratio: number, hasValidIncome: boolean, level: RatioStatusLevel | null
+  ) {
+    if (!hasValidIncome) {
+      valueEl.textContent = 'N/A';
+      fillEl.style.width = '0%';
+      fillEl.style.background = '#E3E5DD';
+      trackEl.removeAttribute('aria-valuenow');
+      return;
+    }
+    valueEl.textContent = `${ratio.toFixed(2)}%`;
+    const percentOfScale = Math.max(0, Math.min(100, (ratio / GAUGE_SCALE_MAX) * 100));
+    fillEl.style.width = `${percentOfScale}%`;
+    fillEl.style.background = level === 'within' ? '#15803d' : level === 'borderline' ? '#b45309' : '#c92a2a';
+    trackEl.setAttribute('aria-valuenow', ratio.toFixed(2));
+  }
+
   const updateResults = () => {
     const loanAmountValue = loanAmountInput.dataset.previousValue ? parseInt(loanAmountInput.dataset.previousValue) : 0;
     const grossAnnualIncomeValue = grossAnnualIncomeInput.dataset.previousValue ? parseInt(grossAnnualIncomeInput.dataset.previousValue) : 0;
@@ -962,15 +1043,59 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     };
     const resultObj = calculateAllRatios(inputData, compoundingFrequencyValue, stressTestRate, condoFeeInclusionRateValue, rentalIncomePortionRateValue, stressTestTypeValue, rentalIncomeMethodValue, getActiveLoanType());
 
-    gdsRatioResultsElement.textContent = stressTestTypeValue === "b20" ? `${resultObj.stressTestGDS.toFixed(3)}%` : `${resultObj.gdsRatio.toFixed(3)}%`;
-    tdsRatioResultsElement.textContent = stressTestTypeValue === "b20" ? `${resultObj.stressTestTDS.toFixed(3)}%` : `${resultObj.tdsRatio.toFixed(3)}%`;
-    stressTestRateTypeResultsElement.textContent = stressTestTypeValue.toUpperCase();
-    stressTestRateResultsElement.textContent = `${resultObj.stressTestRate.toFixed(2)}%`;
+    const hasValidIncome = grossAnnualIncomeValue > 0;
+    const isB20 = stressTestTypeValue === "b20";
+    const displayedGds = isB20 ? resultObj.stressTestGDS : resultObj.gdsRatio;
+    const displayedTds = isB20 ? resultObj.stressTestTDS : resultObj.tdsRatio;
+    const status = hasValidIncome ? getRatioStatus(displayedGds, displayedTds) : null;
+
+    // Verdict banner
+    if (!hasValidIncome) {
+      verdictElement.dataset.level = 'neutral';
+      verdictHeadlineElement.textContent = 'Enter your income to see your ratios';
+      verdictDetailElement.textContent = 'GDS and TDS are both measured against your gross income, so we need that first.';
+    } else if (status) {
+      verdictElement.dataset.level = status.level;
+      verdictHeadlineElement.textContent = status.headline;
+      verdictDetailElement.textContent = status.detail;
+    }
+
+    // Gauges. GDS/TDS each have their own tier coloring based on their own thresholds, not the
+    // combined verdict level - a ratio that's individually fine shouldn't render red just
+    // because the OTHER ratio is over.
+    const gdsLevel: RatioStatusLevel = displayedGds <= PREFERRED_LIMITS.gds ? 'within' : displayedGds <= MAX_LIMITS.gds ? 'borderline' : 'over';
+    const tdsLevel: RatioStatusLevel = displayedTds <= PREFERRED_LIMITS.tds ? 'within' : displayedTds <= MAX_LIMITS.tds ? 'borderline' : 'over';
+    renderGauge(gdsGaugeFillElement, gdsGaugeTrackElement, gdsGaugeValueElement, displayedGds, hasValidIncome, gdsLevel);
+    renderGauge(tdsGaugeFillElement, tdsGaugeTrackElement, tdsGaugeValueElement, displayedTds, hasValidIncome, tdsLevel);
+
+    // Stress test panel
+    stressQualifyingRateBadgeElement.textContent = stressTestTypeValue.toUpperCase();
+    stressQualifyingRateValueElement.textContent = `${resultObj.stressTestRate.toFixed(2)}%`;
+    stressQualifyingPaymentElement.textContent = `${formatCurrencyDetailed(resultObj.stressTestMonthlyPayment)}/mo`;
+    stressYourRateValueElement.textContent = `${inputData.interestRate.toFixed(2)}%`;
+    stressYourPaymentElement.textContent = `${formatCurrencyDetailed(resultObj.monthlyMortgagePayment)}/mo`;
+    stressNoteElement.textContent = isB20
+      ? 'Your ratios above use the qualifying rate, not your actual rate.'
+      : "Contract mode isn't a real stress test - it shows your ratios at your actual rate, not a lender's qualifying rate.";
+
     monthlyMortgageResultsElement.textContent = formatCurrencyDetailed(resultObj.monthlyMortgagePayment);
     debtPaymentResultsElement.textContent = formatCurrencyDetailed(inputData.monthlyDebtPayments);
     homeExpenseSpanResultsElement.style.display = rentalIncomeMethodValue.toLowerCase() === "offset" ? "unset" : "none";
     homeExpenseResultsElement.textContent = formatCurrencyDetailed(resultObj.adjustedHomeExpenses);
     cashLeftResultsElement.textContent = formatCurrencyDetailed(resultObj.cashLeftGross);
+
+    // Stacked bar mirrors the four rows directly above it - proportional visualisation only,
+    // not a re-derivation, so it always agrees with what's printed in the rows.
+    const barMortgage = Math.max(0, resultObj.monthlyMortgagePayment);
+    const barHome = Math.max(0, resultObj.adjustedHomeExpenses);
+    const barDebts = Math.max(0, inputData.monthlyDebtPayments);
+    const barCash = Math.max(0, resultObj.cashLeftGross);
+    const barTotal = barMortgage + barHome + barDebts + barCash;
+    const pct = (v: number) => barTotal > 0 ? `${(v / barTotal) * 100}%` : '0%';
+    stackMortgageElement.style.width = pct(barMortgage);
+    stackHomeElement.style.width = pct(barHome);
+    stackDebtsElement.style.width = pct(barDebts);
+    stackCashElement.style.width = pct(barCash);
 
     // "What You Qualify For" - max mortgage / required income / monthly room at CMHC's maximum
     // GDS/TDS limits. Always computed with the regular/amortizing formula internally
