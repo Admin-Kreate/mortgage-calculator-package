@@ -5,13 +5,15 @@ import {
   PREFERRED_LIMITS, RatioStatusLevel, getRatioStatus,
   ImprovementPatch, RatioImprovement, suggestRatioImprovements
 } from './utils-debt-service-calculator';
-import StressTestRuleIcon from './assets/icons/stress-test-rule.svg';
-import LoadDetailsIcon from './assets/icons/loan-details.svg';
-import RentalIncomeRuleIcon from './assets/icons/rental-income-rule.svg'
-import AddRentalIncomeIcon from './assets/icons/add-rental-income.svg';
-import RateIcon from './assets/icons/debt-service-rate.svg';
-import HomeExpenseIcon from './assets/icons/home-expense.svg';
-import AmortizationIcon from "./assets/icons/amortization.svg";
+// Green-recolored copies, same pattern mortgage-calculator.ts uses - keeps this calculator's
+// compare-theme reskin from leaking into max-mortgage/purchase, which still use the navy
+// originals of these same icons.
+import StressTestRuleIcon from './assets/icons/stress-test-rule-green.svg';
+import LoadDetailsIcon from './assets/icons/loan-details-green.svg';
+import AddRentalIncomeIcon from './assets/icons/add-rental-income-green.svg';
+import HomeExpenseIcon from './assets/icons/home-expense-green.svg';
+import IncomeIcon from './assets/icons/income-green.svg';
+import DebtsIcon from './assets/icons/debts-green.svg';
 import DropdownIcon from './assets/icons/dropdown-icon.svg';
 
 export function initDebtServiceCalculator(container: HTMLElement) {
@@ -19,25 +21,13 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     <div class="calculator-input mortgage-calculator-input">
       <div class="header stacked">
         <div class="title-wrapper">
-          <img src="${LoadDetailsIcon}" alt="Mortgage Amount icon"/>
-          <div class="title">Mortgage Amount</div>
-        </div>
-      </div>
-      <div class="input-fields single-field">
-        <div class="input-field load-amount">
-          <div class="field-label">Loan Amount</div>
-          <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
-          <div class="field-error"></div>
-          <input type="range" min="0" max="1500000" value="500000" step="10000" class="slider">
-          <div class="range-label">
-            <span>$0</span>
-            <span>$1,500,000+</span>
-          </div>
+          <img src="${IncomeIcon}" alt="Income icon"/>
+          <div class="title" data-tooltip="Your total gross annual income before tax, from all sources you can document. This drives both ratios below.">Income</div>
         </div>
       </div>
       <div class="input-fields single-field">
         <div class="input-field gross-annual-income">
-          <div class="field-label">Gross Annual Income</div>
+          <div class="field-label" data-tooltip="Gross means before tax and before any deductions.">Gross Annual Income</div>
           <input type="text" value="$  150,000" data-previous-value="150000" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="0" max="500000" value="150000" step="10000" class="slider">
@@ -52,30 +42,31 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     <div class="calculator-input mortgage-calculator-input dsc-debts-card">
       <div class="header stacked">
         <div class="title-wrapper">
-          <div class="title">Monthly Debts</div>
+          <img src="${DebtsIcon}" alt="Monthly Debts icon"/>
+          <div class="title" data-tooltip="Every debt payment you carry outside this mortgage. TDS counts these on top of your housing costs.">Monthly Debts</div>
         </div>
         <div class="mortgage-calculator-info">Credit cards and unsecured lines of credit count at 3% of the balance per month. A secured HELOC counts as if it were paid off over 25 years at its own rate.</div>
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field car-loan-monthly">
-          <div class="field-label">Car Loan / Lease ($/mo)</div>
+          <div class="field-label" data-tooltip="Your regular monthly car loan or lease payment.">Car Loan / Lease ($/mo)</div>
           <input type="text" value="$  300" data-previous-value="300" class="value-input">
           <div class="field-error"></div>
         </div>
         <div class="input-field student-loan-monthly">
-          <div class="field-label">Student Loan ($/mo)</div>
+          <div class="field-label" data-tooltip="Your regular monthly student loan payment.">Student Loan ($/mo)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
         </div>
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field other-loan-monthly">
-          <div class="field-label">Other Loans ($/mo)</div>
+          <div class="field-label" data-tooltip="Any other recurring monthly obligation - personal loans, support payments, etc.">Other Loans ($/mo)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
         </div>
         <div class="input-field credit-card-balance">
-          <div class="field-label">Credit Card Balance ($)</div>
+          <div class="field-label" data-tooltip="Your total outstanding credit card balance. Lenders count 3% of this balance as a monthly obligation, whether or not you actually pay it off.">Credit Card Balance ($)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
           <div class="dsc-debt-helper"></div>
@@ -83,20 +74,20 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field line-of-credit-balance">
-          <div class="field-label">Unsecured Line of Credit ($)</div>
+          <div class="field-label" data-tooltip="Your outstanding balance on an unsecured line of credit. Counted the same way as a credit card - 3% of the balance per month.">Unsecured Line of Credit ($)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
           <div class="dsc-debt-helper"></div>
         </div>
         <div class="input-field heloc-balance">
-          <div class="field-label">HELOC Balance ($)</div>
+          <div class="field-label" data-tooltip="Your outstanding balance on a HELOC or other loan secured against real estate.">HELOC Balance ($)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
           <div class="field-error"></div>
         </div>
       </div>
       <div class="input-fields single-field">
         <div class="input-field heloc-rate">
-          <div class="field-label">HELOC Rate (%)</div>
+          <div class="field-label" data-tooltip="The HELOC's own contract rate. It's counted as if amortized over 25 years at this rate, not at your mortgage's rate.">HELOC Rate (%)</div>
           <input type="text" value="7.00%" data-previous-value="7.00" class="value-input">
           <div class="field-error"></div>
           <div class="dsc-debt-helper"></div>
@@ -112,54 +103,66 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       <div class="header stacked">
         <div class="title-wrapper">
           <img src="${HomeExpenseIcon}" alt="Home Expenses icon"/>
-          <div class="title">Home Expenses</div>
+          <div class="title" data-tooltip="Ongoing home costs that count toward GDS alongside your mortgage payment.">Home Expenses</div>
         </div>
         <div class="mortgage-calculator-info">To budget better and calculate a more realistic total monthly cost, enter the additional home expenses here.</div>
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field home-expense-monthly">
-          <div class="field-label">Property Tax (Monthly)</div>
+          <div class="field-label" data-tooltip="Your monthly property tax bill.">Property Tax (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
           <div class="field-error"></div>
         </div>
         <div class="input-field home-expense-yearly">
-          <div class="field-label">Property Tax (Yearly)</div>
+          <div class="field-label" data-tooltip="The same property tax, shown as an annual total. Editing either field updates the other.">Property Tax (Yearly)</div>
           <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
           <div class="field-error"></div>
         </div>
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field home-expense-condo-fees">
-          <div class="field-label">Condo fees (Monthly)</div>
+          <div class="field-label" data-tooltip="Monthly condo/strata fees, if applicable. Only a portion counts toward GDS - see Condo Fee Inclusion Rate in Advanced Settings.">Condo fees (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
           <div class="field-error"></div>
         </div>
         <div class="input-field home-expense-heat">
-          <div class="field-label">Heat (Monthly)</div>
+          <div class="field-label" data-tooltip="Your average monthly heating cost.">Heat (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
           <div class="field-error"></div>
         </div>
       </div>
     </div>
 
-    <div class="calculator-input mortgage-calculator-input debt-service-rate">
+    <div class="calculator-input mortgage-calculator-input dsc-mortgage-card debt-service-rate">
       <div class="header">
         <div class="title-wrapper">
-          <img src="${RateIcon}" alt="Rate icon"/>
-          <div class="title">Rate</div>
+          <img src="${LoadDetailsIcon}" alt="Mortgage icon"/>
+          <div class="title" data-tooltip="What you're borrowing, and the terms it's borrowed under.">Mortgage</div>
         </div>
         <div class="btn-group-selector">
           <div class="selector active">Regular</div>
           <div class="selector">Interest Only</div>
         </div>
-        <div class="mortgage-calculator-info full-row-width">Your mortgage interest rate can either be Fixed for the term or Variable (which changes with the prime rate). The Rate Term is the contract length with a lender.</div>
+        <div class="mortgage-calculator-info full-row-width">Regular payments pay down both principal and interest. Interest Only payments cover just the interest, so your balance never drops on its own.</div>
+      </div>
+      <div class="input-fields single-field">
+        <div class="input-field load-amount">
+          <div class="field-label" data-tooltip="The amount you're borrowing, not the price of the home.">Loan Amount</div>
+          <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
+          <div class="field-error"></div>
+          <input type="range" min="0" max="1500000" value="500000" step="10000" class="slider">
+          <div class="range-label">
+            <span>$0</span>
+            <span>$1,500,000+</span>
+          </div>
+        </div>
       </div>
       <div class="input-fields single-field">
         <div class="dropdown inline compounding">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Compounding</div>
+            <div class="field-label" data-tooltip="How often interest compounds. Canadian mortgages compound semi-annually by default, even though you pay monthly.">Compounding</div>
             <span>Semi-Annual</span>
-            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
           <div class="dropdown-opts">
             <div class="dropdown-opt">Daily</div>
@@ -173,16 +176,16 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       </div>
       <div class="input-fields">
         <div class="input-field rate">
-          <div class="field-label">Rate</div>
+          <div class="field-label" data-tooltip="Your mortgage's annual contract interest rate.">Rate</div>
           <input type="text" value="6.29%" data-previous-value="6.29" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="0" max="10" value="6.29" step="0.05" class="slider">
         </div>
         <div class="dropdown inline rate-term">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Rate Term</div>
+            <div class="field-label" data-tooltip="How long your rate is locked in with your lender - not how long it takes to pay off the mortgage.">Rate Term</div>
             <span>5 years</span>
-            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
           <div class="dropdown-opts">
             <div class="dropdown-opt">1 year</div>
@@ -195,19 +198,9 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="calculator-input mortgage-calculator-input">
-      <div class="header stacked">
-        <div class="title-wrapper">
-          <img src="${AmortizationIcon}" alt="Amortization icon"/>
-          <div class="title">Amortization</div>
-        </div>
-        <div class="mortgage-calculator-info">Amortization is the total time it takes to pay off your mortgage in full. New mortgages usually start with an amortization of 25 years or 30 years in Canada.</div>
-      </div>
       <div class="input-fields single-field">
         <div class="input-field amortization">
-          <div class="field-label">Amortization</div>
+          <div class="field-label" data-tooltip="The total time it will take to pay off your mortgage in full at your current payment.">Amortization</div>
           <input type="text" value="25 Years" data-previous-value="25" class="value-input">
           <div class="field-error"></div>
           <input type="range" min="5" max="30" value="25" step="1" class="slider">
@@ -224,7 +217,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="title-toggle-wrapper">
           <div class="title-wrapper">
             <img src="${AddRentalIncomeIcon}" alt="Add Rental Income icon"/>
-            <div class="title">Add Rental Income</div>
+            <div class="title" data-tooltip="If you plan to rent out part of the home, add the rent here so it can offset costs or add to income.">Add Rental Income</div>
           </div>
           <div class="toggle">
             <div class="opt off selected" data-value="off"></div>
@@ -236,24 +229,27 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
       <div class="input-fields half-width-fields expandable">
         <div class="input-field add-rental-income-monthly">
-          <div class="field-label">Monthly</div>
+          <div class="field-label" data-tooltip="Expected monthly rent from the portion of the home you'll rent out.">Monthly</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
           <div class="field-error"></div>
         </div>
         <div class="input-field add-rental-income-yearly">
-          <div class="field-label">Yearly</div>
+          <div class="field-label" data-tooltip="The same rent, shown as an annual total.">Yearly</div>
           <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
           <div class="field-error"></div>
         </div>
       </div>
     </div>
 
-    <div class="calculator-input mortgage-calculator-input stress-test-rule">
+    <div class="calculator-input mortgage-calculator-input dsc-advanced-settings-card">
       <div class="header">
         <div class="title-wrapper">
-          <img src="${StressTestRuleIcon}" alt="Stress Test Rule icon"/>
-          <div class="title">Stress Test Rule</div>
+          <img src="${StressTestRuleIcon}" alt="Advanced Settings icon"/>
+          <div class="title" data-tooltip="How your rate is stress-tested and how rental income is treated - both change your qualifying ratios.">Advanced Settings</div>
         </div>
+      </div>
+      <div class="sub-header stress-test-rule">
+        <div class="title" data-tooltip="Contract shows your ratios at your actual rate. B20 stress-tests them at the higher qualifying rate lenders must use.">Stress Test Rule</div>
         <div class="btn-group-selector">
           <div class="selector">Contract</div>
           <div class="selector active">B20</div>
@@ -262,9 +258,9 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       <div class="input-fields single-field">
         <div class="dropdown inline condo-fee-inclusion-rate">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Condo Fee Inclusion Rate</div>
+            <div class="field-label" data-tooltip="What portion of your condo fees counts toward GDS. Many lenders use 50%.">Condo Fee Inclusion Rate</div>
             <span>50%</span>
-            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
           <div class="dropdown-opts">
             <div class="dropdown-opt">0%</div>
@@ -273,14 +269,8 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="calculator-input mortgage-calculator-input rental-income-rule">
-      <div class="header">
-        <div class="title-wrapper">
-          <img src="${RentalIncomeRuleIcon}" alt="Rental Income Rule icon"/>
-          <div class="title">Rental Income Rule</div>
-        </div>
+      <div class="sub-header rental-income-rule">
+        <div class="title" data-tooltip="Add Back treats a portion of rent as extra income. Offset instead reduces your home expenses by that portion.">Rental Income Rule</div>
         <div class="btn-group-selector">
           <div class="selector">Add Back</div>
           <div class="selector active">Offset</div>
@@ -289,9 +279,9 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       <div class="input-fields single-field">
         <div class="dropdown inline rental-income-portion">
           <div class="dropdown-field inline-label">
-            <div class="field-label">Rental Income Portion</div>
+            <div class="field-label" data-tooltip="What portion of the rent a lender will actually credit you for.">Rental Income Portion</div>
             <span>50%</span>
-            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+            <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
           </div>
           <div class="dropdown-opts">
             <div class="dropdown-opt">25%</div>
@@ -299,6 +289,14 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             <div class="dropdown-opt">75%</div>
             <div class="dropdown-opt">100%</div>
           </div>
+        </div>
+      </div>
+      <div class="foot-notes">
+        <div class="foot-note">
+          <span>Stress Test:</span> CONTRACT uses your actual rate. B20 uses the higher of 5.25% or contract rate + 2%.
+        </div>
+        <div class="foot-note">
+          <span>Rental Income:</span> ADD BACK adds income to qualify with, OFFSET reduces housing costs instead.
         </div>
       </div>
     </div>
@@ -542,7 +540,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   `;
 
   container.innerHTML = `
-    <div class="mortgage-calculator">
+    <div class="mortgage-calculator compare-theme debt-service-theme">
         <div class="section-heading">
           <span>Debt Service Calculator</span>
           <button type="button" class="onboarding-reopen">How this works</button>
@@ -1492,7 +1490,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       why: 'These add directly to your TDS - they never affect GDS.',
     },
     {
-      selector: '.debt-service-rate',
+      selector: '.dsc-mortgage-card',
       title: 'Mortgage',
       text: 'Your loan amount, rate, and amortization set your mortgage payment - the biggest single input to both ratios.',
       why: 'Interest Only lowers this payment, but qualification below always uses the regular payment.',
