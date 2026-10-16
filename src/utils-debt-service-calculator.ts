@@ -100,6 +100,13 @@ export function calculateGDSRatio(
   monthlyIncome: number,
   condoFeeInclusionRate: number = 50
 ): number {
+  // With no (or negative) income, the ratio is undefined rather than infinite/NaN - callers
+  // should treat this as "cannot be calculated" and display a message instead of a number.
+  // Also fail safe (return 0 rather than propagate) if any input is non-finite: a plain
+  // "monthlyIncome <= 0" check alone does not catch a NaN monthlyIncome, since NaN comparisons
+  // are always false and would otherwise silently divide by NaN.
+  if (!Number.isFinite(monthlyIncome) || monthlyIncome <= 0) return 0;
+  if (![monthlyMortgagePayment, propertyTaxMonthly, heatingCost, condoFees].every(Number.isFinite)) return 0;
   // GDS = (Monthly Mortgage Payment + Property Tax + Heating + % of Condo Fees) / Monthly Income
   const monthlyHousingCosts = monthlyMortgagePayment + propertyTaxMonthly + heatingCost + (condoFees * (condoFeeInclusionRate / 100));
   return (monthlyHousingCosts / monthlyIncome) * 100;
@@ -110,6 +117,10 @@ export function calculateTDSRatio(
   monthlyDebtPayments: number,
   monthlyIncome: number
 ): number {
+  // See calculateGDSRatio above: guard against zero/negative/non-finite income so callers
+  // never see Infinity/NaN.
+  if (!Number.isFinite(monthlyIncome) || monthlyIncome <= 0) return 0;
+  if (!Number.isFinite(gdsAmount) || !Number.isFinite(monthlyDebtPayments)) return 0;
   // TDS = GDS Amount + Other Monthly Debt Payments / Monthly Income
   const totalMonthlyDebt = gdsAmount + monthlyDebtPayments;
   return (totalMonthlyDebt / monthlyIncome) * 100;
