@@ -25,6 +25,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field load-amount">
           <div class="field-label">Loan Amount</div>
           <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="0" max="1500000" value="500000" step="10000" class="slider">
           <div class="range-label">
             <span>$0</span>
@@ -36,6 +37,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field gross-annual-income">
           <div class="field-label">Gross Annual Income</div>
           <input type="text" value="$  150,000" data-previous-value="150000" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="0" max="500000" value="150000" step="10000" class="slider">
           <div class="range-label">
             <span>$0</span>
@@ -56,20 +58,24 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field car-loan-monthly">
           <div class="field-label">Car Loan / Lease ($/mo)</div>
           <input type="text" value="$  300" data-previous-value="300" class="value-input">
+          <div class="field-error"></div>
         </div>
         <div class="input-field student-loan-monthly">
           <div class="field-label">Student Loan ($/mo)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
         </div>
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field other-loan-monthly">
           <div class="field-label">Other Loans ($/mo)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
         </div>
         <div class="input-field credit-card-balance">
           <div class="field-label">Credit Card Balance ($)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
           <div class="dsc-debt-helper"></div>
         </div>
       </div>
@@ -77,17 +83,20 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field line-of-credit-balance">
           <div class="field-label">Unsecured Line of Credit ($)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
           <div class="dsc-debt-helper"></div>
         </div>
         <div class="input-field heloc-balance">
           <div class="field-label">HELOC Balance ($)</div>
           <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="field-error"></div>
         </div>
       </div>
       <div class="input-fields single-field">
         <div class="input-field heloc-rate">
           <div class="field-label">HELOC Rate (%)</div>
           <input type="text" value="7.00%" data-previous-value="7.00" class="value-input">
+          <div class="field-error"></div>
           <div class="dsc-debt-helper"></div>
         </div>
       </div>
@@ -109,20 +118,24 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field home-expense-monthly">
           <div class="field-label">Property Tax (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
+          <div class="field-error"></div>
         </div>
         <div class="input-field home-expense-yearly">
           <div class="field-label">Property Tax (Yearly)</div>
           <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
+          <div class="field-error"></div>
         </div>
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field home-expense-condo-fees">
           <div class="field-label">Condo fees (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
+          <div class="field-error"></div>
         </div>
         <div class="input-field home-expense-heat">
           <div class="field-label">Heat (Monthly)</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
+          <div class="field-error"></div>
         </div>
       </div>
     </div>
@@ -160,6 +173,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field rate">
           <div class="field-label">Rate</div>
           <input type="text" value="6.29%" data-previous-value="6.29" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="0" max="10" value="6.29" step="0.05" class="slider">
         </div>
         <div class="dropdown inline rate-term">
@@ -193,6 +207,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field amortization">
           <div class="field-label">Amortization</div>
           <input type="text" value="25 Years" data-previous-value="25" class="value-input">
+          <div class="field-error"></div>
           <input type="range" min="5" max="30" value="25" step="1" class="slider">
           <div class="range-label">
             <span>5 Year</span>
@@ -221,10 +236,12 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         <div class="input-field add-rental-income-monthly">
           <div class="field-label">Monthly</div>
           <input type="text" value="$  200" data-previous-value="200" class="value-input">
+          <div class="field-error"></div>
         </div>
         <div class="input-field add-rental-income-yearly">
           <div class="field-label">Yearly</div>
           <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
+          <div class="field-error"></div>
         </div>
       </div>
     </div>
@@ -374,19 +391,28 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
   const loanAmountInput = container.querySelector('.load-amount .value-input') as HTMLInputElement;
   const loanAmountInputSlider = container.querySelector('.load-amount .slider') as HTMLInputElement;
+  const loanAmountErrorElement = container.querySelector('.load-amount .field-error') as HTMLElement;
 
   const grossAnnualIncomeInput = container.querySelector('.gross-annual-income .value-input') as HTMLInputElement;
   const grossAnnualIncomeInputSlider = container.querySelector('.gross-annual-income .slider') as HTMLInputElement;
+  const grossAnnualIncomeErrorElement = container.querySelector('.gross-annual-income .field-error') as HTMLElement;
 
   const carLoanInput = container.querySelector('.car-loan-monthly .value-input') as HTMLInputElement;
+  const carLoanErrorElement = container.querySelector('.car-loan-monthly .field-error') as HTMLElement;
   const studentLoanInput = container.querySelector('.student-loan-monthly .value-input') as HTMLInputElement;
+  const studentLoanErrorElement = container.querySelector('.student-loan-monthly .field-error') as HTMLElement;
   const otherLoanInput = container.querySelector('.other-loan-monthly .value-input') as HTMLInputElement;
+  const otherLoanErrorElement = container.querySelector('.other-loan-monthly .field-error') as HTMLElement;
   const creditCardBalanceInput = container.querySelector('.credit-card-balance .value-input') as HTMLInputElement;
+  const creditCardBalanceErrorElement = container.querySelector('.credit-card-balance .field-error') as HTMLElement;
   const creditCardHelperElement = container.querySelector('.credit-card-balance .dsc-debt-helper') as HTMLElement;
   const lineOfCreditBalanceInput = container.querySelector('.line-of-credit-balance .value-input') as HTMLInputElement;
+  const lineOfCreditBalanceErrorElement = container.querySelector('.line-of-credit-balance .field-error') as HTMLElement;
   const lineOfCreditHelperElement = container.querySelector('.line-of-credit-balance .dsc-debt-helper') as HTMLElement;
   const helocBalanceInput = container.querySelector('.heloc-balance .value-input') as HTMLInputElement;
+  const helocBalanceErrorElement = container.querySelector('.heloc-balance .field-error') as HTMLElement;
   const helocRateInput = container.querySelector('.heloc-rate .value-input') as HTMLInputElement;
+  const helocRateErrorElement = container.querySelector('.heloc-rate .field-error') as HTMLElement;
   const helocHelperElement = container.querySelector('.heloc-rate .dsc-debt-helper') as HTMLElement;
   const debtsTotalValueElement = container.querySelector('.dsc-debts-total strong') as HTMLElement;
 
@@ -394,13 +420,20 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   const homeExpenseYearlyInput = container.querySelector('.home-expense-yearly .value-input') as HTMLInputElement;
   const homeExpenseCondoFeesInput = container.querySelector('.home-expense-condo-fees .value-input') as HTMLInputElement;
   const homeExpenseHeatInput = container.querySelector('.home-expense-heat .value-input') as HTMLInputElement;
+  const homeExpenseMonthlyErrorElement = container.querySelector('.home-expense-monthly .field-error') as HTMLElement;
+  const homeExpenseYearlyErrorElement = container.querySelector('.home-expense-yearly .field-error') as HTMLElement;
+  const homeExpenseCondoFeesErrorElement = container.querySelector('.home-expense-condo-fees .field-error') as HTMLElement;
+  const homeExpenseHeatErrorElement = container.querySelector('.home-expense-heat .field-error') as HTMLElement;
 
   const addRentalIncomeExpandableElement = container.querySelector('.add-rental-income .expandable') as HTMLInputElement;
   const addRentalIncomeMonthlyInput = container.querySelector('.add-rental-income-monthly .value-input') as HTMLInputElement;
   const addRentalIncomeYearlyInput = container.querySelector('.add-rental-income-yearly .value-input') as HTMLInputElement;
+  const addRentalIncomeMonthlyErrorElement = container.querySelector('.add-rental-income-monthly .field-error') as HTMLElement;
+  const addRentalIncomeYearlyErrorElement = container.querySelector('.add-rental-income-yearly .field-error') as HTMLElement;
 
   const interestRateInput = container.querySelector('.rate .value-input') as HTMLInputElement;
   const interestRateInputSlider = container.querySelector('.rate .slider') as HTMLInputElement;
+  const interestRateErrorElement = container.querySelector('.rate .field-error') as HTMLElement;
 
   const compoundingFrequencyValueElement = container.querySelector('.compounding .dropdown-field span') as HTMLInputElement;
   const condoFeeInclusionRateValueElement = container.querySelector('.condo-fee-inclusion-rate .dropdown-field span') as HTMLInputElement;
@@ -408,6 +441,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
   const amortizationInput = container.querySelector('.amortization .value-input') as HTMLInputElement;
   const amortizationInputSlider = container.querySelector('.amortization .slider') as HTMLInputElement;
+  const amortizationErrorElement = container.querySelector('.amortization .field-error') as HTMLElement;
   const gdsRatioResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(1) .value') as HTMLInputElement;
   const tdsRatioResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(2) .value') as HTMLInputElement;
   const stressTestRateTypeResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-label span') as HTMLInputElement;
@@ -645,6 +679,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     loanAmountInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     loanAmountInput.dataset.previousValue = inputValue;
     updateSliderBackground(loanAmountInputSlider);
+    if (loanAmountErrorElement) loanAmountErrorElement.textContent = '';
     updateResults();
   });
 
@@ -653,6 +688,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     grossAnnualIncomeInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
     grossAnnualIncomeInput.dataset.previousValue = inputValue;
     updateSliderBackground(grossAnnualIncomeInputSlider);
+    if (grossAnnualIncomeErrorElement) grossAnnualIncomeErrorElement.textContent = '';
     updateResults();
   });
 
@@ -661,6 +697,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     interestRateInput.value = inputValue ? `${parseFloat(inputValue).toFixed(2)}%` : '';
     interestRateInput.dataset.previousValue = inputValue;
     updateSliderBackground(interestRateInputSlider);
+    if (interestRateErrorElement) interestRateErrorElement.textContent = '';
     updateResults();
   });
 
@@ -669,37 +706,65 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     amortizationInput.value = inputValue ? `${parseInt(inputValue).toLocaleString('en-US')} Years` : '';
     amortizationInput.dataset.previousValue = inputValue;
     updateSliderBackground(amortizationInputSlider);
+    if (amortizationErrorElement) amortizationErrorElement.textContent = '';
     updateResults();
   });
 
-  const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
+  // Sanitizes to digits, a single leading minus sign, and a single decimal point - the
+  // previous `value.replace(/[^0-9.]/g, '')` + parseInt silently dropped a leading minus
+  // (so "-500" became 500) and truncated decimals (parseInt ignores everything after the
+  // integer part). Uses parseFloat and requires Number.isFinite before accepting, and shows a
+  // per-field error message instead of silently reverting when the input isn't valid.
+  const formatInput = (
+    inputElement: HTMLInputElement,
+    symbol: string,
+    type: string,
+    errorElement?: HTMLElement,
+    errorMessage?: string
+  ) => {
+    const showError = () => { if (errorElement) errorElement.textContent = errorMessage ?? 'Enter a valid amount.'; };
+    const clearError = () => { if (errorElement) errorElement.textContent = ''; };
+
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target) {
-        let value = target.value;
-        value = value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters
-        const numericValue = value ? parseInt(value) : 0;
+        let value = target.value.replace(/[^0-9.\-]/g, '');
+        value = value.replace(/(?!^)-/g, ''); // only a leading '-' survives
+        const firstDotIndex = value.indexOf('.');
+        if (firstDotIndex !== -1) {
+          value = value.slice(0, firstDotIndex + 1) + value.slice(firstDotIndex + 1).replace(/\./g, '');
+        }
+        const isParseable = value !== '' && value !== '-' && value !== '.' && value !== '-.';
+        const parsed = isParseable ? parseFloat(value) : NaN;
+        const numericValue = Number.isFinite(parsed) ? parsed : NaN;
+        const isValid = Number.isFinite(numericValue);
 
         switch (type) {
           case "loan-amount":
-            if (0 <= numericValue) {
-              loanAmountInputSlider.value = numericValue.toString();
+            if (isValid && 0 <= numericValue) {
+              const roundedValue = Math.round(numericValue);
+              loanAmountInputSlider.value = roundedValue.toString();
               updateSliderBackground(loanAmountInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
+              clearError();
+            } else {
+              if (target.dataset.previousValue) target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              showError();
             }
             break;
 
           case "gross-annual-income":
-            if (0 <= numericValue) {
-              grossAnnualIncomeInputSlider.value = numericValue.toString();
+            if (isValid && 0 <= numericValue) {
+              const roundedValue = Math.round(numericValue);
+              grossAnnualIncomeInputSlider.value = roundedValue.toString();
               updateSliderBackground(grossAnnualIncomeInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
+              clearError();
+            } else {
+              if (target.dataset.previousValue) target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              showError();
             }
             break;
 
@@ -710,22 +775,27 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           case "credit-card-balance":
           case "line-of-credit-balance":
           case "heloc-balance":
-            if (0 <= numericValue) {
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+            if (isValid && 0 <= numericValue) {
+              const roundedValue = Math.round(numericValue);
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
+              clearError();
+            } else {
+              if (target.dataset.previousValue) target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              showError();
             }
             break;
 
-          // HELOC rate - text-only, default 7.00%, 2 decimals.
+          // HELOC rate - text-only, default 7.00%, 2 decimals, 0-25%.
           case "heloc-rate":
-            const helocFloatValue = value ? parseFloat(value) : 0.00;
-            if (0 <= helocFloatValue) {
-              target.value = `${helocFloatValue.toFixed(2)}%`;
-              target.dataset.previousValue = helocFloatValue.toFixed(2);
-            } else if (target.dataset.previousValue) {
-              target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
+            if (isValid && 0 <= numericValue && numericValue <= 25) {
+              target.value = `${numericValue.toFixed(2)}%`;
+              target.dataset.previousValue = numericValue.toFixed(2);
+              clearError();
+            } else {
+              const previous = target.dataset.previousValue ? parseFloat(target.dataset.previousValue) : 7.00;
+              target.value = `${previous.toFixed(2)}%`;
+              showError();
             }
             break;
 
@@ -735,11 +805,14 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           case "home-expense-heat":
           case "add-rental-income-monthly":
           case "add-rental-income-yearly":
-            if (0 <= numericValue) {
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+            if (isValid && 0 <= numericValue) {
+              const roundedValue = Math.round(numericValue);
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
+              clearError();
+            } else {
+              if (target.dataset.previousValue) target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              showError();
             }
 
             if (type === "home-expense-monthly") {
@@ -774,25 +847,29 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             break;
 
           case "interest-rate":
-            const floatValue = value ? parseFloat(value) : 0.00;
-            if (0.1 <= floatValue && floatValue <= 10) {
-              interestRateInputSlider.value = floatValue.toFixed(2);
+            if (isValid && 0.1 <= numericValue && numericValue <= 10) {
+              interestRateInputSlider.value = numericValue.toFixed(2);
               updateSliderBackground(interestRateInputSlider);
-              target.value = `${floatValue.toFixed(2)}%`;
-              target.dataset.previousValue = floatValue.toFixed(2);
-            } else if (target.dataset.previousValue) {
-              target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
+              target.value = `${numericValue.toFixed(2)}%`;
+              target.dataset.previousValue = numericValue.toFixed(2);
+              clearError();
+            } else {
+              if (target.dataset.previousValue) target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
+              showError();
             }
             break;
 
           case "amortization-period":
-            if (5 <= numericValue && numericValue <= 30) {
-              amortizationInputSlider.value = numericValue.toString();
+            if (isValid && 5 <= numericValue && numericValue <= 30) {
+              const roundedValue = Math.round(numericValue);
+              amortizationInputSlider.value = roundedValue.toString();
               updateSliderBackground(amortizationInputSlider);
-              target.value = `${parseInt(value).toLocaleString('en-US')} ${symbol}`;
-              target.dataset.previousValue = value;
-            } else if (target.dataset.previousValue) {
-              target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')} ${symbol}`;
+              target.value = `${roundedValue.toLocaleString('en-US')} ${symbol}`;
+              target.dataset.previousValue = roundedValue.toString();
+              clearError();
+            } else {
+              if (target.dataset.previousValue) target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')} ${symbol}`;
+              showError();
             }
             break;
 
@@ -924,32 +1001,32 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       : '';
   }
 
-  formatInput(loanAmountInput, '$', 'loan-amount');
+  formatInput(loanAmountInput, '$', 'loan-amount', loanAmountErrorElement, 'Enter an amount of $0 or more.');
   updateSliderBackground(loanAmountInputSlider);
 
-  formatInput(grossAnnualIncomeInput, '$', 'gross-annual-income');
+  formatInput(grossAnnualIncomeInput, '$', 'gross-annual-income', grossAnnualIncomeErrorElement, 'Enter an amount of $0 or more.');
   updateSliderBackground(grossAnnualIncomeInputSlider);
 
-  formatInput(carLoanInput, '$', 'car-loan-monthly');
-  formatInput(studentLoanInput, '$', 'student-loan-monthly');
-  formatInput(otherLoanInput, '$', 'other-loan-monthly');
-  formatInput(creditCardBalanceInput, '$', 'credit-card-balance');
-  formatInput(lineOfCreditBalanceInput, '$', 'line-of-credit-balance');
-  formatInput(helocBalanceInput, '$', 'heloc-balance');
-  formatInput(helocRateInput, '%', 'heloc-rate');
+  formatInput(carLoanInput, '$', 'car-loan-monthly', carLoanErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(studentLoanInput, '$', 'student-loan-monthly', studentLoanErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(otherLoanInput, '$', 'other-loan-monthly', otherLoanErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(creditCardBalanceInput, '$', 'credit-card-balance', creditCardBalanceErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(lineOfCreditBalanceInput, '$', 'line-of-credit-balance', lineOfCreditBalanceErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(helocBalanceInput, '$', 'heloc-balance', helocBalanceErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(helocRateInput, '%', 'heloc-rate', helocRateErrorElement, 'Enter a rate between 0% and 25%.');
 
-  formatInput(homeExpenseMonthlyInput, '$', 'home-expense-monthly');
-  formatInput(homeExpenseYearlyInput, '$', 'home-expense-yearly');
-  formatInput(homeExpenseCondoFeesInput, '$', 'home-expense-condo-fees');
-  formatInput(homeExpenseHeatInput, '$', 'home-expense-heat');
-  formatInput(addRentalIncomeMonthlyInput, '$', 'add-rental-income-monthly');
-  formatInput(addRentalIncomeYearlyInput, '$', 'add-rental-income-yearly');
+  formatInput(homeExpenseMonthlyInput, '$', 'home-expense-monthly', homeExpenseMonthlyErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(homeExpenseYearlyInput, '$', 'home-expense-yearly', homeExpenseYearlyErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(homeExpenseCondoFeesInput, '$', 'home-expense-condo-fees', homeExpenseCondoFeesErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(homeExpenseHeatInput, '$', 'home-expense-heat', homeExpenseHeatErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(addRentalIncomeMonthlyInput, '$', 'add-rental-income-monthly', addRentalIncomeMonthlyErrorElement, 'Enter an amount of $0 or more.');
+  formatInput(addRentalIncomeYearlyInput, '$', 'add-rental-income-yearly', addRentalIncomeYearlyErrorElement, 'Enter an amount of $0 or more.');
 
 
-  formatInput(interestRateInput, '%', 'interest-rate');
+  formatInput(interestRateInput, '%', 'interest-rate', interestRateErrorElement, 'Enter a rate between 0.1% and 10%.');
   updateSliderBackground(interestRateInputSlider);
 
-  formatInput(amortizationInput, 'Years', 'amortization-period');
+  formatInput(amortizationInput, 'Years', 'amortization-period', amortizationErrorElement, 'Enter a term between 5 and 30 years.');
   updateSliderBackground(amortizationInputSlider);
 
   updateResults();
