@@ -151,15 +151,17 @@ export function calculateAllRatios(
   if (inputs.isRentalIncomeEnabled && rentalIncomeMethod === 'offset') {
     const rentalOffset = inputs.rentalIncomeMonthly * (rentalIncomePortionRate / 100);
     const totalGDSExpenses = gdsPropertyTax + gdsHeating + (gdsCondoFees * (condoFeeInclusionRate / 100));
-    const adjustedGDSExpenses = totalGDSExpenses - rentalOffset;
-    
+    // Clamp: the rental offset can zero out GDS expenses but must never drive them negative
+    // (which would credit the "surplus" rent against the mortgage payment itself).
+    const adjustedGDSExpenses = Math.max(0, totalGDSExpenses - rentalOffset);
+
     // Proportionally reduce each component to maintain the ratio
     const reductionRatio = totalGDSExpenses > 0 ? adjustedGDSExpenses / totalGDSExpenses : 1;
     gdsPropertyTax = gdsPropertyTax * reductionRatio;
     gdsHeating = gdsHeating * reductionRatio;
     gdsCondoFees = gdsCondoFees * reductionRatio;
   }
-  
+
   const gdsRatio = calculateGDSRatio(
     monthlyMortgagePayment,
     gdsPropertyTax,
@@ -249,8 +251,9 @@ export function calculateIdealMortgageAmount(
   if (inputs.isRentalIncomeEnabled && rentalIncomeMethod === 'offset') {
     const rentalOffset = inputs.rentalIncomeMonthly * (rentalIncomePortionRate / 100);
     const totalGDSExpenses = gdsPropertyTax + gdsHeating + (gdsCondoFees * (condoFeeInclusionRate / 100));
-    const adjustedGDSExpenses = totalGDSExpenses - rentalOffset;
-    
+    // Clamp: same reasoning as calculateAllRatios - rental offset must not drive GDS expenses negative.
+    const adjustedGDSExpenses = Math.max(0, totalGDSExpenses - rentalOffset);
+
     const reductionRatio = totalGDSExpenses > 0 ? adjustedGDSExpenses / totalGDSExpenses : 1;
     gdsPropertyTax = gdsPropertyTax * reductionRatio;
     gdsHeating = gdsHeating * reductionRatio;
