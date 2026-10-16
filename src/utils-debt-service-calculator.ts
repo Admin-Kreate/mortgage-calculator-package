@@ -14,6 +14,7 @@ export interface MortgageInputs {
 export interface CalculationResults {
   monthlyMortgagePayment: number;
   monthlyHomeExpenses: number;
+  adjustedHomeExpenses: number;
   monthlyIncome: number;
   gdsRatio: number;
   tdsRatio: number;
@@ -157,19 +158,20 @@ export function calculateAllRatios(
     loanType
   );
   
-  // For display purposes, always show the base home expenses
+  // For display purposes, always show the base (unadjusted) home expenses
   const monthlyHomeExpenses = inputs.propertyTaxMonthly + inputs.heatingCost + inputs.condoFees;
-  
-  // Calculate total expenses for GDS calculation
-  let totalExpensesForGDS = inputs.propertyTaxMonthly + inputs.heatingCost + inputs.condoFees;
-  
-  // Deduct selected percentage of rental income from total expenses for GDS calculation
+
+  // Home expenses net of the rental income offset - this is the figure that actually
+  // corresponds to the "(incl. rental offset)" label in the UI. Previously this was computed
+  // (as totalExpensesForGDS) but never returned, so the UI rendered the unadjusted
+  // monthlyHomeExpenses next to a label claiming it included the offset. Clamped at 0: rental
+  // income can cancel out home expenses but should never make them negative.
+  let adjustedHomeExpenses = monthlyHomeExpenses;
   if (inputs.isRentalIncomeEnabled && rentalIncomeMethod === 'offset') {
     const rentalOffset = inputs.rentalIncomeMonthly * (rentalIncomePortionRate / 100);
-    totalExpensesForGDS = Math.max(0, totalExpensesForGDS - rentalOffset);
+    adjustedHomeExpenses = Math.max(0, monthlyHomeExpenses - rentalOffset);
   }
-  
-  const adjustedHomeExpenses = totalExpensesForGDS;
+
   const totalMonthlyHousingCosts = monthlyMortgagePayment + monthlyHomeExpenses;
   
   // For GDS calculation, use base expenses and subtract rental income from total
@@ -245,6 +247,7 @@ export function calculateAllRatios(
   return {
     monthlyMortgagePayment,
     monthlyHomeExpenses,
+    adjustedHomeExpenses,
     monthlyIncome,
     gdsRatio,
     tdsRatio,

@@ -776,7 +776,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     monthlyMortgageResultsElement.textContent = formatCurrencyDetailed(resultObj.monthlyMortgagePayment);
     debtPaymentResultsElement.textContent = formatCurrencyDetailed(inputData.monthlyDebtPayments);
     homeExpenseSpanResultsElement.style.display = rentalIncomeMethodValue.toLowerCase() === "offset" ? "unset" : "none";
-    homeExpenseResultsElement.textContent = formatCurrencyDetailed(resultObj.monthlyHomeExpenses);
+    homeExpenseResultsElement.textContent = formatCurrencyDetailed(resultObj.adjustedHomeExpenses);
     cashLeftResultsElement.textContent = formatCurrencyDetailed(resultObj.cashLeftGross);
   }
 
