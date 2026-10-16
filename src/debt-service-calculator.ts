@@ -306,53 +306,53 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   type StressTestType = 'contract' | 'b20';
   type RentalIncomeMethod = 'offset' | 'add-back';
 
-  const loanAmountInput = document.querySelector('.load-amount .value-input') as HTMLInputElement;
-  const loanAmountInputSlider = document.querySelector('.load-amount .slider') as HTMLInputElement;
+  const loanAmountInput = container.querySelector('.load-amount .value-input') as HTMLInputElement;
+  const loanAmountInputSlider = container.querySelector('.load-amount .slider') as HTMLInputElement;
 
-  const grossAnnualIncomeInput = document.querySelector('.gross-annual-income .value-input') as HTMLInputElement;
-  const grossAnnualIncomeInputSlider = document.querySelector('.gross-annual-income .slider') as HTMLInputElement;
+  const grossAnnualIncomeInput = container.querySelector('.gross-annual-income .value-input') as HTMLInputElement;
+  const grossAnnualIncomeInputSlider = container.querySelector('.gross-annual-income .slider') as HTMLInputElement;
 
-  const monthlyDebtPaymentsInput = document.querySelector('.monthly-debt-payments .value-input') as HTMLInputElement;
-  const monthlyDebtPaymentsInputSlider = document.querySelector('.monthly-debt-payments .slider') as HTMLInputElement;
+  const monthlyDebtPaymentsInput = container.querySelector('.monthly-debt-payments .value-input') as HTMLInputElement;
+  const monthlyDebtPaymentsInputSlider = container.querySelector('.monthly-debt-payments .slider') as HTMLInputElement;
 
-  const homeExpenseMonthlyInput = document.querySelector('.home-expense-monthly .value-input') as HTMLInputElement;
-  const homeExpenseYearlyInput = document.querySelector('.home-expense-yearly .value-input') as HTMLInputElement;
-  const homeExpenseCondoFeesInput = document.querySelector('.home-expense-condo-fees .value-input') as HTMLInputElement;
-  const homeExpenseHeatInput = document.querySelector('.home-expense-heat .value-input') as HTMLInputElement;
+  const homeExpenseMonthlyInput = container.querySelector('.home-expense-monthly .value-input') as HTMLInputElement;
+  const homeExpenseYearlyInput = container.querySelector('.home-expense-yearly .value-input') as HTMLInputElement;
+  const homeExpenseCondoFeesInput = container.querySelector('.home-expense-condo-fees .value-input') as HTMLInputElement;
+  const homeExpenseHeatInput = container.querySelector('.home-expense-heat .value-input') as HTMLInputElement;
 
-  const addRentalIncomeExpandableElement = document.querySelector('.add-rental-income .expandable') as HTMLInputElement;
-  const addRentalIncomeMonthlyInput = document.querySelector('.add-rental-income-monthly .value-input') as HTMLInputElement;
-  const addRentalIncomeYearlyInput = document.querySelector('.add-rental-income-yearly .value-input') as HTMLInputElement;
+  const addRentalIncomeExpandableElement = container.querySelector('.add-rental-income .expandable') as HTMLInputElement;
+  const addRentalIncomeMonthlyInput = container.querySelector('.add-rental-income-monthly .value-input') as HTMLInputElement;
+  const addRentalIncomeYearlyInput = container.querySelector('.add-rental-income-yearly .value-input') as HTMLInputElement;
 
-  const interestRateInput = document.querySelector('.rate .value-input') as HTMLInputElement;
-  const interestRateInputSlider = document.querySelector('.rate .slider') as HTMLInputElement;
+  const interestRateInput = container.querySelector('.rate .value-input') as HTMLInputElement;
+  const interestRateInputSlider = container.querySelector('.rate .slider') as HTMLInputElement;
 
-  const compoundingFrequencyValueElement = document.querySelector('.compounding .dropdown-field span') as HTMLInputElement;
-  const condoFeeInclusionRateValueElement = document.querySelector('.condo-fee-inclusion-rate .dropdown-field span') as HTMLInputElement;
-  const rentalIncomePortionRateValueElement = document.querySelector('.rental-income-portion .dropdown-field span') as HTMLInputElement;
+  const compoundingFrequencyValueElement = container.querySelector('.compounding .dropdown-field span') as HTMLInputElement;
+  const condoFeeInclusionRateValueElement = container.querySelector('.condo-fee-inclusion-rate .dropdown-field span') as HTMLInputElement;
+  const rentalIncomePortionRateValueElement = container.querySelector('.rental-income-portion .dropdown-field span') as HTMLInputElement;
 
-  const amortizationInput = document.querySelector('.amortization .value-input') as HTMLInputElement;
-  const amortizationInputSlider = document.querySelector('.amortization .slider') as HTMLInputElement;
-  const gdsRatioResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(1) .value') as HTMLInputElement;
-  const tdsRatioResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(2) .value') as HTMLInputElement;
-  const stressTestRateTypeResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-label span') as HTMLInputElement;
-  const stressTestRateResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-value') as HTMLInputElement;
-  const ratioTagsResultElements = document.querySelectorAll('.debt-service-calculator-results .debt-service-ratios .details .ratio-tags .ratio-tag') as NodeListOf<HTMLInputElement>;
-  const monthlyMortgageResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .monthly-mortgage .service-detail-value') as HTMLInputElement;
-  const debtPaymentResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .debt-payment .service-detail-value') as HTMLInputElement;
-  const homeExpenseSpanResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-name span') as HTMLInputElement;
-  const homeExpenseResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-value') as HTMLInputElement;
-  const cashLeftResultsElement = document.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .cash-left .service-detail-value') as HTMLInputElement;
+  const amortizationInput = container.querySelector('.amortization .value-input') as HTMLInputElement;
+  const amortizationInputSlider = container.querySelector('.amortization .slider') as HTMLInputElement;
+  const gdsRatioResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(1) .value') as HTMLInputElement;
+  const tdsRatioResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .ratios .ratio:nth-of-type(2) .value') as HTMLInputElement;
+  const stressTestRateTypeResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-label span') as HTMLInputElement;
+  const stressTestRateResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .st-rate .st-rate-value') as HTMLInputElement;
+  const ratioTagsResultElements = container.querySelectorAll('.debt-service-calculator-results .debt-service-ratios .details .ratio-tags .ratio-tag') as NodeListOf<HTMLInputElement>;
+  const monthlyMortgageResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .monthly-mortgage .service-detail-value') as HTMLInputElement;
+  const debtPaymentResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .debt-payment .service-detail-value') as HTMLInputElement;
+  const homeExpenseSpanResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-name span') as HTMLInputElement;
+  const homeExpenseResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-value') as HTMLInputElement;
+  const cashLeftResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .cash-left .service-detail-value') as HTMLInputElement;
 
-  const debtServiceRateSelectorElements = document.querySelectorAll('.debt-service-rate .btn-group-selector .selector');
-  const stressTestRuleSelectorElements = document.querySelectorAll('.stress-test-rule .btn-group-selector .selector');
-  const rentalIncomeRuleSelectorElements = document.querySelectorAll('.rental-income-rule .btn-group-selector .selector');
+  const debtServiceRateSelectorElements = container.querySelectorAll('.debt-service-rate .btn-group-selector .selector');
+  const stressTestRuleSelectorElements = container.querySelectorAll('.stress-test-rule .btn-group-selector .selector');
+  const rentalIncomeRuleSelectorElements = container.querySelectorAll('.rental-income-rule .btn-group-selector .selector');
 
-  const addRentalIncomeToggleSelectorElements = document.querySelectorAll('.add-rental-income .opt');
+  const addRentalIncomeToggleSelectorElements = container.querySelectorAll('.add-rental-income .opt');
 
-  const tooltipElements = document.querySelectorAll("[data-tooltip]");
+  const tooltipElements = container.querySelectorAll("[data-tooltip]");
 
-  const dropdownOpts = document.querySelectorAll('.dropdown-opt');
+  const dropdownOpts = container.querySelectorAll('.dropdown-opt');
   dropdownOpts.forEach(dropdownOpt => {
     dropdownOpt.addEventListener('click', () => {
       const prevEl = dropdownOpt.parentElement?.previousElementSibling;
@@ -368,20 +368,20 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     });
   });
 
-  document.querySelectorAll('.dropdown-field').forEach(field => {
+  container.querySelectorAll('.dropdown-field').forEach(field => {
     field.addEventListener('click', (e) => {
       e.stopPropagation();
       const expandedDropdownElement = (e.target as HTMLElement)?.closest('.dropdown-expanded');
       if (expandedDropdownElement) {
-        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+        container.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
           opt.previousElementSibling?.classList.remove('dropdown-expanded');
           opt.classList.remove('expanded');
         });
       } else {
-        document.querySelectorAll('.dropdown-field.dropdown-expanded').forEach(dropdown => {
+        container.querySelectorAll('.dropdown-field.dropdown-expanded').forEach(dropdown => {
           dropdown.classList.remove('dropdown-expanded');
         });
-        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+        container.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
           opt.classList.remove('expanded');
         });
 
@@ -400,7 +400,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     const target = e.target as HTMLElement;
 
     if (!target.closest('.dropdown')) {
-      document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+      container.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
         opt.previousElementSibling?.classList.remove('dropdown-expanded');
         opt.classList.remove('expanded');
       });
@@ -433,15 +433,15 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
   addRentalIncomeToggleSelectorElements.forEach((selector, index) => {
     selector.addEventListener('click', () => {
-      const prevValue = (document.querySelector('.title-toggle-wrapper .toggle .selected') as HTMLElement)?.dataset?.value;
+      const prevValue = (container.querySelector('.title-toggle-wrapper .toggle .selected') as HTMLElement)?.dataset?.value;
       const newValue = prevValue === 'off' ? 'on' : 'off';
 
       addRentalIncomeToggleSelectorElements.forEach(h => h.classList.remove('selected'));
 
       if (newValue === 'on') {
-        (document.querySelector('.title-toggle-wrapper .toggle .on') as HTMLElement).classList.add('selected');
+        (container.querySelector('.title-toggle-wrapper .toggle .on') as HTMLElement).classList.add('selected');
       } else {
-        (document.querySelector('.title-toggle-wrapper .toggle .off') as HTMLElement).classList.add('selected');
+        (container.querySelector('.title-toggle-wrapper .toggle .off') as HTMLElement).classList.add('selected');
       }
 
       selector.parentElement?.classList.remove('switched-on');
@@ -484,8 +484,8 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
       const compoundingFrequencyValue = compoundingFrequencyValueElement.textContent ? compoundingFrequencyValueElement.textContent.toLowerCase() : "semi-annual";
       
-      const stressTestTypeActiveElement = document.querySelector(".stress-test-rule .btn-group-selector .active") as HTMLInputElement;
-      const rentalIncomeMethodActiveElement = document.querySelector(".rental-income-rule .btn-group-selector .active") as HTMLInputElement;
+      const stressTestTypeActiveElement = container.querySelector(".stress-test-rule .btn-group-selector .active") as HTMLInputElement;
+      const rentalIncomeMethodActiveElement = container.querySelector(".rental-income-rule .btn-group-selector .active") as HTMLInputElement;
 
       const rawStressTest = stressTestTypeActiveElement.textContent?.toLowerCase() || 'contract';
       const stressTestTypeValue: StressTestType = isStressTestType(rawStressTest) ? rawStressTest : 'contract';
@@ -531,7 +531,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     const tooltipText = el.getAttribute("data-tooltip");
 
     const tooltip = document.createElement("div");
-    tooltip.className = "custom-tooltip";
+    tooltip.className = "custom-tooltip mortgage-calculator-tooltip";
     tooltip.textContent = tooltipText;
     document.body.appendChild(tooltip);
 
@@ -741,8 +741,8 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     const condoFeeInclusionRateValue = condoFeeInclusionRateValueElement.textContent ? parseInt(condoFeeInclusionRateValueElement.textContent.replace("%", "")) : 50;
     const rentalIncomePortionRateValue = rentalIncomePortionRateValueElement.textContent ? parseInt(rentalIncomePortionRateValueElement.textContent.replace("%", "")) : 50;
 
-    const stressTestTypeActiveElement = document.querySelector(".stress-test-rule .btn-group-selector .active") as HTMLInputElement;
-    const rentalIncomeMethodActiveElement = document.querySelector(".rental-income-rule .btn-group-selector .active") as HTMLInputElement;
+    const stressTestTypeActiveElement = container.querySelector(".stress-test-rule .btn-group-selector .active") as HTMLInputElement;
+    const rentalIncomeMethodActiveElement = container.querySelector(".rental-income-rule .btn-group-selector .active") as HTMLInputElement;
 
     const rawStressTest = stressTestTypeActiveElement.textContent?.toLowerCase() || 'contract';
     const stressTestTypeValue: StressTestType = isStressTestType(rawStressTest) ? rawStressTest : 'contract';
