@@ -1,6 +1,7 @@
 import {
   calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount, LoanType,
-  DebtServiceSettings, QualificationResult, calculateQualification, MAX_LIMITS, B20_BENCHMARK_RATE
+  DebtServiceSettings, QualificationResult, calculateQualification, MAX_LIMITS, B20_BENCHMARK_RATE,
+  DebtItems, DebtObligations, calculateDebtObligations, REVOLVING_MIN_PAYMENT_RATE, HELOC_QUALIFYING_AMORTIZATION_YEARS
 } from './utils-debt-service-calculator';
 import StressTestRuleIcon from './assets/icons/stress-test-rule.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
@@ -31,7 +32,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
           </div>
         </div>
       </div>
-      <div class="input-fields half-width-fields">
+      <div class="input-fields single-field">
         <div class="input-field gross-annual-income">
           <div class="field-label">Gross Annual Income</div>
           <input type="text" value="$  150,000" data-previous-value="150000" class="value-input">
@@ -41,15 +42,58 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             <span>$500,000+</span>
           </div>
         </div>
-        <div class="input-field monthly-debt-payments">
-          <div class="field-label">Monthly Debt Payments</div>
-          <input type="text" value="$  300" data-previous-value="300" class="value-input">
-          <input type="range" min="0" max="5000" value="300" step="100" class="slider">
-          <div class="range-label">
-            <span>$0</span>
-            <span>$5,000+</span>
-          </div>
+      </div>
+    </div>
+
+    <div class="calculator-input mortgage-calculator-input dsc-debts-card">
+      <div class="header stacked">
+        <div class="title-wrapper">
+          <div class="title">Monthly Debts</div>
         </div>
+        <div class="mortgage-calculator-info">Credit cards and unsecured lines of credit count at 3% of the balance per month. A secured HELOC counts as if it were paid off over 25 years at its own rate.</div>
+      </div>
+      <div class="input-fields half-width-fields">
+        <div class="input-field car-loan-monthly">
+          <div class="field-label">Car Loan / Lease ($/mo)</div>
+          <input type="text" value="$  300" data-previous-value="300" class="value-input">
+        </div>
+        <div class="input-field student-loan-monthly">
+          <div class="field-label">Student Loan ($/mo)</div>
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+        </div>
+      </div>
+      <div class="input-fields half-width-fields">
+        <div class="input-field other-loan-monthly">
+          <div class="field-label">Other Loans ($/mo)</div>
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+        </div>
+        <div class="input-field credit-card-balance">
+          <div class="field-label">Credit Card Balance ($)</div>
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="dsc-debt-helper"></div>
+        </div>
+      </div>
+      <div class="input-fields half-width-fields">
+        <div class="input-field line-of-credit-balance">
+          <div class="field-label">Unsecured Line of Credit ($)</div>
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+          <div class="dsc-debt-helper"></div>
+        </div>
+        <div class="input-field heloc-balance">
+          <div class="field-label">HELOC Balance ($)</div>
+          <input type="text" value="$  0" data-previous-value="0" class="value-input">
+        </div>
+      </div>
+      <div class="input-fields single-field">
+        <div class="input-field heloc-rate">
+          <div class="field-label">HELOC Rate (%)</div>
+          <input type="text" value="7.00%" data-previous-value="7.00" class="value-input">
+          <div class="dsc-debt-helper"></div>
+        </div>
+      </div>
+      <div class="dsc-debts-total">
+        <span>Total counted toward TDS</span>
+        <strong>$300.00/mo</strong>
       </div>
     </div>
 
@@ -334,8 +378,17 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   const grossAnnualIncomeInput = container.querySelector('.gross-annual-income .value-input') as HTMLInputElement;
   const grossAnnualIncomeInputSlider = container.querySelector('.gross-annual-income .slider') as HTMLInputElement;
 
-  const monthlyDebtPaymentsInput = container.querySelector('.monthly-debt-payments .value-input') as HTMLInputElement;
-  const monthlyDebtPaymentsInputSlider = container.querySelector('.monthly-debt-payments .slider') as HTMLInputElement;
+  const carLoanInput = container.querySelector('.car-loan-monthly .value-input') as HTMLInputElement;
+  const studentLoanInput = container.querySelector('.student-loan-monthly .value-input') as HTMLInputElement;
+  const otherLoanInput = container.querySelector('.other-loan-monthly .value-input') as HTMLInputElement;
+  const creditCardBalanceInput = container.querySelector('.credit-card-balance .value-input') as HTMLInputElement;
+  const creditCardHelperElement = container.querySelector('.credit-card-balance .dsc-debt-helper') as HTMLElement;
+  const lineOfCreditBalanceInput = container.querySelector('.line-of-credit-balance .value-input') as HTMLInputElement;
+  const lineOfCreditHelperElement = container.querySelector('.line-of-credit-balance .dsc-debt-helper') as HTMLElement;
+  const helocBalanceInput = container.querySelector('.heloc-balance .value-input') as HTMLInputElement;
+  const helocRateInput = container.querySelector('.heloc-rate .value-input') as HTMLInputElement;
+  const helocHelperElement = container.querySelector('.heloc-rate .dsc-debt-helper') as HTMLElement;
+  const debtsTotalValueElement = container.querySelector('.dsc-debts-total strong') as HTMLElement;
 
   const homeExpenseMonthlyInput = container.querySelector('.home-expense-monthly .value-input') as HTMLInputElement;
   const homeExpenseYearlyInput = container.querySelector('.home-expense-yearly .value-input') as HTMLInputElement;
@@ -501,7 +554,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       
       const loanAmountValue = loanAmountInput.dataset.previousValue ? parseInt(loanAmountInput.dataset.previousValue) : 0;
       const grossAnnualIncomeValue = grossAnnualIncomeInput.dataset.previousValue ? parseInt(grossAnnualIncomeInput.dataset.previousValue) : 0;
-      const monthlyDebtPaymentsValue = monthlyDebtPaymentsInput.dataset.previousValue ? parseInt(monthlyDebtPaymentsInput.dataset.previousValue) : 0;
+      const monthlyDebtPaymentsValue = calculateDebtObligations(getDebtItems()).total;
       const propertTaxMonthlyValue = homeExpenseMonthlyInput.dataset.previousValue ? parseFloat(parseFloat(homeExpenseMonthlyInput.dataset.previousValue).toFixed(2)) : 0;
       const condoFeesValue = homeExpenseCondoFeesInput.dataset.previousValue ? parseInt(homeExpenseCondoFeesInput.dataset.previousValue) : 0;
       const heatingCostValue = homeExpenseHeatInput.dataset.previousValue ? parseInt(homeExpenseHeatInput.dataset.previousValue) : 0;
@@ -603,14 +656,6 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     updateResults();
   });
 
-  monthlyDebtPaymentsInputSlider.addEventListener("input", () => {
-    const inputValue = monthlyDebtPaymentsInputSlider.value.replace(/[^0-9.]/g, '');
-    monthlyDebtPaymentsInput.value = inputValue ? `$  ${parseInt(inputValue).toLocaleString('en-US')}` : '';
-    monthlyDebtPaymentsInput.dataset.previousValue = inputValue;
-    updateSliderBackground(monthlyDebtPaymentsInputSlider);
-    updateResults();
-  });
-
   interestRateInputSlider.addEventListener("input", () => {
     const inputValue = interestRateInputSlider.value.replace(/[^0-9.]/g, '');
     interestRateInput.value = inputValue ? `${parseFloat(inputValue).toFixed(2)}%` : '';
@@ -658,14 +703,29 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             }
             break;
 
-          case "monthly-debt-payments":
+          // Itemized debt/balance fields - integers, >= 0, no upper bound.
+          case "car-loan-monthly":
+          case "student-loan-monthly":
+          case "other-loan-monthly":
+          case "credit-card-balance":
+          case "line-of-credit-balance":
+          case "heloc-balance":
             if (0 <= numericValue) {
-              monthlyDebtPaymentsInputSlider.value = numericValue.toString();
-              updateSliderBackground(monthlyDebtPaymentsInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
               target.dataset.previousValue = value;
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+            }
+            break;
+
+          // HELOC rate - text-only, default 7.00%, 2 decimals.
+          case "heloc-rate":
+            const helocFloatValue = value ? parseFloat(value) : 0.00;
+            if (0 <= helocFloatValue) {
+              target.value = `${helocFloatValue.toFixed(2)}%`;
+              target.dataset.previousValue = helocFloatValue.toFixed(2);
+            } else if (target.dataset.previousValue) {
+              target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
             }
             break;
 
@@ -757,10 +817,39 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     return activeEl?.textContent?.trim().toLowerCase() === 'interest only' ? 'interest-only' : 'regular';
   }
 
+  function getDebtItems(): DebtItems {
+    const num = (el: HTMLInputElement, fallback: number) => el.dataset.previousValue ? parseFloat(el.dataset.previousValue) : fallback;
+    return {
+      carLoanMonthly: num(carLoanInput, 300),
+      studentLoanMonthly: num(studentLoanInput, 0),
+      otherLoanMonthly: num(otherLoanInput, 0),
+      creditCardBalance: num(creditCardBalanceInput, 0),
+      lineOfCreditBalance: num(lineOfCreditBalanceInput, 0),
+      helocBalance: num(helocBalanceInput, 0),
+      helocRate: num(helocRateInput, 7.00),
+    };
+  }
+
   const updateResults = () => {
     const loanAmountValue = loanAmountInput.dataset.previousValue ? parseInt(loanAmountInput.dataset.previousValue) : 0;
     const grossAnnualIncomeValue = grossAnnualIncomeInput.dataset.previousValue ? parseInt(grossAnnualIncomeInput.dataset.previousValue) : 0;
-    const monthlyDebtPaymentsValue = monthlyDebtPaymentsInput.dataset.previousValue ? parseInt(monthlyDebtPaymentsInput.dataset.previousValue) : 0;
+    const debtItems = getDebtItems();
+    const debtObligations: DebtObligations = calculateDebtObligations(debtItems);
+    const monthlyDebtPaymentsValue = debtObligations.total;
+
+    // Live debt helper text (3% revolving rule / HELOC amortized payment).
+    if (creditCardHelperElement) {
+      creditCardHelperElement.textContent = `counts as ${formatCurrencyDetailed(debtObligations.creditCard)}/mo (${(REVOLVING_MIN_PAYMENT_RATE * 100).toFixed(0)}%)`;
+    }
+    if (lineOfCreditHelperElement) {
+      lineOfCreditHelperElement.textContent = `counts as ${formatCurrencyDetailed(debtObligations.lineOfCredit)}/mo (${(REVOLVING_MIN_PAYMENT_RATE * 100).toFixed(0)}%)`;
+    }
+    if (helocHelperElement) {
+      helocHelperElement.textContent = `counts as ${formatCurrencyDetailed(debtObligations.heloc)}/mo (${HELOC_QUALIFYING_AMORTIZATION_YEARS}-yr amortized)`;
+    }
+    if (debtsTotalValueElement) {
+      debtsTotalValueElement.textContent = `${formatCurrencyDetailed(debtObligations.total)}/mo`;
+    }
     const propertTaxMonthlyValue = homeExpenseMonthlyInput.dataset.previousValue ? parseFloat(parseFloat(homeExpenseMonthlyInput.dataset.previousValue).toFixed(2)) : 0;
     const condoFeesValue = homeExpenseCondoFeesInput.dataset.previousValue ? parseInt(homeExpenseCondoFeesInput.dataset.previousValue) : 0;
     const heatingCostValue = homeExpenseHeatInput.dataset.previousValue ? parseInt(homeExpenseHeatInput.dataset.previousValue) : 0;
@@ -841,8 +930,13 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   formatInput(grossAnnualIncomeInput, '$', 'gross-annual-income');
   updateSliderBackground(grossAnnualIncomeInputSlider);
 
-  formatInput(monthlyDebtPaymentsInput, '$', 'monthly-debt-payments');
-  updateSliderBackground(monthlyDebtPaymentsInputSlider);
+  formatInput(carLoanInput, '$', 'car-loan-monthly');
+  formatInput(studentLoanInput, '$', 'student-loan-monthly');
+  formatInput(otherLoanInput, '$', 'other-loan-monthly');
+  formatInput(creditCardBalanceInput, '$', 'credit-card-balance');
+  formatInput(lineOfCreditBalanceInput, '$', 'line-of-credit-balance');
+  formatInput(helocBalanceInput, '$', 'heloc-balance');
+  formatInput(helocRateInput, '%', 'heloc-rate');
 
   formatInput(homeExpenseMonthlyInput, '$', 'home-expense-monthly');
   formatInput(homeExpenseYearlyInput, '$', 'home-expense-yearly');
