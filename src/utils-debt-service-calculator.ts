@@ -347,6 +347,140 @@ export function calculateIdealMortgageAmount(
   return Math.max(0, mortgageAmount);
 }
 
+// CMHC's maximum GDS/TDS limits - used as the default basis for "what you qualify for" below.
+export const MAX_LIMITS = { gds: 39, tds: 44 } as const;
+
+export interface DebtServiceSettings {
+  compoundingFrequency: string;
+  condoFeeInclusionRate: number;
+  rentalIncomePortionRate: number;
+  stressTestType: 'contract' | 'b20';
+  rentalIncomeMethod: 'add-back' | 'offset';
+  loanType: LoanType;
+  benchmarkStressRate?: number;
+}
+
+export interface QualificationResult {
+  qualifyingRate: number;
+  maxMortgage: number;
+  bindingRatio: 'gds' | 'tds';
+  maxMonthlyPayment: number;
+  requiredAnnualIncome: number;
+  monthlyRoomGds: number;
+  monthlyRoomTds: number;
+}
+
+// Closed-form inverse of calculateMonthlyMortgagePayment's regular/amortizing branch (PV-of-
+// annuity). Qualification (max mortgage / required income) always uses this - never the
+// interest-only formula - regardless of the loan type selected in the UI: qualifying math is
+// deliberately loanType-independent (matches the same policy choice in the sibling
+// max-mortgage-calculator).
+function invertRegularPayment(
+  payment: number,
+  annualRate: number,
+  amortizationYears: number,
+  compoundingFrequency: string
+): number {
+  if (
+    !Number.isFinite(payment) || payment <= 0 ||
+    !Number.isFinite(annualRate) || annualRate < 0 ||
+    !Number.isFinite(amortizationYears) || amortizationYears <= 0
+  ) return 0;
+
+  const numberOfPayments = amortizationYears * 12;
+  const monthlyRate = getEffectiveMonthlyRate(annualRate / 100, compoundingFrequency);
+
+  if (monthlyRate === 0) return payment * numberOfPayments;
+
+  return payment * (1 - Math.pow(1 + monthlyRate, -numberOfPayments)) / monthlyRate;
+}
+
+// Computes the largest mortgage, and the minimum income, the entered numbers support at the
+// given GDS/TDS limits (CMHC maximums by default) by inverting the standard GDS/TDS formulas.
+export function calculateQualification(
+  inputs: MortgageInputs,
+  settings: DebtServiceSettings,
+  limits: { gds: number; tds: number } = MAX_LIMITS
+): QualificationResult {
+  const benchmarkStressRate = settings.benchmarkStressRate ?? B20_BENCHMARK_RATE;
+  const qualifyingRate = settings.stressTestType === 'b20'
+    ? Math.max(inputs.interestRate + 2, benchmarkStressRate)
+    : inputs.interestRate;
+
+  const g = limits.gds / 100;
+  const t = limits.tds / 100;
+
+  const baseMonthlyIncome = inputs.grossAnnualIncome / 12;
+  const B = Number.isFinite(baseMonthlyIncome) ? baseMonthlyIncome : 0;
+
+  // Rental add-back contributes to income; offset instead reduces home costs below. Only one
+  // applies at a time (mirrors calculateAllRatios).
+  const rentalContribution = inputs.isRentalIncomeEnabled && Number.isFinite(inputs.rentalIncomeMonthly)
+    ? inputs.rentalIncomeMonthly * (settings.rentalIncomePortionRate / 100)
+    : 0;
+  const Ra = inputs.isRentalIncomeEnabled && settings.rentalIncomeMethod === 'add-back' ? rentalContribution : 0;
+
+  // GDS home costs (property tax + heat + condo-inclusion%), net of the rental offset - same
+  // proportional-reduction/clamp logic as calculateAllRatios, so this stays consistent with the
+  // displayed ratios.
+  let gdsPropertyTax = inputs.propertyTaxMonthly;
+  let gdsHeating = inputs.heatingCost;
+  let gdsCondoFees = inputs.condoFees;
+  if (inputs.isRentalIncomeEnabled && settings.rentalIncomeMethod === 'offset') {
+    const totalGdsExpenses = gdsPropertyTax + gdsHeating + (gdsCondoFees * (settings.condoFeeInclusionRate / 100));
+    const adjustedGdsExpenses = Math.max(0, totalGdsExpenses - rentalContribution);
+    const reductionRatio = totalGdsExpenses > 0 ? adjustedGdsExpenses / totalGdsExpenses : 1;
+    gdsPropertyTax *= reductionRatio;
+    gdsHeating *= reductionRatio;
+    gdsCondoFees *= reductionRatio;
+  }
+  const homeCosts = gdsPropertyTax + gdsHeating + (gdsCondoFees * (settings.condoFeeInclusionRate / 100));
+
+  const D = Number.isFinite(inputs.monthlyDebtPayments) ? inputs.monthlyDebtPayments : 0;
+
+  // --- Max mortgage & required income: always the regular/amortizing qualifying formula,
+  // regardless of settings.loanType.
+  const termGds = (B + Ra) * g - homeCosts;
+  const termTds = (B + Ra) * t - homeCosts - D;
+  const maxPayment = Math.min(termGds, termTds);
+  const bindingRatio: 'gds' | 'tds' = termGds <= termTds ? 'gds' : 'tds';
+
+  const maxMortgage = maxPayment > 0
+    ? invertRegularPayment(maxPayment, qualifyingRate, inputs.amortizationYears, settings.compoundingFrequency)
+    : 0;
+  const maxMonthlyPayment = calculateMonthlyMortgagePayment(
+    maxMortgage, qualifyingRate, inputs.amortizationYears, settings.compoundingFrequency, 'regular'
+  );
+
+  const currentPI = calculateMonthlyMortgagePayment(
+    inputs.mortgageAmount, qualifyingRate, inputs.amortizationYears, settings.compoundingFrequency, 'regular'
+  );
+  const H = currentPI + homeCosts;
+  const requiredAnnualIncome = 12 * Math.max(0, Math.max(H / g, (H + D) / t) - Ra);
+
+  // --- Monthly room: headroom against the ratios as actually DISPLAYED (settings.loanType +
+  // contract/b20 as selected) - deliberately NOT the forced-regular qualification numbers
+  // above. This answers "how much headroom do my current numbers leave", not "what could I
+  // qualify for".
+  const displayedIncome = B + Ra;
+  const displayedPayment = calculateMonthlyMortgagePayment(
+    inputs.mortgageAmount, qualifyingRate, inputs.amortizationYears, settings.compoundingFrequency, settings.loanType
+  );
+  const currentGdsCosts = displayedPayment + homeCosts;
+  const monthlyRoomGds = g * displayedIncome - currentGdsCosts;
+  const monthlyRoomTds = t * displayedIncome - (currentGdsCosts + D);
+
+  return {
+    qualifyingRate,
+    maxMortgage,
+    bindingRatio,
+    maxMonthlyPayment,
+    requiredAnnualIncome,
+    monthlyRoomGds,
+    monthlyRoomTds
+  };
+}
+
 export function getStressTestStatus(gdsRatio: number, tdsRatio: number): {
   level: 'excellent' | 'good' | 'caution' | 'poor';
   color: string;
