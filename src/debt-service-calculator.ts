@@ -412,9 +412,141 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     </div>
   `;
 
+  // Onboarding: a 6-step walkthrough of what GDS/TDS mean and how the calculator's main inputs
+  // feed them, ported from mortgage-calculator.ts's own wizard pattern - one value collected
+  // per step, explanation attached to the thing it describes. Gated on a localStorage key so
+  // it only shows on a visitor's first visit.
+  const onboardingModalHTML = `
+    <div class="onboarding-overlay">
+      <div class="onboarding-modal">
+        <div class="onboarding-progress">
+          <span class="dot" data-dot="1"></span>
+          <span class="dot" data-dot="2"></span>
+          <span class="dot" data-dot="3"></span>
+          <span class="dot" data-dot="4"></span>
+          <span class="dot" data-dot="5"></span>
+          <span class="dot" data-dot="6"></span>
+        </div>
+
+        <div class="onboarding-step" data-step="1">
+          <div class="onboarding-title">Can you actually afford this mortgage?</div>
+          <div class="onboarding-subtitle">Lenders answer that with two ratios: <strong>GDS</strong> (housing costs &divide; income) and <strong>TDS</strong> (housing costs + other debts &divide; income). We'll walk through what feeds each one.</div>
+          <div class="onboarding-note">
+            <strong>The limits lenders use:</strong>
+            <ul>
+              <li><em>Lender preferred:</em> GDS &le; 32%, TDS &le; 40%.</li>
+              <li><em>CMHC maximum:</em> GDS &le; 39%, TDS &le; 44%.</li>
+            </ul>
+            Staying under the preferred numbers gives you the most room; the CMHC numbers are the hard ceiling.
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="2">
+          <div class="onboarding-title">What's your gross annual income?</div>
+          <div class="onboarding-subtitle">Gross means before tax. Both ratios are divided by this number, so it's the foundation everything else is measured against.</div>
+          <div class="onboarding-slider-field">
+            <div class="onboarding-readout" data-readout="income">$150,000</div>
+            <input type="range" id="onboarding-income" class="onboarding-slider" min="0" max="500000" step="10000" value="150000"/>
+            <div class="onboarding-range-label"><span>$0</span><span>$500K+</span></div>
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="3">
+          <div class="onboarding-title">What debts are you already carrying?</div>
+          <div class="onboarding-subtitle">These count toward TDS on top of your housing costs. Credit cards and unsecured lines of credit are counted at <strong>3% of the balance</strong> per month, whether or not you pay them off.</div>
+          <div class="onboarding-fields">
+            <div class="onboarding-field">
+              <label for="onboarding-car-loan">Car loan ($/mo)</label>
+              <input type="number" id="onboarding-car-loan" min="0" step="1" value="300"/>
+            </div>
+            <div class="onboarding-field">
+              <label for="onboarding-student-loan">Student loan ($/mo)</label>
+              <input type="number" id="onboarding-student-loan" min="0" step="1" value="0"/>
+            </div>
+            <div class="onboarding-field">
+              <label for="onboarding-other-loan">Other loans ($/mo)</label>
+              <input type="number" id="onboarding-other-loan" min="0" step="1" value="0"/>
+            </div>
+            <div class="onboarding-field">
+              <label for="onboarding-credit-card">Credit card balance ($)</label>
+              <input type="number" id="onboarding-credit-card" min="0" step="1" value="0"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="4">
+          <div class="onboarding-title">Now the home itself</div>
+          <div class="onboarding-subtitle">Your <strong>loan amount</strong> drives the mortgage payment; property tax and heat are added straight into GDS.</div>
+          <div class="onboarding-slider-field">
+            <div class="onboarding-readout" data-readout="loan">$500,000</div>
+            <input type="range" id="onboarding-loan-amount" class="onboarding-slider" min="0" max="1500000" step="10000" value="500000"/>
+            <div class="onboarding-range-label"><span>$0</span><span>$1.5M+</span></div>
+          </div>
+          <div class="onboarding-fields onboarding-field-spaced">
+            <div class="onboarding-field">
+              <label for="onboarding-property-tax">Property tax ($/mo)</label>
+              <input type="number" id="onboarding-property-tax" min="0" step="1" value="200"/>
+            </div>
+            <div class="onboarding-field">
+              <label for="onboarding-heat">Heat ($/mo)</label>
+              <input type="number" id="onboarding-heat" min="0" step="1" value="200"/>
+            </div>
+          </div>
+          <div class="onboarding-note">Have condo fees? Only a portion counts toward GDS - 50% by default, adjustable in Advanced Settings.</div>
+        </div>
+
+        <div class="onboarding-step" data-step="5">
+          <div class="onboarding-title">Why your ratios look worse than expected</div>
+          <div class="onboarding-subtitle">By default this calculator stress-tests your mortgage, the same way a federally regulated lender must.</div>
+          <div class="onboarding-note">
+            <strong>The qualifying rate (B20):</strong> the higher of your contract rate + 2%, or 5.25%. Your ratios are calculated using that higher rate, not your actual rate - so your real payment is usually lower than what qualified you.
+          </div>
+        </div>
+
+        <div class="onboarding-step" data-step="6">
+          <div class="onboarding-title">You're set. Here's what to explore.</div>
+          <div class="onboarding-note">
+            <ul>
+              <li><strong>Hover any label with a dotted underline</strong> to see exactly what it means.</li>
+              <li><strong>"What You Qualify For"</strong> shows the largest mortgage your current numbers support at CMHC's limits.</li>
+              <li><strong>"Ways to lower your ratios"</strong> gives real, one-click options if you're borderline or over.</li>
+              <li><strong>"How this works"</strong> in the header opens a full spotlight tour any time.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="onboarding-actions">
+          <button type="button" class="onboarding-back">Back</button>
+          <button type="button" class="onboarding-continue">Next</button>
+        </div>
+        <button type="button" class="onboarding-skip">Skip, I know my way around</button>
+      </div>
+    </div>
+  `;
+
+  const tourHTML = `
+    <div class="tour-layer">
+      <div class="tour-spotlight"></div>
+      <div class="tour-card">
+        <button type="button" class="tour-close" aria-label="Close tour">&times;</button>
+        <div class="tour-step-count"></div>
+        <div class="tour-title"></div>
+        <div class="tour-text"></div>
+        <div class="tour-why"></div>
+        <div class="tour-actions">
+          <button type="button" class="tour-back">Back</button>
+          <button type="button" class="tour-next">Next</button>
+        </div>
+      </div>
+    </div>
+  `;
+
   container.innerHTML = `
     <div class="mortgage-calculator">
-        <div class="section-heading">Debt Service Calculator</div>
+        <div class="section-heading">
+          <span>Debt Service Calculator</span>
+          <button type="button" class="onboarding-reopen">How this works</button>
+        </div>
         <div class="tab-layout">
           <div class="tab-content active">
             <div class="calculator-inputs">
@@ -425,6 +557,8 @@ export function initDebtServiceCalculator(container: HTMLElement) {
             </div>
           </div>
         </div>
+        ${onboardingModalHTML}
+        ${tourHTML}
     </div>
   `;
 
@@ -1207,6 +1341,286 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
   formatInput(amortizationInput, 'Years', 'amortization-period', amortizationErrorElement, 'Enter a term between 5 and 30 years.');
   updateSliderBackground(amortizationInputSlider);
+
+  // ---------------------------------------------------------------------
+  // Onboarding (first-visit walkthrough)
+  // ---------------------------------------------------------------------
+
+  const ONBOARDING_STORAGE_KEY = 'debtServiceCalculatorOnboardingSeen';
+  const TOTAL_ONBOARDING_STEPS = 6;
+
+  const onboardingOverlay = container.querySelector('.onboarding-overlay') as HTMLElement;
+  const onboardingIncomeInput = container.querySelector('#onboarding-income') as HTMLInputElement;
+  const onboardingCarLoanInput = container.querySelector('#onboarding-car-loan') as HTMLInputElement;
+  const onboardingStudentLoanInput = container.querySelector('#onboarding-student-loan') as HTMLInputElement;
+  const onboardingOtherLoanInput = container.querySelector('#onboarding-other-loan') as HTMLInputElement;
+  const onboardingCreditCardInput = container.querySelector('#onboarding-credit-card') as HTMLInputElement;
+  const onboardingLoanAmountInput = container.querySelector('#onboarding-loan-amount') as HTMLInputElement;
+  const onboardingPropertyTaxInput = container.querySelector('#onboarding-property-tax') as HTMLInputElement;
+  const onboardingHeatInput = container.querySelector('#onboarding-heat') as HTMLInputElement;
+  const onboardingContinueButton = container.querySelector('.onboarding-continue') as HTMLElement;
+  const onboardingBackButton = container.querySelector('.onboarding-back') as HTMLElement;
+  const onboardingSkipButton = container.querySelector('.onboarding-skip') as HTMLElement;
+  const onboardingReopenButton = container.querySelector('.onboarding-reopen') as HTMLElement;
+  const onboardingSteps = container.querySelectorAll('.onboarding-step');
+  const onboardingDots = container.querySelectorAll('.onboarding-progress .dot');
+
+  let currentOnboardingStep = 1;
+
+  const renderOnboardingStep = () => {
+    onboardingSteps.forEach(step => {
+      const stepNumber = Number((step as HTMLElement).dataset.step);
+      (step as HTMLElement).style.display = stepNumber === currentOnboardingStep ? 'block' : 'none';
+    });
+    onboardingDots.forEach(dot => {
+      const dotNumber = Number((dot as HTMLElement).dataset.dot);
+      dot.classList.toggle('active', dotNumber === currentOnboardingStep);
+      dot.classList.toggle('done', dotNumber < currentOnboardingStep);
+    });
+    onboardingBackButton.style.visibility = currentOnboardingStep === 1 ? 'hidden' : 'visible';
+    onboardingContinueButton.textContent =
+      currentOnboardingStep === TOTAL_ONBOARDING_STEPS ? 'See my results'
+        : currentOnboardingStep === 1 ? "Let's go"
+          : 'Next';
+  };
+
+  const onboardingIncomeReadout = container.querySelector('[data-readout="income"]') as HTMLElement;
+  const onboardingLoanReadout = container.querySelector('[data-readout="loan"]') as HTMLElement;
+
+  const renderOnboardingReadouts = () => {
+    if (onboardingIncomeReadout) {
+      onboardingIncomeReadout.textContent = `$${Number(onboardingIncomeInput.value).toLocaleString('en-US')}`;
+    }
+    if (onboardingLoanReadout) {
+      onboardingLoanReadout.textContent = `$${Number(onboardingLoanAmountInput.value).toLocaleString('en-US')}`;
+    }
+    updateSliderBackground(onboardingIncomeInput);
+    updateSliderBackground(onboardingLoanAmountInput);
+  };
+
+  [onboardingIncomeInput, onboardingLoanAmountInput].forEach(slider => {
+    slider?.addEventListener('input', renderOnboardingReadouts);
+  });
+
+  const applyOnboardingValues = () => {
+    grossAnnualIncomeInputSlider.value = onboardingIncomeInput.value;
+    grossAnnualIncomeInputSlider.dispatchEvent(new Event('input'));
+
+    loanAmountInputSlider.value = onboardingLoanAmountInput.value;
+    loanAmountInputSlider.dispatchEvent(new Event('input'));
+
+    if (onboardingCarLoanInput) { carLoanInput.value = onboardingCarLoanInput.value; carLoanInput.dispatchEvent(new Event('change')); }
+    if (onboardingStudentLoanInput) { studentLoanInput.value = onboardingStudentLoanInput.value; studentLoanInput.dispatchEvent(new Event('change')); }
+    if (onboardingOtherLoanInput) { otherLoanInput.value = onboardingOtherLoanInput.value; otherLoanInput.dispatchEvent(new Event('change')); }
+    if (onboardingCreditCardInput) { creditCardBalanceInput.value = onboardingCreditCardInput.value; creditCardBalanceInput.dispatchEvent(new Event('change')); }
+    if (onboardingPropertyTaxInput) { homeExpenseMonthlyInput.value = onboardingPropertyTaxInput.value; homeExpenseMonthlyInput.dispatchEvent(new Event('change')); }
+    if (onboardingHeatInput) { homeExpenseHeatInput.value = onboardingHeatInput.value; homeExpenseHeatInput.dispatchEvent(new Event('change')); }
+
+    updateResults();
+  };
+
+  const openOnboarding = () => {
+    if (grossAnnualIncomeInput.dataset.previousValue) onboardingIncomeInput.value = grossAnnualIncomeInput.dataset.previousValue;
+    if (loanAmountInput.dataset.previousValue) onboardingLoanAmountInput.value = loanAmountInput.dataset.previousValue;
+    if (carLoanInput.dataset.previousValue) onboardingCarLoanInput.value = carLoanInput.dataset.previousValue;
+    if (studentLoanInput.dataset.previousValue) onboardingStudentLoanInput.value = studentLoanInput.dataset.previousValue;
+    if (otherLoanInput.dataset.previousValue) onboardingOtherLoanInput.value = otherLoanInput.dataset.previousValue;
+    if (creditCardBalanceInput.dataset.previousValue) onboardingCreditCardInput.value = creditCardBalanceInput.dataset.previousValue;
+    if (homeExpenseMonthlyInput.dataset.previousValue) onboardingPropertyTaxInput.value = homeExpenseMonthlyInput.dataset.previousValue;
+    if (homeExpenseHeatInput.dataset.previousValue) onboardingHeatInput.value = homeExpenseHeatInput.dataset.previousValue;
+    renderOnboardingReadouts();
+    currentOnboardingStep = 1;
+    renderOnboardingStep();
+    onboardingOverlay.classList.add('open');
+  };
+
+  const closeOnboarding = () => {
+    onboardingOverlay.classList.remove('open');
+    try { localStorage.setItem(ONBOARDING_STORAGE_KEY, '1'); } catch { /* private browsing etc - non-fatal, just re-shows next visit */ }
+  };
+
+  onboardingContinueButton?.addEventListener('click', () => {
+    if (currentOnboardingStep === TOTAL_ONBOARDING_STEPS) {
+      applyOnboardingValues();
+      closeOnboarding();
+      return;
+    }
+    currentOnboardingStep += 1;
+    renderOnboardingStep();
+  });
+
+  onboardingBackButton?.addEventListener('click', () => {
+    if (currentOnboardingStep > 1) {
+      currentOnboardingStep -= 1;
+      renderOnboardingStep();
+    }
+  });
+
+  onboardingSkipButton?.addEventListener('click', () => {
+    applyOnboardingValues();
+    closeOnboarding();
+  });
+
+  // ---------------------------------------------------------------------
+  // "How this works" spotlight tour
+  // ---------------------------------------------------------------------
+
+  const tourLayer = container.querySelector('.tour-layer') as HTMLElement;
+  const tourSpotlight = container.querySelector('.tour-spotlight') as HTMLElement;
+  const tourCard = container.querySelector('.tour-card') as HTMLElement;
+  const tourTitleElement = container.querySelector('.tour-title') as HTMLElement;
+  const tourTextElement = container.querySelector('.tour-text') as HTMLElement;
+  const tourWhyElement = container.querySelector('.tour-why') as HTMLElement;
+  const tourStepCountElement = container.querySelector('.tour-step-count') as HTMLElement;
+  const tourBackButton = container.querySelector('.tour-back') as HTMLElement;
+  const tourNextButton = container.querySelector('.tour-next') as HTMLElement;
+  const tourCloseButton = container.querySelector('.tour-close') as HTMLElement;
+  const calculatorRootElement = container.querySelector('.mortgage-calculator') as HTMLElement;
+
+  type TourStep = { selector: string; title: string; text: string; why: string };
+  const tourStepDefinitions: TourStep[] = [
+    {
+      selector: '.gross-annual-income',
+      title: 'Income',
+      text: 'Your gross annual income, before tax. Both GDS and TDS are measured against this number.',
+      why: 'Everything on this page scales with what you enter here.',
+    },
+    {
+      selector: '.dsc-debts-card',
+      title: 'Monthly Debts',
+      text: 'Every debt you carry outside this mortgage. Credit cards and unsecured lines of credit count at 3% of the balance; a HELOC counts as if amortized over 25 years at its own rate.',
+      why: 'These add directly to your TDS - they never affect GDS.',
+    },
+    {
+      selector: '.debt-service-rate',
+      title: 'Mortgage',
+      text: 'Your loan amount, rate, and amortization set your mortgage payment - the biggest single input to both ratios.',
+      why: 'Interest Only lowers this payment, but qualification below always uses the regular payment.',
+    },
+    {
+      selector: '.dsc-verdict',
+      title: 'Verdict',
+      text: 'A quick read on where your ratios land relative to lender guidelines.',
+      why: 'Green is within preferred limits, amber is borderline, red is over the CMHC maximum.',
+    },
+    {
+      selector: '.dsc-gauges',
+      title: 'GDS & TDS',
+      text: 'The two ratios themselves, plotted against the lender-preferred and CMHC-maximum limits.',
+      why: 'Lender preferred is 32%/40%; CMHC maximum is 39%/44%.',
+    },
+    {
+      selector: '.dsc-qualify',
+      title: 'What You Qualify For',
+      text: "The largest mortgage, and the minimum income, your current numbers support at CMHC's limits.",
+      why: "This isn't a lender approval - just what the math itself supports.",
+    },
+    {
+      selector: '.ways-to-save',
+      title: 'Ways to lower your ratios',
+      text: 'Real, one-click options - simulated against your own numbers - for improving your ratios if you need to.',
+      why: 'Only shown when there is a genuine improvement of at least 0.1 point.',
+    },
+  ];
+
+  let activeTourSteps: { step: TourStep; element: HTMLElement }[] = [];
+  let currentTourIndex = 0;
+
+  const positionTour = () => {
+    const entry = activeTourSteps[currentTourIndex];
+    if (!entry || !calculatorRootElement) return;
+    const calcRect = calculatorRootElement.getBoundingClientRect();
+    const targetRect = entry.element.getBoundingClientRect();
+    const pad = 8;
+
+    const top = targetRect.top - calcRect.top - pad;
+    const left = targetRect.left - calcRect.left - pad;
+    const width = targetRect.width + pad * 2;
+    const height = targetRect.height + pad * 2;
+
+    tourSpotlight.style.top = `${top}px`;
+    tourSpotlight.style.left = `${left}px`;
+    tourSpotlight.style.width = `${width}px`;
+    tourSpotlight.style.height = `${height}px`;
+
+    const cardHeight = tourCard.offsetHeight || 190;
+    const cardWidth = tourCard.offsetWidth || 320;
+    let cardTop = top + height + 14;
+    if (cardTop + cardHeight > calcRect.height - 12) {
+      cardTop = top - cardHeight - 14;
+    }
+    cardTop = Math.max(12, Math.min(cardTop, calcRect.height - cardHeight - 12));
+
+    let cardLeft = left;
+    cardLeft = Math.max(12, Math.min(cardLeft, calcRect.width - cardWidth - 12));
+
+    tourCard.style.top = `${cardTop}px`;
+    tourCard.style.left = `${cardLeft}px`;
+  };
+
+  const renderTourStep = () => {
+    const entry = activeTourSteps[currentTourIndex];
+    if (!entry) return;
+    tourTitleElement.textContent = entry.step.title;
+    tourTextElement.textContent = entry.step.text;
+    tourWhyElement.textContent = entry.step.why;
+    tourStepCountElement.textContent = `${currentTourIndex + 1} of ${activeTourSteps.length}`;
+    tourBackButton.style.visibility = currentTourIndex === 0 ? 'hidden' : 'visible';
+    tourNextButton.textContent = currentTourIndex === activeTourSteps.length - 1 ? 'Done' : 'Next';
+
+    tourSpotlight.classList.remove('pulse');
+    void tourSpotlight.offsetWidth;
+    tourSpotlight.classList.add('pulse');
+
+    entry.element.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    positionTour();
+    setTimeout(positionTour, 380);
+  };
+
+  const openTour = () => {
+    activeTourSteps = tourStepDefinitions
+      .map(step => ({ step, element: container.querySelector(step.selector) as HTMLElement }))
+      .filter(entry => entry.element && entry.element.offsetParent !== null);
+    if (!activeTourSteps.length) return;
+    currentTourIndex = 0;
+    tourLayer.classList.add('open');
+    renderTourStep();
+  };
+
+  const closeTour = () => {
+    tourLayer.classList.remove('open');
+  };
+
+  onboardingReopenButton?.addEventListener('click', openTour);
+  tourCloseButton?.addEventListener('click', closeTour);
+  tourNextButton?.addEventListener('click', () => {
+    if (currentTourIndex === activeTourSteps.length - 1) {
+      closeTour();
+      return;
+    }
+    currentTourIndex += 1;
+    renderTourStep();
+  });
+  tourBackButton?.addEventListener('click', () => {
+    if (currentTourIndex > 0) {
+      currentTourIndex -= 1;
+      renderTourStep();
+    }
+  });
+  tourLayer?.addEventListener('click', (e) => {
+    if (e.target === tourLayer || e.target === tourSpotlight) closeTour();
+  });
+  window.addEventListener('resize', () => { if (tourLayer.classList.contains('open')) positionTour(); });
+  window.addEventListener('scroll', () => { if (tourLayer.classList.contains('open')) positionTour(); }, { passive: true });
+
+  renderOnboardingStep();
+  renderOnboardingReadouts();
+
+  let hasSeenOnboarding = false;
+  try { hasSeenOnboarding = localStorage.getItem(ONBOARDING_STORAGE_KEY) === '1'; } catch { /* private browsing etc - just show it every visit */ }
+  if (!hasSeenOnboarding) {
+    openOnboarding();
+  }
 
   updateResults();
 }
