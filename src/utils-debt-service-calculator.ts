@@ -95,16 +95,21 @@ export function calculateTDSRatio(
   return (totalMonthlyDebt / monthlyIncome) * 100;
 }
 
+// Single source of truth for the B-20 qualifying benchmark rate. Previously this value was
+// defined twice and out of sync: getStressTestRate() used 5.20% while the live UI and
+// calculateAllRatios's default param used 5.25%. getStressTestRate() itself is dead code (never
+// called anywhere) - this is a cleanup of the duplicated constant, not a live-behavior change.
+export const B20_BENCHMARK_RATE = 5.25;
+
 export function getStressTestRate(contractRate: number): number {
   // Canadian stress test: higher of contract rate + 2% or Bank of Canada 5-year benchmark (B-20 rate)
-  const benchmarkRate = 5.20; // B-20 stress test rate
-  return Math.max(contractRate + 2, benchmarkRate);
+  return Math.max(contractRate + 2, B20_BENCHMARK_RATE);
 }
 
 export function calculateAllRatios(
-  inputs: MortgageInputs, 
+  inputs: MortgageInputs,
   compoundingFrequency: string = 'semi-annual',
-  benchmarkStressRate: number = 5.25,
+  benchmarkStressRate: number = B20_BENCHMARK_RATE,
   condoFeeInclusionRate: number = 50,
   rentalIncomePortionRate: number = 50,
   stressTestType: 'contract' | 'b20' = 'contract',
@@ -265,7 +270,7 @@ export function calculateIdealMortgageAmount(
   if (stressTestType === 'contract') {
     stressTestRate = inputs.interestRate;
   } else {
-    stressTestRate = Math.max(inputs.interestRate + 2, 5.25);
+    stressTestRate = Math.max(inputs.interestRate + 2, B20_BENCHMARK_RATE);
   }
   
   // Calculate target GDS amount based on target ratio
