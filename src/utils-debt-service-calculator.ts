@@ -30,8 +30,17 @@ export function calculateMonthlyMortgagePayment(
   amortizationYears: number,
   compoundingFrequency: string = 'semi-annual'
 ): number {
-  if (principal <= 0 || annualRate <= 0 || amortizationYears <= 0) return 0;
-  
+  // Note: annualRate === 0 is a valid input (the rate slider's own minimum is 0) and must
+  // fall through to the monthlyRate === 0 branch below, not be treated as invalid. Also guard
+  // explicitly against non-finite inputs: a NaN/Infinity principal fails every "<= 0"
+  // comparison below (those comparisons are never true for NaN/Infinity) and would otherwise
+  // silently fall through and poison the payment - and everything downstream (GDS/TDS) - with
+  // NaN instead of failing safe to 0.
+  if (
+    !Number.isFinite(principal) || !Number.isFinite(annualRate) || !Number.isFinite(amortizationYears) ||
+    principal <= 0 || annualRate < 0 || amortizationYears <= 0
+  ) return 0;
+
   // Convert annual rate to decimal
   const annualRateDecimal = annualRate / 100;
   
