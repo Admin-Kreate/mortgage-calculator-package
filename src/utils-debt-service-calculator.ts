@@ -481,6 +481,68 @@ export function calculateQualification(
   };
 }
 
+export interface DebtItems {
+  carLoanMonthly: number;
+  studentLoanMonthly: number;
+  otherLoanMonthly: number;
+  creditCardBalance: number;
+  lineOfCreditBalance: number;
+  helocBalance: number;
+  helocRate: number;
+}
+
+export interface DebtObligations {
+  carLoan: number;
+  studentLoan: number;
+  otherLoans: number;
+  creditCard: number;
+  lineOfCredit: number;
+  heloc: number;
+  total: number;
+}
+
+export const REVOLVING_MIN_PAYMENT_RATE = 0.03;
+export const HELOC_QUALIFYING_AMORTIZATION_YEARS = 25;
+
+// Negative/non-finite balances or monthly amounts fail safe to 0 rather than poisoning the
+// total with NaN/negative debt "relief".
+function safeNonNegative(n: number): number {
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+// Converts the six itemized debt fields into the monthly obligation each one actually counts
+// as toward TDS: car/student/other loans pass through as entered, credit card and unsecured
+// LOC balances convert at REVOLVING_MIN_PAYMENT_RATE (3% of balance/month), and the HELOC
+// converts via a standard amortizing payment over HELOC_QUALIFYING_AMORTIZATION_YEARS at the
+// HELOC's own rate.
+export function calculateDebtObligations(debts: DebtItems): DebtObligations {
+  const carLoan = safeNonNegative(debts.carLoanMonthly);
+  const studentLoan = safeNonNegative(debts.studentLoanMonthly);
+  const otherLoans = safeNonNegative(debts.otherLoanMonthly);
+  const creditCardBalance = safeNonNegative(debts.creditCardBalance);
+  const lineOfCreditBalance = safeNonNegative(debts.lineOfCreditBalance);
+  const helocBalance = safeNonNegative(debts.helocBalance);
+  // A negative/NaN HELOC rate clamps to 0% (still amortized -> balance/300), it does NOT zero
+  // out the obligation the way a non-finite/negative balance does above.
+  const helocRate = Number.isFinite(debts.helocRate) && debts.helocRate > 0 ? debts.helocRate : 0;
+
+  const creditCard = creditCardBalance * REVOLVING_MIN_PAYMENT_RATE;
+  const lineOfCredit = lineOfCreditBalance * REVOLVING_MIN_PAYMENT_RATE;
+
+  // Secured HELOC: standard amortizing payment over 25y at helocRate. Using 'monthly'
+  // compounding here (not the mortgage default semi-annual) makes the effective monthly rate
+  // exactly helocRate/12, the nominal-rate convention LOCs use - unlike mortgages, they're not
+  // semi-annual-compounded. At 0% this naturally falls through to helocBalance/300, and a 0
+  // balance is guarded to $0 by calculateMonthlyMortgagePayment's own principal<=0 check.
+  const heloc = calculateMonthlyMortgagePayment(
+    helocBalance, helocRate, HELOC_QUALIFYING_AMORTIZATION_YEARS, 'monthly', 'regular'
+  );
+
+  const total = carLoan + studentLoan + otherLoans + creditCard + lineOfCredit + heloc;
+
+  return { carLoan, studentLoan, otherLoans, creditCard, lineOfCredit, heloc, total };
+}
+
 export function getStressTestStatus(gdsRatio: number, tdsRatio: number): {
   level: 'excellent' | 'good' | 'caution' | 'poor';
   color: string;
