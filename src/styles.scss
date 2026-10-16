@@ -3867,3 +3867,180 @@ body {
     border: 1px solid #ddd;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+// Debt service calculator - new results panels (verdict / gauges / stress test / qualify /
+// stacked breakdown). Basic functional layout only - full visual reskin is a separate pass.
+.dsc-verdict {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #E3E5DD;
+
+    &[data-level="within"] { background: #ecfdf3; border-color: #15803d; }
+    &[data-level="borderline"] { background: #fffbeb; border-color: #b45309; }
+    &[data-level="over"] { background: #fef2f2; border-color: #c92a2a; }
+    &[data-level="neutral"] { background: #f8f9fb; }
+
+    .dsc-verdict-headline {
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .dsc-verdict-detail {
+        font-size: 13px;
+        margin-top: 0.25rem;
+        color: #475569;
+    }
+}
+
+.dsc-gauges {
+    margin-bottom: 1rem;
+
+    .dsc-gauge {
+        margin-top: 0.5rem;
+    }
+
+    .dsc-gauge-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .dsc-gauge-track {
+        position: relative;
+        height: 8px;
+        border-radius: 4px;
+        background: #E3E5DD;
+        margin-top: 0.25rem;
+        overflow: hidden;
+    }
+
+    .dsc-gauge-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.2s ease-in-out;
+    }
+
+    .dsc-gauge-caption {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 0.25rem;
+    }
+}
+
+.dsc-stress {
+    margin-bottom: 1rem;
+
+    .dsc-stress-row {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .dsc-stress-col {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #E3E5DD;
+        border-radius: 0.5rem;
+    }
+
+    .dsc-stress-label {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .dsc-stress-badge {
+        margin-left: 0.25rem;
+        font-size: 10px;
+        padding: 0 0.3rem;
+        border-radius: 0.25rem;
+        background: #eef2ff;
+    }
+
+    .dsc-stress-value {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .dsc-stress-payment {
+        font-size: 12px;
+        color: #475569;
+    }
+
+    .dsc-stress-note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+}
+
+.dsc-stack-bar {
+    display: flex;
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #E3E5DD;
+    margin-bottom: 0.75rem;
+
+    .dsc-stack-segment {
+        height: 100%;
+        transition: width 0.2s ease-in-out;
+    }
+
+    .dsc-stack-mortgage { background: #1A4383; }
+    .dsc-stack-home { background: #60a5fa; }
+    .dsc-stack-debts { background: #f59e0b; }
+    .dsc-stack-cash { background: #15803d; }
+}
+
+.dsc-qualify {
+    margin-top: 1rem;
+
+    .dsc-qualify-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .dsc-qualify-item {
+        flex: 1;
+        min-width: 140px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #E3E5DD;
+        border-radius: 0.5rem;
+    }
+
+    .dsc-qualify-label {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .dsc-qualify-value {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .dsc-qualify-note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+}
+
+.dsc-debts-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #E3E5DD;
+}
+
+.dsc-debt-helper {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
