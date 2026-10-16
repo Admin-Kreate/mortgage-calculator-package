@@ -588,6 +588,147 @@ export function calculateDebtObligations(debts: DebtItems): DebtObligations {
   return { carLoan, studentLoan, otherLoans, creditCard, lineOfCredit, heloc, total };
 }
 
+export type ImprovementPatch = { debts?: Partial<DebtItems>; amortizationYears?: number; mortgageAmount?: number };
+
+export interface RatioImprovement {
+  id: 'pay-off-credit-card' | 'pay-off-line-of-credit' | 'pay-off-car-loan' | 'extend-amortization' | 'borrow-less';
+  title: string;
+  description: string;
+  newGds: number;
+  newTds: number;
+  gdsDelta: number;
+  tdsDelta: number;
+  newLevel: RatioStatusLevel;
+  patch: ImprovementPatch;
+}
+
+function rankRatioLevel(level: RatioStatusLevel): number {
+  return level === 'within' ? 0 : level === 'borderline' ? 1 : 2;
+}
+
+// Whole-dollar formatting for suggestion titles ("$8,000"), distinct from
+// formatCurrencyDetailed's fixed 2-decimal display formatting above.
+function formatWholeDollars(amount: number): string {
+  return '$' + Math.round(amount).toLocaleString('en-CA');
+}
+
+const IMPROVEMENT_DELTA_THRESHOLD = 0.1;
+
+// Ranks up to 4 one-click-apply suggestions (pay off a debt, extend amortization, borrow
+// less) by actually re-running calculateAllRatios/calculateQualification under the modified
+// inputs, so the ranking - and the "new ratio" numbers shown - reflect real improvement rather
+// than a guess.
+export function suggestRatioImprovements(
+  inputs: MortgageInputs,
+  debts: DebtItems,
+  settings: DebtServiceSettings
+): RatioImprovement[] {
+  const benchmarkStressRate = settings.benchmarkStressRate ?? B20_BENCHMARK_RATE;
+
+  // Displayed ratios: stress-tested in b20 mode, plain in contract mode - same rule the
+  // results panel uses.
+  const simulate = (nextInputs: MortgageInputs): { gds: number; tds: number } => {
+    const r = calculateAllRatios(
+      nextInputs, settings.compoundingFrequency, benchmarkStressRate, settings.condoFeeInclusionRate,
+      settings.rentalIncomePortionRate, settings.stressTestType, settings.rentalIncomeMethod, settings.loanType
+    );
+    return settings.stressTestType === 'b20'
+      ? { gds: r.stressTestGDS, tds: r.stressTestTDS }
+      : { gds: r.gdsRatio, tds: r.tdsRatio };
+  };
+
+  const current = simulate(inputs);
+  const currentStatus = getRatioStatus(current.gds, current.tds);
+
+  const candidates: RatioImprovement[] = [];
+
+  // Paying off a revolving balance or the car loan never changes GDS (GDS excludes debt
+  // payments) - only TDS moves. Shared by the three payoff candidates below.
+  const tryDebtPayoff = (
+    id: 'pay-off-credit-card' | 'pay-off-line-of-credit' | 'pay-off-car-loan',
+    amountOwing: number,
+    patchDebts: Partial<DebtItems>,
+    title: string,
+    description: string
+  ) => {
+    if (!(amountOwing > 0)) return;
+    const newDebts: DebtItems = { ...debts, ...patchDebts };
+    const newTotal = calculateDebtObligations(newDebts).total;
+    const { gds: newGds, tds: newTds } = simulate({ ...inputs, monthlyDebtPayments: newTotal });
+    const gdsDelta = newGds - current.gds;
+    const tdsDelta = newTds - current.tds;
+    if (-gdsDelta < IMPROVEMENT_DELTA_THRESHOLD && -tdsDelta < IMPROVEMENT_DELTA_THRESHOLD) return;
+    candidates.push({
+      id, title, description,
+      newGds, newTds, gdsDelta, tdsDelta,
+      newLevel: getRatioStatus(newGds, newTds).level,
+      patch: { debts: patchDebts }
+    });
+  };
+
+  tryDebtPayoff(
+    'pay-off-credit-card', debts.creditCardBalance, { creditCardBalance: 0 },
+    `Pay off your ${formatWholeDollars(debts.creditCardBalance)} credit card balance`,
+    'Clearing this balance removes its 3%-of-balance minimum payment from your monthly debts, lowering your TDS.'
+  );
+  tryDebtPayoff(
+    'pay-off-line-of-credit', debts.lineOfCreditBalance, { lineOfCreditBalance: 0 },
+    `Pay off your ${formatWholeDollars(debts.lineOfCreditBalance)} line of credit balance`,
+    'Clearing this balance removes its 3%-of-balance minimum payment from your monthly debts, lowering your TDS.'
+  );
+  tryDebtPayoff(
+    'pay-off-car-loan', debts.carLoanMonthly, { carLoanMonthly: 0 },
+    `Pay off your ${formatWholeDollars(debts.carLoanMonthly)}/mo car loan`,
+    'Eliminating this monthly payment frees up room in your TDS ratio.'
+  );
+
+  // Extending amortization lowers the mortgage payment, which can move both GDS and TDS. Only
+  // offered when there's somewhere to extend to.
+  if (inputs.amortizationYears < 30) {
+    const { gds: newGds, tds: newTds } = simulate({ ...inputs, amortizationYears: 30 });
+    const gdsDelta = newGds - current.gds;
+    const tdsDelta = newTds - current.tds;
+    if (-gdsDelta >= IMPROVEMENT_DELTA_THRESHOLD || -tdsDelta >= IMPROVEMENT_DELTA_THRESHOLD) {
+      candidates.push({
+        id: 'extend-amortization',
+        title: 'Extend your amortization to 30 years',
+        description: 'Spreading payments over 30 years instead of your current amortization would lower your monthly payment - note that 30-year amortization is only available for some borrowers and mortgages, so check with your lender.',
+        newGds, newTds, gdsDelta, tdsDelta,
+        newLevel: getRatioStatus(newGds, newTds).level,
+        patch: { amortizationYears: 30 }
+      });
+    }
+  }
+
+  // Borrow-less only makes sense once you're outside the preferred range, and the amount comes
+  // from calculateQualification (which always uses the regular/amortizing qualifying formula)
+  // even though this function otherwise honours settings.loanType for display ratios.
+  if (currentStatus.level !== 'within') {
+    const qualification = calculateQualification(inputs, settings, PREFERRED_LIMITS);
+    const roundedMax = Math.floor(qualification.maxMortgage / 1000) * 1000;
+    if (roundedMax > 0 && roundedMax < inputs.mortgageAmount) {
+      const { gds: newGds, tds: newTds } = simulate({ ...inputs, mortgageAmount: roundedMax });
+      const gdsDelta = newGds - current.gds;
+      const tdsDelta = newTds - current.tds;
+      if (-gdsDelta >= IMPROVEMENT_DELTA_THRESHOLD || -tdsDelta >= IMPROVEMENT_DELTA_THRESHOLD) {
+        candidates.push({
+          id: 'borrow-less',
+          title: `Borrow ${formatWholeDollars(inputs.mortgageAmount - roundedMax)} less`,
+          description: 'Reducing your mortgage amount brings your ratios back within the lender-preferred range.',
+          newGds, newTds, gdsDelta, tdsDelta,
+          newLevel: getRatioStatus(newGds, newTds).level,
+          patch: { mortgageAmount: roundedMax }
+        });
+      }
+    }
+  }
+
+  // Best status tier first, then the biggest TDS reduction within a tier.
+  candidates.sort((a, b) => rankRatioLevel(a.newLevel) - rankRatioLevel(b.newLevel) || a.tdsDelta - b.tdsDelta);
+
+  return candidates.slice(0, 4);
+}
+
 export function getStressTestStatus(gdsRatio: number, tdsRatio: number): {
   level: 'excellent' | 'good' | 'caution' | 'poor';
   color: string;

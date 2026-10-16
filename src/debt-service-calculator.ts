@@ -1,8 +1,9 @@
 import {
-  calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount, LoanType,
+  calculateAllRatios, formatCurrencyDetailed, LoanType,
   DebtServiceSettings, QualificationResult, calculateQualification, MAX_LIMITS, B20_BENCHMARK_RATE,
   DebtItems, DebtObligations, calculateDebtObligations, REVOLVING_MIN_PAYMENT_RATE, HELOC_QUALIFYING_AMORTIZATION_YEARS,
-  PREFERRED_LIMITS, RatioStatusLevel, getRatioStatus
+  PREFERRED_LIMITS, RatioStatusLevel, getRatioStatus,
+  ImprovementPatch, RatioImprovement, suggestRatioImprovements
 } from './utils-debt-service-calculator';
 import StressTestRuleIcon from './assets/icons/stress-test-rule.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
@@ -352,11 +353,6 @@ export function initDebtServiceCalculator(container: HTMLElement) {
 
     <div class="debt-service-ratios">
       <div class="details">
-        <div class="ratio-tags">
-          <div class="ratio-tag ratio-tag-32">32%/40%</div>
-          <div class="ratio-tag ratio-tag-35">35%/42%</div>
-          <div class="ratio-tag ratio-tag-39">39%/44%</div>
-        </div>
         <div class="dsc-stack-bar" role="img" aria-label="Monthly breakdown of mortgage, home expenses, debts, and cash left">
           <div class="dsc-stack-segment dsc-stack-mortgage"></div>
           <div class="dsc-stack-segment dsc-stack-home"></div>
@@ -405,6 +401,14 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         </div>
       </div>
       <div class="dsc-qualify-note"></div>
+    </div>
+
+    <div class="ways-to-save">
+      <div class="section-wrapper">
+        <div class="sec-heading">Ways to lower your ratios</div>
+        <div class="ways-to-save-intro"></div>
+        <div class="ways-to-save-list"></div>
+      </div>
     </div>
   `;
 
@@ -480,7 +484,6 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   const amortizationInput = container.querySelector('.amortization .value-input') as HTMLInputElement;
   const amortizationInputSlider = container.querySelector('.amortization .slider') as HTMLInputElement;
   const amortizationErrorElement = container.querySelector('.amortization .field-error') as HTMLElement;
-  const ratioTagsResultElements = container.querySelectorAll('.debt-service-calculator-results .debt-service-ratios .details .ratio-tags .ratio-tag') as NodeListOf<HTMLInputElement>;
 
   // Verdict banner
   const verdictElement = container.querySelector('.dsc-verdict') as HTMLElement;
@@ -518,6 +521,11 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   const qualifyMinIncomeValueElement = container.querySelector('.dsc-qualify-item:nth-child(2) .dsc-qualify-value') as HTMLElement;
   const qualifyRoomValueElement = container.querySelector('.dsc-qualify-item:nth-child(3) .dsc-qualify-value') as HTMLElement;
   const qualifyNoteElement = container.querySelector('.dsc-qualify-note') as HTMLElement;
+
+  // Ways to lower your ratios
+  const waysToSaveElement = container.querySelector('.ways-to-save') as HTMLElement;
+  const waysToSaveListElement = container.querySelector('.ways-to-save-list') as HTMLElement;
+  const waysToSaveIntroElement = container.querySelector('.ways-to-save-intro') as HTMLElement;
 
   const debtServiceRateSelectorElements = container.querySelectorAll('.debt-service-rate .btn-group-selector .selector');
   const stressTestRuleSelectorElements = container.querySelectorAll('.stress-test-rule .btn-group-selector .selector');
@@ -634,71 +642,6 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       }
 
       updateResults();
-    });
-  });
-
-  ratioTagsResultElements.forEach(ratioTagResultElement => {
-    ratioTagResultElement.addEventListener('click', (event) => {
-      const targetElement = event.target as HTMLElement;
-      let targetGdsRatio = 32;
-      if (targetElement.classList.contains("ratio-tag-35")) {
-        targetGdsRatio = 35;
-      } else if (targetElement.classList.contains("ratio-tag-39")) {
-        targetGdsRatio = 39;
-      }
-      
-      const loanAmountValue = loanAmountInput.dataset.previousValue ? parseInt(loanAmountInput.dataset.previousValue) : 0;
-      const grossAnnualIncomeValue = grossAnnualIncomeInput.dataset.previousValue ? parseInt(grossAnnualIncomeInput.dataset.previousValue) : 0;
-      const monthlyDebtPaymentsValue = calculateDebtObligations(getDebtItems()).total;
-      const propertTaxMonthlyValue = homeExpenseMonthlyInput.dataset.previousValue ? parseFloat(parseFloat(homeExpenseMonthlyInput.dataset.previousValue).toFixed(2)) : 0;
-      const condoFeesValue = homeExpenseCondoFeesInput.dataset.previousValue ? parseInt(homeExpenseCondoFeesInput.dataset.previousValue) : 0;
-      const heatingCostValue = homeExpenseHeatInput.dataset.previousValue ? parseInt(homeExpenseHeatInput.dataset.previousValue) : 0;
-      const interestRateValue = interestRateInput.dataset.previousValue ? parseFloat(parseFloat(interestRateInput.dataset.previousValue).toFixed(2)) : 0;
-      const amortizationValue = amortizationInput.dataset.previousValue ? parseInt(amortizationInput.dataset.previousValue) : 5;
-      const rentalIncomeMonthlyValue = addRentalIncomeMonthlyInput.dataset.previousValue ? parseInt(addRentalIncomeMonthlyInput.dataset.previousValue) : 0;
-
-      const compoundingFrequencyValue = compoundingFrequencyValueElement.textContent ? compoundingFrequencyValueElement.textContent.toLowerCase() : "semi-annual";
-      
-      const stressTestTypeActiveElement = container.querySelector(".stress-test-rule .btn-group-selector .active") as HTMLInputElement;
-      const rentalIncomeMethodActiveElement = container.querySelector(".rental-income-rule .btn-group-selector .active") as HTMLInputElement;
-
-      const rawStressTest = stressTestTypeActiveElement.textContent?.toLowerCase() || 'contract';
-      const stressTestTypeValue: StressTestType = isStressTestType(rawStressTest) ? rawStressTest : 'contract';
-
-      const rawRentalMethod = rentalIncomeMethodActiveElement.textContent?.toLowerCase().replace(" ", "-") || 'offset';
-      const rentalIncomeMethodValue: RentalIncomeMethod = isRentalIncomeMethod(rawRentalMethod) ? rawRentalMethod : 'offset';
-
-      const inputData: any = {
-        mortgageAmount: loanAmountValue,
-        grossAnnualIncome: grossAnnualIncomeValue,
-        monthlyDebtPayments: monthlyDebtPaymentsValue,
-        propertyTaxMonthly: propertTaxMonthlyValue,
-        condoFees: condoFeesValue,
-        heatingCost: heatingCostValue,
-        interestRate: interestRateValue,
-        amortizationYears: amortizationValue,
-        isRentalIncomeEnabled: addRentalIncomeExpandableElement.classList.contains("expanded"),
-        rentalIncomeMonthly: rentalIncomeMonthlyValue,
-      };
-
-
-      const idealAmount = calculateIdealMortgageAmount(
-        targetGdsRatio,
-        inputData,
-        compoundingFrequencyValue,
-        50,
-        50,
-        stressTestTypeValue,
-        rentalIncomeMethodValue
-      );
-      if (idealAmount > 0 && idealAmount <= 1500000) {
-        const inputValue = Math.round(idealAmount);
-        loanAmountInputSlider.value = inputValue.toString();
-        loanAmountInput.value = inputValue ? `$  ${inputValue.toLocaleString('en-US')}` : '';
-        loanAmountInput.dataset.previousValue = inputValue.toString();
-        updateSliderBackground(loanAmountInputSlider);
-        updateResults();
-      }
     });
   });
 
@@ -1124,6 +1067,117 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     qualifyNoteElement.textContent = loanTypeValue === 'interest-only'
       ? 'Qualification uses a regular amortizing payment, even though Interest Only is selected above.'
       : '';
+
+    // Ways to lower your ratios
+    const improvements: RatioImprovement[] = hasValidIncome ? suggestRatioImprovements(inputData, debtItems, qualificationSettings) : [];
+    renderWaysToSave(improvements, status?.level ?? null, hasValidIncome);
+  }
+
+  function renderWaysToSave(improvements: RatioImprovement[], currentLevel: RatioStatusLevel | null, hasValidIncome: boolean) {
+    if (!waysToSaveElement) return;
+
+    if (!hasValidIncome) {
+      waysToSaveElement.style.display = 'none';
+      return;
+    }
+
+    if (!improvements.length) {
+      if (currentLevel === 'within') {
+        waysToSaveElement.style.display = 'unset';
+        waysToSaveIntroElement.textContent = "You're within lender guidelines - no changes needed right now.";
+        waysToSaveListElement.innerHTML = '';
+      } else {
+        waysToSaveElement.style.display = 'none';
+      }
+      return;
+    }
+
+    waysToSaveElement.style.display = 'unset';
+    waysToSaveIntroElement.textContent = `Based on your numbers, here ${improvements.length === 1 ? 'is 1 option' : `are ${improvements.length} options`} that would improve your ratios.`;
+
+    waysToSaveListElement.innerHTML = '';
+    improvements.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'way-to-save';
+
+      const info = document.createElement('div');
+      info.className = 'way-to-save-info';
+
+      const label = document.createElement('div');
+      label.className = 'way-to-save-label';
+      label.textContent = item.title;
+
+      const detail = document.createElement('div');
+      detail.className = 'way-to-save-detail';
+      detail.textContent = item.description;
+
+      const impact = document.createElement('div');
+      // dsc-impact-<level> lets the delta line's colour reflect the RESULTING tier (still
+      // over/borderline/within after applying this suggestion) rather than a blanket "green
+      // means improvement" - a suggestion that only takes someone from over to borderline
+      // shouldn't render the same reassuring green as one that gets them fully within.
+      impact.className = `way-to-save-impact dsc-impact-${item.newLevel}`;
+      const newHeadline = getRatioStatus(item.newGds, item.newTds).headline;
+      impact.textContent = `GDS ${item.newGds.toFixed(2)}% · TDS ${item.newTds.toFixed(2)}% — ${newHeadline}`;
+
+      info.appendChild(label);
+      info.appendChild(detail);
+      info.appendChild(impact);
+
+      const applyButton = document.createElement('button');
+      applyButton.type = 'button';
+      applyButton.className = 'way-to-save-apply';
+      applyButton.textContent = 'Apply';
+      // Guard against a real race: if a debt/home-expense field still has focus when this
+      // button is clicked, the mousedown's default focus change blurs that field first, which
+      // synchronously fires its 'change' handler -> updateResults() -> re-renders this very
+      // list, replacing this button with a new element *before* the click event would
+      // otherwise fire on it - so the click silently never registers. Preventing the
+      // mousedown's default action stops it from stealing focus (and triggering that
+      // synchronous rebuild) before the click completes.
+      applyButton.addEventListener('mousedown', (e) => e.preventDefault());
+      applyButton.addEventListener('click', () => applyImprovementPatch(item.patch));
+
+      row.appendChild(info);
+      row.appendChild(applyButton);
+      waysToSaveListElement.appendChild(row);
+    });
+  }
+
+  const debtInputBySettingsKey: Record<keyof DebtItems, HTMLInputElement> = {
+    carLoanMonthly: carLoanInput,
+    studentLoanMonthly: studentLoanInput,
+    otherLoanMonthly: otherLoanInput,
+    creditCardBalance: creditCardBalanceInput,
+    lineOfCreditBalance: lineOfCreditBalanceInput,
+    helocBalance: helocBalanceInput,
+    helocRate: helocRateInput,
+  };
+
+  function applyImprovementPatch(patch: ImprovementPatch) {
+    if (patch.debts) {
+      (Object.keys(patch.debts) as (keyof DebtItems)[]).forEach(key => {
+        const value = patch.debts![key];
+        if (value === undefined) return;
+        const input = debtInputBySettingsKey[key];
+        if (!input) return;
+        if (key === 'helocRate') {
+          input.value = `${value.toFixed(2)}%`;
+        } else {
+          input.value = `$  ${Math.round(value).toLocaleString('en-US')}`;
+        }
+        input.dataset.previousValue = key === 'helocRate' ? value.toFixed(2) : Math.round(value).toString();
+      });
+    }
+    if (patch.amortizationYears !== undefined) {
+      amortizationInputSlider.value = String(Math.max(5, Math.min(30, patch.amortizationYears)));
+      amortizationInputSlider.dispatchEvent(new Event('input'));
+    }
+    if (patch.mortgageAmount !== undefined) {
+      loanAmountInputSlider.value = String(Math.max(0, Math.min(1500000, Math.round(patch.mortgageAmount))));
+      loanAmountInputSlider.dispatchEvent(new Event('input'));
+    }
+    updateResults();
   }
 
   formatInput(loanAmountInput, '$', 'loan-amount', loanAmountErrorElement, 'Enter an amount of $0 or more.');
