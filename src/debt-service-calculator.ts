@@ -1,4 +1,4 @@
-import { calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount } from './utils-debt-service-calculator';
+import { calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount, LoanType } from './utils-debt-service-calculator';
 import StressTestRuleIcon from './assets/icons/stress-test-rule.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
 import RentalIncomeRuleIcon from './assets/icons/rental-income-rule.svg'
@@ -725,6 +725,11 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     return value === 'offset' || value === 'add-back';
   }
 
+  function getActiveLoanType(): LoanType {
+    const activeEl = container.querySelector(".debt-service-rate .btn-group-selector .active") as HTMLElement | null;
+    return activeEl?.textContent?.trim().toLowerCase() === 'interest only' ? 'interest-only' : 'regular';
+  }
+
   const updateResults = () => {
     const loanAmountValue = loanAmountInput.dataset.previousValue ? parseInt(loanAmountInput.dataset.previousValue) : 0;
     const grossAnnualIncomeValue = grossAnnualIncomeInput.dataset.previousValue ? parseInt(grossAnnualIncomeInput.dataset.previousValue) : 0;
@@ -762,7 +767,7 @@ export function initDebtServiceCalculator(container: HTMLElement) {
       isRentalIncomeEnabled: addRentalIncomeExpandableElement.classList.contains("expanded"),
       rentalIncomeMonthly: rentalIncomeMonthlyValue,
     };
-    const resultObj = calculateAllRatios(inputData, compoundingFrequencyValue, stressTestRate, condoFeeInclusionRateValue, rentalIncomePortionRateValue, stressTestTypeValue, rentalIncomeMethodValue);
+    const resultObj = calculateAllRatios(inputData, compoundingFrequencyValue, stressTestRate, condoFeeInclusionRateValue, rentalIncomePortionRateValue, stressTestTypeValue, rentalIncomeMethodValue, getActiveLoanType());
 
     gdsRatioResultsElement.textContent = stressTestTypeValue === "b20" ? `${resultObj.stressTestGDS.toFixed(3)}%` : `${resultObj.gdsRatio.toFixed(3)}%`;
     tdsRatioResultsElement.textContent = stressTestTypeValue === "b20" ? `${resultObj.stressTestTDS.toFixed(3)}%` : `${resultObj.tdsRatio.toFixed(3)}%`;

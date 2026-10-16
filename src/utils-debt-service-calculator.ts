@@ -24,11 +24,35 @@ export interface CalculationResults {
   totalMonthlyHousingCosts: number;
 }
 
+// Number of compounding periods per year for each supported compounding frequency. Used to
+// convert a nominal annual rate into an effective monthly rate: periodicRate = annualRate / n,
+// then round-trip through the effective annual rate to get the effective monthly rate. Shared
+// by calculateMonthlyMortgagePayment and calculateIdealMortgageAmount so the two can't drift.
+const COMPOUNDING_PERIODS_PER_YEAR: Record<string, number> = {
+  'daily': 365,
+  'weekly': 52,
+  'bi-weekly': 26,
+  'monthly': 12,
+  'quarterly': 4,
+  'semi-annual': 2,
+};
+
+function getEffectiveMonthlyRate(annualRateDecimal: number, compoundingFrequency: string): number {
+  // Default to semi-annual, the Canadian statutory standard, for any unrecognized value.
+  const n = COMPOUNDING_PERIODS_PER_YEAR[compoundingFrequency] ?? 2;
+  const periodicRate = annualRateDecimal / n;
+  const effectiveAnnualRate = Math.pow(1 + periodicRate, n) - 1;
+  return Math.pow(1 + effectiveAnnualRate, 1 / 12) - 1;
+}
+
+export type LoanType = 'regular' | 'interest-only';
+
 export function calculateMonthlyMortgagePayment(
   principal: number,
   annualRate: number,
   amortizationYears: number,
-  compoundingFrequency: string = 'semi-annual'
+  compoundingFrequency: string = 'semi-annual',
+  loanType: LoanType = 'regular'
 ): number {
   // Note: annualRate === 0 is a valid input (the rate slider's own minimum is 0) and must
   // fall through to the monthlyRate === 0 branch below, not be treated as invalid. Also guard
@@ -43,32 +67,27 @@ export function calculateMonthlyMortgagePayment(
 
   // Convert annual rate to decimal
   const annualRateDecimal = annualRate / 100;
-  
+
   // Calculate effective monthly rate based on compounding frequency
-  let monthlyRate: number;
-  
-  if (compoundingFrequency === 'monthly') {
-    monthlyRate = annualRateDecimal / 12;
-  } else if (compoundingFrequency === 'semi-annual') {
-    // Canadian standard: semi-annual compounding
-    // Convert semi-annual rate to effective monthly rate
-    const semiAnnualRate = annualRateDecimal / 2;
-    const effectiveAnnualRate = Math.pow(1 + semiAnnualRate, 2) - 1;
-    monthlyRate = Math.pow(1 + effectiveAnnualRate, 1/12) - 1;
-  } else { // annual
-    monthlyRate = Math.pow(1 + annualRateDecimal, 1/12) - 1;
+  const monthlyRate = getEffectiveMonthlyRate(annualRateDecimal, compoundingFrequency);
+
+  // Interest-only: no principal is ever repaid, so the payment is simply the interest on the
+  // outstanding (full) balance for one period. A 0% rate legitimately produces a $0 payment
+  // here - that's correct for interest-only (there's no interest to pay).
+  if (loanType === 'interest-only') {
+    return principal * monthlyRate;
   }
-  
+
   const numberOfPayments = amortizationYears * 12;
-  
+
   if (monthlyRate === 0) {
     return principal / numberOfPayments;
   }
-  
-  const monthlyPayment = principal * 
-    (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+
+  const monthlyPayment = principal *
+    (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
     (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-    
+
   return monthlyPayment;
 }
 
@@ -113,23 +132,29 @@ export function calculateAllRatios(
   condoFeeInclusionRate: number = 50,
   rentalIncomePortionRate: number = 50,
   stressTestType: 'contract' | 'b20' = 'contract',
-  rentalIncomeMethod: 'add-back' | 'offset' = 'offset'
+  rentalIncomeMethod: 'add-back' | 'offset' = 'offset',
+  // The "Regular"/"Interest Only" selector in the UI was previously rendered but never actually
+  // read - this function always computed the amortizing payment regardless of which one was
+  // selected. Threading it through here (and into calculateIdealMortgageAmount below) makes the
+  // toggle real.
+  loanType: LoanType = 'regular'
 ): CalculationResults {
   // Calculate total monthly income including rental income
   const baseMonthlyIncome = inputs.grossAnnualIncome / 12;
   let monthlyIncome = baseMonthlyIncome;
-  
+
   // Apply rental income based on method
   if (inputs.isRentalIncomeEnabled && rentalIncomeMethod === 'add-back') {
     const rentalIncomeContribution = inputs.rentalIncomeMonthly * (rentalIncomePortionRate / 100);
     monthlyIncome = baseMonthlyIncome + rentalIncomeContribution;
   }
-  
+
   const monthlyMortgagePayment = calculateMonthlyMortgagePayment(
     inputs.mortgageAmount,
     inputs.interestRate,
     inputs.amortizationYears,
-    compoundingFrequency
+    compoundingFrequency,
+    loanType
   );
   
   // For display purposes, always show the base home expenses
@@ -190,7 +215,8 @@ export function calculateAllRatios(
     inputs.mortgageAmount,
     stressTestRate,
     inputs.amortizationYears,
-    compoundingFrequency
+    compoundingFrequency,
+    loanType
   );
   
   const stressTestGDS = calculateGDSRatio(
@@ -237,7 +263,15 @@ export function calculateIdealMortgageAmount(
   condoFeeInclusionRate: number = 50,
   rentalIncomePortionRate: number = 50,
   stressTestType: 'contract' | 'b20' = 'contract',
-  rentalIncomeMethod: 'add-back' | 'offset' = 'offset'
+  rentalIncomeMethod: 'add-back' | 'offset' = 'offset',
+  // Mirrors the loanType parameter added to calculateAllRatios: this function back-solves a
+  // loan amount that reproduces the exact target GDS ratio when the SAME settings are fed back
+  // into calculateAllRatios, so it must honour loanType too or the two would disagree in
+  // interest-only mode.
+  loanType: LoanType = 'regular',
+  // Same overridable benchmark calculateAllRatios exposes - this sibling function previously
+  // hardcoded the constant directly with no way for a caller to override it.
+  benchmarkStressRate: number = B20_BENCHMARK_RATE
 ): number {
   // Calculate monthly income
   const baseMonthlyIncome = inputs.grossAnnualIncome / 12;
@@ -270,7 +304,7 @@ export function calculateIdealMortgageAmount(
   if (stressTestType === 'contract') {
     stressTestRate = inputs.interestRate;
   } else {
-    stressTestRate = Math.max(inputs.interestRate + 2, B20_BENCHMARK_RATE);
+    stressTestRate = Math.max(inputs.interestRate + 2, benchmarkStressRate);
   }
   
   // Calculate target GDS amount based on target ratio
@@ -286,27 +320,27 @@ export function calculateIdealMortgageAmount(
   
   // Calculate mortgage amount from payment using stress test rate
   const numberOfPayments = inputs.amortizationYears * 12;
-  
-  // Calculate monthly rate based on compounding frequency
-  let monthlyRate: number;
+
+  // Calculate monthly rate based on compounding frequency (shared helper - see
+  // calculateMonthlyMortgagePayment).
   const stressTestRateDecimal = stressTestRate / 100;
-  
-  if (compoundingFrequency === 'monthly') {
-    monthlyRate = stressTestRateDecimal / 12;
-  } else if (compoundingFrequency === 'semi-annual') {
-    const semiAnnualRate = stressTestRateDecimal / 2;
-    const effectiveAnnualRate = Math.pow(1 + semiAnnualRate, 2) - 1;
-    monthlyRate = Math.pow(1 + effectiveAnnualRate, 1/12) - 1;
-  } else {
-    monthlyRate = Math.pow(1 + stressTestRateDecimal, 1/12) - 1;
+  const monthlyRate = getEffectiveMonthlyRate(stressTestRateDecimal, compoundingFrequency);
+
+  if (loanType === 'interest-only') {
+    // Interest-only payment = principal * monthlyRate, so the inverse is a simple division. At
+    // a 0% monthly rate the payment is $0 no matter the principal, so there's no unique amount
+    // that produces a given non-zero target payment - treat that as unreachable (return 0, the
+    // same sentinel already used for "no amount works") rather than guessing/returning Infinity.
+    if (monthlyRate === 0) return 0;
+    return Math.max(0, maxMortgagePayment / monthlyRate);
   }
-  
+
   if (monthlyRate === 0) {
     return maxMortgagePayment * numberOfPayments;
   }
-  
+
   const mortgageAmount = maxMortgagePayment * ((1 - Math.pow(1 + monthlyRate, -numberOfPayments)) / monthlyRate);
-  
+
   return Math.max(0, mortgageAmount);
 }
 
