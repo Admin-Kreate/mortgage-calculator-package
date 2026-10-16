@@ -1,4 +1,7 @@
-import { calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount, LoanType } from './utils-debt-service-calculator';
+import {
+  calculateAllRatios, formatCurrencyDetailed, calculateIdealMortgageAmount, LoanType,
+  DebtServiceSettings, QualificationResult, calculateQualification, MAX_LIMITS, B20_BENCHMARK_RATE
+} from './utils-debt-service-calculator';
 import StressTestRuleIcon from './assets/icons/stress-test-rule.svg';
 import LoadDetailsIcon from './assets/icons/loan-details.svg';
 import RentalIncomeRuleIcon from './assets/icons/rental-income-rule.svg'
@@ -285,6 +288,25 @@ export function initDebtServiceCalculator(container: HTMLElement) {
         </div>
       </div>
     </div>
+
+    <div class="dsc-qualify">
+      <div class="label">What You Qualify For</div>
+      <div class="dsc-qualify-grid">
+        <div class="dsc-qualify-item">
+          <div class="dsc-qualify-label">Max mortgage at CMHC limits</div>
+          <div class="dsc-qualify-value">&mdash;</div>
+        </div>
+        <div class="dsc-qualify-item">
+          <div class="dsc-qualify-label">Minimum income for this loan</div>
+          <div class="dsc-qualify-value">&mdash;</div>
+        </div>
+        <div class="dsc-qualify-item">
+          <div class="dsc-qualify-label">Monthly room left (TDS)</div>
+          <div class="dsc-qualify-value">&mdash;</div>
+        </div>
+      </div>
+      <div class="dsc-qualify-note"></div>
+    </div>
   `;
 
   container.innerHTML = `
@@ -343,6 +365,11 @@ export function initDebtServiceCalculator(container: HTMLElement) {
   const homeExpenseSpanResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-name span') as HTMLInputElement;
   const homeExpenseResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .home-expenses .service-detail-value') as HTMLInputElement;
   const cashLeftResultsElement = container.querySelector('.debt-service-calculator-results .debt-service-ratios .details .debt-service-details .cash-left .service-detail-value') as HTMLInputElement;
+
+  const qualifyMaxMortgageValueElement = container.querySelector('.dsc-qualify-item:nth-child(1) .dsc-qualify-value') as HTMLElement;
+  const qualifyMinIncomeValueElement = container.querySelector('.dsc-qualify-item:nth-child(2) .dsc-qualify-value') as HTMLElement;
+  const qualifyRoomValueElement = container.querySelector('.dsc-qualify-item:nth-child(3) .dsc-qualify-value') as HTMLElement;
+  const qualifyNoteElement = container.querySelector('.dsc-qualify-note') as HTMLElement;
 
   const debtServiceRateSelectorElements = container.querySelectorAll('.debt-service-rate .btn-group-selector .selector');
   const stressTestRuleSelectorElements = container.querySelectorAll('.stress-test-rule .btn-group-selector .selector');
@@ -778,6 +805,34 @@ export function initDebtServiceCalculator(container: HTMLElement) {
     homeExpenseSpanResultsElement.style.display = rentalIncomeMethodValue.toLowerCase() === "offset" ? "unset" : "none";
     homeExpenseResultsElement.textContent = formatCurrencyDetailed(resultObj.adjustedHomeExpenses);
     cashLeftResultsElement.textContent = formatCurrencyDetailed(resultObj.cashLeftGross);
+
+    // "What You Qualify For" - max mortgage / required income / monthly room at CMHC's maximum
+    // GDS/TDS limits. Always computed with the regular/amortizing formula internally
+    // (calculateQualification's own policy), independent of the Regular/Interest Only toggle.
+    const loanTypeValue = getActiveLoanType();
+    const qualificationSettings: DebtServiceSettings = {
+      compoundingFrequency: compoundingFrequencyValue,
+      condoFeeInclusionRate: condoFeeInclusionRateValue,
+      rentalIncomePortionRate: rentalIncomePortionRateValue,
+      stressTestType: stressTestTypeValue,
+      rentalIncomeMethod: rentalIncomeMethodValue,
+      loanType: loanTypeValue,
+      benchmarkStressRate: B20_BENCHMARK_RATE,
+    };
+    const qualification: QualificationResult = calculateQualification(inputData, qualificationSettings, MAX_LIMITS);
+    if (grossAnnualIncomeValue > 0) {
+      qualifyMaxMortgageValueElement.textContent = `$${Math.round(qualification.maxMortgage).toLocaleString('en-US')}`;
+      qualifyMinIncomeValueElement.textContent = `$${Math.round(qualification.requiredAnnualIncome).toLocaleString('en-US')}/yr`;
+      const roomTds = qualification.monthlyRoomTds;
+      qualifyRoomValueElement.textContent = `${roomTds < 0 ? '-' : ''}${formatCurrencyDetailed(Math.abs(roomTds))}/mo`;
+    } else {
+      qualifyMaxMortgageValueElement.textContent = '—';
+      qualifyMinIncomeValueElement.textContent = '—';
+      qualifyRoomValueElement.textContent = '—';
+    }
+    qualifyNoteElement.textContent = loanTypeValue === 'interest-only'
+      ? 'Qualification uses a regular amortizing payment, even though Interest Only is selected above.'
+      : '';
   }
 
   formatInput(loanAmountInput, '$', 'loan-amount');
