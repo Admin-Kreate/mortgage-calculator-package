@@ -790,7 +790,9 @@ export function initCalculator(container: HTMLElement) {
 
           case "interest-rate":
             const floatValue = value ? parseFloat(value) : 0.00;
-            if (1 <= floatValue) {
+            // 1%-15%, matching the slider's min/max. Previously there was
+            // no upper bound at all, so e.g. "999" was accepted.
+            if (!isNaN(floatValue) && 1 <= floatValue && floatValue <= 15) {
               interestRateInputSlider.value = floatValue.toFixed(2);
               updateSliderBackground(interestRateInputSlider);
               target.value = `${floatValue.toFixed(2)}%`;
