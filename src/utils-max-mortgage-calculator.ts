@@ -213,9 +213,10 @@ export function calculateMaxMortgage(params: {
   }
   const adjustedGrossIncome = monthlyGrossIncome + effectiveRentalIncome;
 
-  // Use custom GDS/TDS ratios from form input (fallback to defaults)
-  const customGds = params.customGdsRatio || 35;
-  const customTds = params.customTdsRatio || 42;
+  // MX-3: use a proper undefined check - 0 is a valid, deliberately-entered
+  // ratio and must not be replaced by the default.
+  const customGds = params.customGdsRatio !== undefined ? params.customGdsRatio : 35;
+  const customTds = params.customTdsRatio !== undefined ? params.customTdsRatio : 42;
   const gdsRatio = customGds / 100;
   const tdsRatio = customTds / 100;
 
