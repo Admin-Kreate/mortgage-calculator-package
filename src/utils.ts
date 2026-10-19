@@ -37,19 +37,24 @@ export function calculateMortgage(data: MortgageData) {
   // Calculate mortgage amount (purchase price - down payment)
   const mortgageAmount = data.purchasePrice - data.downPaymentAmount;
   
-  // Calculate CMHC mortgage insurance if down payment is less than 20%
+  // Calculate CMHC mortgage insurance if down payment is less than 20%.
+  // Down payments below 5% aren't legal for an insured mortgage in Canada;
+  // the UI (calculator.ts) is expected to enforce that 5% floor on input.
+  // As a defensive fallback here, anything under 10% (including, in error,
+  // under 5%) is still charged the highest premium tier below rather than
+  // silently falling through with a 0% rate/no premium.
   let mortgageInsurance = 0;
   if (data.downPaymentPercentage < 20) {
-    // CMHC insurance rates (simplified)
-    let rate = 0;
+    let rate: number;
     if (data.downPaymentPercentage >= 15) {
       rate = 0.028;
     } else if (data.downPaymentPercentage >= 10) {
       rate = 0.031;
-    } else if (data.downPaymentPercentage >= 5) {
+    } else {
+      // 5%-9.99% down, and a defensive fallback for anything lower.
       rate = 0.04;
     }
-    
+
     mortgageInsurance = mortgageAmount * rate;
   }
   
