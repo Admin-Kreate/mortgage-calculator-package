@@ -278,15 +278,28 @@ export function calculateMaxMortgage(params: {
   const totalMonthlyHousingCosts = monthlyMortgagePayment + fixedHousingCosts;
   const totalMonthlyDebtCosts = totalMonthlyHousingCosts + monthlyDebtPayments;
   
-  const actualGdsRatio = (totalMonthlyHousingCosts / adjustedGrossIncome) * 100;
-  const actualTdsRatio = (totalMonthlyDebtCosts / adjustedGrossIncome) * 100;
+  // MX-5-style guard: gross income can be 0 (slider minimum), guard the
+  // division so these ratios never become Infinity/NaN.
+  const actualGdsRatio = adjustedGrossIncome > 0 ? (totalMonthlyHousingCosts / adjustedGrossIncome) * 100 : 0;
+  const actualTdsRatio = adjustedGrossIncome > 0 ? (totalMonthlyDebtCosts / adjustedGrossIncome) * 100 : 0;
   
   // Calculate cash left using full condo fees (no inclusion rate effect) and include full rental income (no percentage reduction)
   const totalMonthlyDebtCostsForCashLeft = monthlyMortgagePayment + (propertyTaxMonthly + condoFees + heatCosts) + monthlyDebtPayments;
   const baseIncomeForCashLeft = monthlyGrossIncome + (includeRentalIncome ? rentalIncomeMonthly : 0);
   const cashLeftGross = baseIncomeForCashLeft - totalMonthlyDebtCostsForCashLeft;
   
-  const isQualified = actualGdsRatio <= (gdsRatio * 100) && actualTdsRatio <= (tdsRatio * 100);
+  // MX-10: when adjustedGrossIncome is 0 (gross income slider can go to $0),
+  // the guard above forces actualGdsRatio/actualTdsRatio to 0 to avoid
+  // NaN/Infinity in the ratio *display*. But 0/0 is not "0% of budget used"
+  // - it silently made isQualified evaluate to true (0 <= any positive
+  // limit) even when fixed housing costs and/or existing debt were clearly
+  // unaffordable on $0 income (e.g. $500/mo of property tax+condo+heat with
+  // $0 income - cashLeftGross went negative, yet isQualified reported
+  // true). Handle the zero/negative-income case explicitly: qualified only
+  // if there are truly no housing/debt costs to cover either.
+  const isQualified = adjustedGrossIncome > 0
+    ? actualGdsRatio <= (gdsRatio * 100) && actualTdsRatio <= (tdsRatio * 100)
+    : totalMonthlyHousingCosts <= 0 && totalMonthlyDebtCosts <= 0;
   
   return {
     maxMortgageAmount: Math.round(maxMortgageAmount),
