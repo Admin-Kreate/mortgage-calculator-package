@@ -413,75 +413,75 @@ export function initCalculator(container: HTMLElement) {
 
 
 
-  const purchasePriceInput = document.querySelector('.purchase-price .value-input') as HTMLInputElement;
-  const purchasePriceInputSlider = document.querySelector('.purchase-price .slider') as HTMLInputElement;
+  const purchasePriceInput = container.querySelector('.purchase-price .value-input') as HTMLInputElement;
+  const purchasePriceInputSlider = container.querySelector('.purchase-price .slider') as HTMLInputElement;
 
-  const downPaymentInput = document.querySelector('.down-payment .value-input') as HTMLInputElement;
-  const downPaymentPecentageInput = document.querySelector('.down-payment .percentage-value-input') as HTMLInputElement;
-  const downPaymentPercentageInputSlider = document.querySelector('.down-payment .slider') as HTMLInputElement;
+  const downPaymentInput = container.querySelector('.down-payment .value-input') as HTMLInputElement;
+  const downPaymentPecentageInput = container.querySelector('.down-payment .percentage-value-input') as HTMLInputElement;
+  const downPaymentPercentageInputSlider = container.querySelector('.down-payment .slider') as HTMLInputElement;
 
-  const interestRateInput = document.querySelector('.interest-rate .value-input') as HTMLInputElement;
-  const interestRateInputSlider = document.querySelector('.interest-rate .slider') as HTMLInputElement;
+  const interestRateInput = container.querySelector('.interest-rate .value-input') as HTMLInputElement;
+  const interestRateInputSlider = container.querySelector('.interest-rate .slider') as HTMLInputElement;
 
-  const principalSlider = document.querySelector('.term-calculations .principal-slider') as HTMLInputElement;
-  const amortizationResultSlider = document.querySelector('.total-mortgage .amortization-result-slider') as HTMLInputElement;
+  const principalSlider = container.querySelector('.term-calculations .principal-slider') as HTMLInputElement;
+  const amortizationResultSlider = container.querySelector('.total-mortgage .amortization-result-slider') as HTMLInputElement;
 
-  const tabHeaders = document.querySelectorAll('.tab-header');
-  const tabContents = document.querySelectorAll('.tab-content');
+  const tabHeaders = container.querySelectorAll('.tab-header');
+  const tabContents = container.querySelectorAll('.tab-content');
 
-  const propertyTaxesInput = document.querySelector('.property-taxes .value-input') as HTMLInputElement;
-  const propertyTaxesInputSlider = document.querySelector('.property-taxes .slider') as HTMLInputElement;
+  const propertyTaxesInput = container.querySelector('.property-taxes .value-input') as HTMLInputElement;
+  const propertyTaxesInputSlider = container.querySelector('.property-taxes .slider') as HTMLInputElement;
 
-  const heatingCostsInput = document.querySelector('.heating-costs .value-input') as HTMLInputElement;
-  const heatingCostsInputSlider = document.querySelector('.heating-costs .slider') as HTMLInputElement;
+  const heatingCostsInput = container.querySelector('.heating-costs .value-input') as HTMLInputElement;
+  const heatingCostsInputSlider = container.querySelector('.heating-costs .slider') as HTMLInputElement;
 
-  const condoFeesInput = document.querySelector('.condo-fees .value-input') as HTMLInputElement;
-  const condoFeesInputSlider = document.querySelector('.condo-fees .slider') as HTMLInputElement;
+  const condoFeesInput = container.querySelector('.condo-fees .value-input') as HTMLInputElement;
+  const condoFeesInputSlider = container.querySelector('.condo-fees .slider') as HTMLInputElement;
 
-  const extraPaymentsInput = document.querySelector('.extra-payments .value-input') as HTMLInputElement;
+  const extraPaymentsInput = container.querySelector('.extra-payments .value-input') as HTMLInputElement;
 
-  const amortizationPeriodValueElement = document.querySelector('.amortization-period .dropdown-field span') as HTMLInputElement;
-  const paymentFrequencyValueElement = document.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
-  const termLengthValueElement = document.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
-  const extraPaymentFrequencyValueElement = document.querySelector('.extra-payments .dropdown-field span') as HTMLInputElement;
+  const amortizationPeriodValueElement = container.querySelector('.amortization-period .dropdown-field span') as HTMLInputElement;
+  const paymentFrequencyValueElement = container.querySelector('.payment-frequency .dropdown-field span') as HTMLInputElement;
+  const termLengthValueElement = container.querySelector('.term-length .dropdown-field span') as HTMLInputElement;
+  const extraPaymentFrequencyValueElement = container.querySelector('.extra-payments .dropdown-field span') as HTMLInputElement;
 
-  const mortgagePaymentResultsElement = document.querySelector('.calculator-results .mortgage-payment-wrapper .value') as HTMLInputElement;
-  const mortgageAmountResultsElement = document.querySelector('.calculator-results .mortgage-amount-insurance .mortgage-amount .value') as HTMLInputElement;
-  const mortgageInsuranceResultsElement = document.querySelector('.calculator-results .mortgage-amount-insurance .mortgage-insurance .value') as HTMLInputElement;
-  const paymentBreakdownPrincipalResultsElement = document.querySelector('.calculator-results .payment-breakdown .principal .value') as HTMLInputElement;
-  const paymentBreakdownInterestResultsElement = document.querySelector('.calculator-results .payment-breakdown .interest .value') as HTMLInputElement;
+  const mortgagePaymentResultsElement = container.querySelector('.calculator-results .mortgage-payment-wrapper .value') as HTMLInputElement;
+  const mortgageAmountResultsElement = container.querySelector('.calculator-results .mortgage-amount-insurance .mortgage-amount .value') as HTMLInputElement;
+  const mortgageInsuranceResultsElement = container.querySelector('.calculator-results .mortgage-amount-insurance .mortgage-insurance .value') as HTMLInputElement;
+  const paymentBreakdownPrincipalResultsElement = container.querySelector('.calculator-results .payment-breakdown .principal .value') as HTMLInputElement;
+  const paymentBreakdownInterestResultsElement = container.querySelector('.calculator-results .payment-breakdown .interest .value') as HTMLInputElement;
 
-  const totalPaymentsOverTimeResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
-  const principalPaidDuringTermResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
-  const interestPaidDuringTermResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
-  const balanceRemainingAfterTermResultsElement = document.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(4) .value') as HTMLInputElement;
+  const totalPaymentsOverTimeResultsElement = container.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
+  const principalPaidDuringTermResultsElement = container.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
+  const interestPaidDuringTermResultsElement = container.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
+  const balanceRemainingAfterTermResultsElement = container.querySelector('.term-calculations .section-wrapper .calculation-row:nth-child(4) .value') as HTMLInputElement;
 
-  const totalMortgagePlusInterestResultsElement = document.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
-  const totalInterestPaidResultsElement = document.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
-  const interestPrincipalRatioResultsElement = document.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
+  const totalMortgagePlusInterestResultsElement = container.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
+  const totalInterestPaidResultsElement = container.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
+  const interestPrincipalRatioResultsElement = container.querySelector('.total-mortgage .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
 
-  const termLengthResultsElement = document.querySelector('.term-calculations .section-label span') as HTMLInputElement;
-  const totalMortgageYearsResultsElement = document.querySelector('.total-mortgage .section-label span') as HTMLInputElement;
+  const termLengthResultsElement = container.querySelector('.term-calculations .section-label span') as HTMLInputElement;
+  const totalMortgageYearsResultsElement = container.querySelector('.total-mortgage .section-label span') as HTMLInputElement;
 
-  const totalMortgagePaymentAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-payment-wrapper .value') as HTMLInputElement;
-  const mortgagePaymentAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .advanced-mortgage-payment .value') as HTMLInputElement;
-  const propertyTaxesAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .property-taxes .value') as HTMLInputElement;
-  const heatingCostsAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .heating-costs .value') as HTMLInputElement;
-  const condoFeesAdvancedResultsElement = document.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .condo-fees .value') as HTMLInputElement;
+  const totalMortgagePaymentAdvancedResultsElement = container.querySelector('.calculator-results .total-mortgage-payment .mortgage-payment-wrapper .value') as HTMLInputElement;
+  const mortgagePaymentAdvancedResultsElement = container.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .advanced-mortgage-payment .value') as HTMLInputElement;
+  const propertyTaxesAdvancedResultsElement = container.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .property-taxes .value') as HTMLInputElement;
+  const heatingCostsAdvancedResultsElement = container.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .heating-costs .value') as HTMLInputElement;
+  const condoFeesAdvancedResultsElement = container.querySelector('.calculator-results .total-mortgage-payment .mortgage-amount-insurance .condo-fees .value') as HTMLInputElement;
 
-  const yearsSavedAdvancedResultsElement = document.querySelector('.calculator-results .extra-payment-impacts .years-saved .value') as HTMLInputElement;
-  const interestSavedAdvancedResultsElement = document.querySelector('.calculator-results .extra-payment-impacts .interest-saved .value') as HTMLInputElement;
+  const yearsSavedAdvancedResultsElement = container.querySelector('.calculator-results .extra-payment-impacts .years-saved .value') as HTMLInputElement;
+  const interestSavedAdvancedResultsElement = container.querySelector('.calculator-results .extra-payment-impacts .interest-saved .value') as HTMLInputElement;
 
-  const qualifyingRateAdvancedResultsElement = document.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
-  const stressTestPaymentAdvancedResultsElement = document.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
-  const incomeRequiredAdvancedResultsElement = document.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
+  const qualifyingRateAdvancedResultsElement = container.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(1) .value') as HTMLInputElement;
+  const stressTestPaymentAdvancedResultsElement = container.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(2) .value') as HTMLInputElement;
+  const incomeRequiredAdvancedResultsElement = container.querySelector('.calculator-results .mortgage-stress-test .section-wrapper .calculation-row:nth-child(3) .value') as HTMLInputElement;
 
-  const interestRateTypeSelectorElements = document.querySelectorAll('.fixed-variable-selector .selector');
-  const extraPaymentsTypeSelectorElements = document.querySelectorAll('.extra-payment-selectors .selector');
+  const interestRateTypeSelectorElements = container.querySelectorAll('.fixed-variable-selector .selector');
+  const extraPaymentsTypeSelectorElements = container.querySelectorAll('.extra-payment-selectors .selector');
 
-  const tooltipElements = document.querySelectorAll("[data-tooltip]");
+  const tooltipElements = container.querySelectorAll("[data-tooltip]");
 
-  const dropdownOpts = document.querySelectorAll('.dropdown-opt');
+  const dropdownOpts = container.querySelectorAll('.dropdown-opt');
   dropdownOpts.forEach(dropdownOpt => {
     dropdownOpt.addEventListener('click', () => {
       const prevEl = dropdownOpt.parentElement?.previousElementSibling;
@@ -497,21 +497,21 @@ export function initCalculator(container: HTMLElement) {
     });
   });
 
-  document.querySelectorAll('.dropdown-field').forEach(field => {
+  container.querySelectorAll('.dropdown-field').forEach(field => {
     field.addEventListener('click', (e) => {
       e.stopPropagation();
       const expandedDropdownElement = (e.target as HTMLElement)?.closest('.dropdown-expanded');
       if (expandedDropdownElement) {
-        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+        container.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
           opt.previousElementSibling?.classList.remove('dropdown-expanded');
           opt.classList.remove('expanded');
         });
       } else {
         // field.classList.remove('dropdown-expanded');
-        document.querySelectorAll('.dropdown-field.dropdown-expanded').forEach(dropdown => {
+        container.querySelectorAll('.dropdown-field.dropdown-expanded').forEach(dropdown => {
           dropdown.classList.remove('dropdown-expanded');
         });
-        document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+        container.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
           opt.classList.remove('expanded');
         });
 
@@ -530,7 +530,7 @@ export function initCalculator(container: HTMLElement) {
     const target = e.target as HTMLElement;
 
     if (!target.closest('.dropdown')) {
-      document.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
+      container.querySelectorAll('.dropdown-opts.expanded').forEach(opt => {
         opt.previousElementSibling?.classList.remove('dropdown-expanded');
         opt.classList.remove('expanded');
       });
@@ -802,9 +802,9 @@ export function initCalculator(container: HTMLElement) {
   };
 
   const updateResults = () => {
-    const activeTabElement = document.querySelector('.mortgage-calculator .tab-headers .active') as HTMLElement;
-    const rateTypeValueElement = document.querySelector('.interest-rate .fixed-variable-selector .active') as HTMLInputElement;
-    const extraPaymentTypeValueElement = document.querySelector('.extra-payments .extra-payment-selectors .active') as HTMLInputElement;
+    const activeTabElement = container.querySelector('.mortgage-calculator .tab-headers .active') as HTMLElement;
+    const rateTypeValueElement = container.querySelector('.interest-rate .fixed-variable-selector .active') as HTMLInputElement;
+    const extraPaymentTypeValueElement = container.querySelector('.extra-payments .extra-payment-selectors .active') as HTMLInputElement;
 
     const activeTab = activeTabElement.textContent?.toLowerCase();
 
