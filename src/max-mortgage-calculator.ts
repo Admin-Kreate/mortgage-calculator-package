@@ -612,11 +612,11 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       if (target) {
         let value = target.value;
         value = value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters
-        const numericValue = value ? parseInt(value) : 0;
+        const numericValue = value ? parseFloat(value) : 0;
 
         switch (type) {
           case "affordability-level-gds":
-          case "affordability-level-tds":
+          case "affordability-level-tds": {
             if (0 <= numericValue && numericValue <= 100) {
               // MX-4: TDS must be >= GDS - reject a combination that would
               // violate that relation instead of accepting it silently.
@@ -627,12 +627,20 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
               const isValidRelation = type === "affordability-level-gds" ? numericValue <= otherValue : numericValue >= otherValue;
 
               if (isValidRelation) {
-                target.value = `${parseInt(value).toLocaleString('en-US')}${symbol}`;
-                target.dataset.previousValue = value;
+                // X-4: display and stored value must agree. parseInt()
+                // truncates ("35.7" -> "35" shown), but the untruncated
+                // value was being written to previousValue and is what
+                // updateResults() actually reads via parseFloat - so the
+                // ratio used in the calculation silently differed from
+                // what the field displayed. Round once and use that same
+                // rounded number for both.
+                const roundedValue = Math.round(numericValue);
+                target.value = `${roundedValue.toLocaleString('en-US')}${symbol}`;
+                target.dataset.previousValue = roundedValue.toString();
                 if (type === "affordability-level-gds") {
-                  affordabilityRatioGds.textContent = `${parseFloat(parseFloat(value).toFixed(2)).toLocaleString('en-US')}${symbol}`;
+                  affordabilityRatioGds.textContent = `${roundedValue.toLocaleString('en-US')}${symbol}`;
                 } else if (type === "affordability-level-tds") {
-                  affordabilityRatioTds.textContent = `${parseFloat(parseFloat(value).toFixed(2)).toLocaleString('en-US')}${symbol}`;
+                  affordabilityRatioTds.textContent = `${roundedValue.toLocaleString('en-US')}${symbol}`;
                 }
               } else if (target.dataset.previousValue) {
                 target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')}${symbol}`;
@@ -641,50 +649,79 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
               target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')}${symbol}`;
             }
             break;
+          }
 
-          case "gross-annual-income":
-            if (0 <= numericValue) {
-              grossAnnualIncomeInputSlider.value = numericValue.toString();
+          // X-4: these four fields are displayed as whole-dollar amounts
+          // (parseInt truncation of the display string), but were storing
+          // the *untruncated* decimal value to previousValue - which is
+          // exactly what updateResults() feeds into the calculation. E.g.
+          // typing "150000.75" showed "$150,000" while $150,000.75 was
+          // actually used to size the mortgage, and typing a fractional
+          // amortization ("25.9") showed "25 Years" while 25.9 years
+          // (310.8 months) was actually amortized over. Round once and use
+          // that same rounded whole number for the slider, the display, and
+          // the stored value so none of them can drift apart.
+          // X-5: these four fields have a slider with a real max (income
+          // 500000, debt 5000, condo fees 2000, heat 300) but the paired
+          // text input only checked a lower bound (`0 <= numericValue`), so
+          // typing a number above the slider's max was accepted and used
+          // in the actual calculation while the slider visually clamped to
+          // its own max - the displayed slider position and the number
+          // actually being calculated with silently disagreed. Bound the
+          // text input the same way the interest-rate field already does
+          // (`0.1 <= floatValue && floatValue <= 10`), using each field's
+          // own slider max.
+          case "gross-annual-income": {
+            const roundedValue = Math.round(numericValue);
+            if (0 <= numericValue && numericValue <= 500000) {
+              grossAnnualIncomeInputSlider.value = roundedValue.toString();
               updateSliderBackground(grossAnnualIncomeInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
+          }
 
-          case "monthly-debt-payments":
-            if (0 <= numericValue) {
-              monthlyDebtPaymentsInputSlider.value = numericValue.toString();
+          case "monthly-debt-payments": {
+            const roundedValue = Math.round(numericValue);
+            if (0 <= numericValue && numericValue <= 5000) {
+              monthlyDebtPaymentsInputSlider.value = roundedValue.toString();
               updateSliderBackground(monthlyDebtPaymentsInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
+          }
 
-          case "home-expense-condo-fees":
-            if (0 <= numericValue) {
-              homeExpenseCondoFeesInputSlider.value = numericValue.toString();
+          case "home-expense-condo-fees": {
+            const roundedValue = Math.round(numericValue);
+            if (0 <= numericValue && numericValue <= 2000) {
+              homeExpenseCondoFeesInputSlider.value = roundedValue.toString();
               updateSliderBackground(homeExpenseCondoFeesInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
+          }
 
-          case "home-expense-heat":
-            if (0 <= numericValue) {
-              homeExpenseHeatInputSlider.value = numericValue.toString();
+          case "home-expense-heat": {
+            const roundedValue = Math.round(numericValue);
+            if (0 <= numericValue && numericValue <= 300) {
+              homeExpenseHeatInputSlider.value = roundedValue.toString();
               updateSliderBackground(homeExpenseHeatInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${roundedValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = roundedValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
+          }
 
           case "home-expense-monthly":
           case "home-expense-yearly":
@@ -742,10 +779,18 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
 
           case "amortization-period":
             if (5 <= numericValue && numericValue <= 30) {
-              amortizationInputSlider.value = numericValue.toString();
+              // X-4: a fractional entry like "25.9" displayed as "25 Years"
+              // (parseInt truncation) but stored "25.9" as previousValue,
+              // which updateResults() feeds straight into
+              // amortizationYears*12 - so the calculation silently used a
+              // 310.8-month amortization while the field claimed 25 whole
+              // years. Round once, use it for the slider, display, and
+              // storage alike.
+              const roundedValue = Math.round(numericValue);
+              amortizationInputSlider.value = roundedValue.toString();
               updateSliderBackground(amortizationInputSlider);
-              target.value = `${parseInt(value).toLocaleString('en-US')} ${symbol}`;
-              target.dataset.previousValue = value;
+              target.value = `${roundedValue.toLocaleString('en-US')} ${symbol}`;
+              target.dataset.previousValue = roundedValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')} ${symbol}`;
             }
