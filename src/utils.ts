@@ -131,11 +131,15 @@ export function calculateMortgage(data: MortgageData) {
     termPrincipalPaid: Math.round(termPrincipalPaid),
     termInterestPaid: Math.round(termInterestPaid),
     remainingPrincipalAtEndOfTerm: Math.round(remainingPrincipalAtEndOfTerm),
-    // Exposed (unrounded) so calculator.ts can compute the Principal Paid
-    // during Term progress bar against the actual insured principal
-    // (mortgage amount + CMHC premium, when applicable) instead of the bare
-    // mortgage amount.
+    // Exposed (unrounded, where noted) so calculator.ts can compute the
+    // Principal Paid during Term progress bar against the actual insured
+    // principal, and so calculateAdvancedResults can reuse the exact same
+    // insured principal/rate/payment for the extra-payment simulation
+    // instead of recomputing them from scratch.
     totalMortgage,
+    effectiveMonthlyRate,
+    totalNumberOfPayments,
+    monthlyPaymentExact: monthlyPayment,
   };
 }
 
@@ -190,6 +194,35 @@ function simulateAmortizationSchedule(
   };
 }
 
+// Build a per-month extra-payment function based on the selected extra
+// payment type/frequency. Handles monthly, yearly, bi-weekly, weekly, and
+// one-time lump sums; anything unrecognized falls back to a monthly
+// recurring extra payment.
+function buildExtraPaymentSchedule(data: MortgageData): (monthIndex: number) => number {
+  const amount = data.extraPaymentAmount;
+
+  if (data.extraPaymentType === 'one-time') {
+    return (monthIndex: number) => (monthIndex === 1 ? amount : 0);
+  }
+
+  switch (data.extraPaymentFrequency) {
+    case 'yearly':
+      return (monthIndex: number) => (monthIndex % 12 === 0 ? amount : 0);
+    case 'bi-weekly':
+      // ~26 bi-weekly payments/year, smoothed to a monthly equivalent since
+      // the simulation steps in whole months.
+      return () => (amount * 26) / 12;
+    case 'weekly':
+      // ~52 weekly payments/year, smoothed to a monthly equivalent.
+      return () => (amount * 52) / 12;
+    case 'one-time':
+      return (monthIndex: number) => (monthIndex === 1 ? amount : 0);
+    case 'monthly':
+    default:
+      return () => amount;
+  }
+}
+
 // Calculate advanced results including all costs and stress test
 export function calculateAdvancedResults(data: MortgageData) {
   // Calculate base mortgage results
@@ -204,24 +237,26 @@ export function calculateAdvancedResults(data: MortgageData) {
   const totalMonthlyPayment = mortgageResults.monthlyPayment + 
     propertyTaxesMonthly + heatingCostsMonthly + condoFeesMonthly;
   
-  // Calculate impact of extra payments
+  // Calculate impact of extra payments by simulating the real amortization
+  // schedule with the extra payments applied and comparing it against the
+  // baseline schedule (same principal/rate/payment, no extra payments).
   let yearsSaved = 0;
   let interestSaved = 0;
-  
+
   if (data.extraPaymentType !== 'none' && data.extraPaymentAmount > 0) {
-    // This is a simplified calculation - in a real implementation, we would 
-    // recalculate the amortization schedule with extra payments
-    const extraPaymentYearly = data.extraPaymentFrequency === 'monthly' ? 
-      data.extraPaymentAmount * 12 : data.extraPaymentAmount;
-      
-    // Rough estimate of years saved based on extra payments
-    yearsSaved = Math.min(
-      Math.round(extraPaymentYearly * data.amortizationPeriod / mortgageResults.mortgageAmount),
-      data.amortizationPeriod - 1
+    const extraPaymentForMonth = buildExtraPaymentSchedule(data);
+
+    const withExtra = simulateAmortizationSchedule(
+      mortgageResults.totalMortgage,
+      mortgageResults.effectiveMonthlyRate,
+      mortgageResults.monthlyPaymentExact,
+      mortgageResults.totalNumberOfPayments,
+      extraPaymentForMonth
     );
-    
-    // Rough estimate of interest saved
-    interestSaved = Math.round(yearsSaved * 12 * mortgageResults.interest);
+
+    const monthsSaved = mortgageResults.totalNumberOfPayments - withExtra.months;
+    yearsSaved = Math.max(0, Math.round(monthsSaved / 12));
+    interestSaved = Math.max(0, Math.round(mortgageResults.totalInterestPaid - withExtra.totalInterest));
   }
   
   // Calculate stress test values
