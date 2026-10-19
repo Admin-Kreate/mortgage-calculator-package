@@ -224,7 +224,7 @@ export function initCalculator(container: HTMLElement) {
           <div class="value">$417,086</div>
         </div>
         <div class="calculation-row">
-          <div class="label">Interest/Principal Ratio</div>
+          <div class="label">Interest Share of Total Payments</div>
           <div class="value">92%</div>
         </div>
         <div class="calculation-row">
@@ -927,7 +927,12 @@ export function initCalculator(container: HTMLElement) {
       totalMortgagePlusInterestResultsElement.textContent = `$${resultObj.totalMortgagePlusInterest.toLocaleString()}`;
       totalInterestPaidResultsElement.textContent = `$${resultObj.totalInterestPaid.toLocaleString()}`;
       interestPrincipalRatioResultsElement.textContent = `${resultObj.interestPrincipalRatio}%`;
-      amortizationResultSlider.value = (100 - resultObj.interestPrincipalRatio).toString();
+      // interestPrincipalRatio is now interest's share of the total amount
+      // paid (already bounded 0-100 - see utils.ts), so the slider (which
+      // runs Principal -> Interest) can use it directly. It's clamped
+      // again here defensively so the bar can never go negative or over
+      // full, regardless of what utils.ts returns.
+      amortizationResultSlider.value = Math.max(0, Math.min(100, resultObj.interestPrincipalRatio)).toString();
       updateSliderBackground(amortizationResultSlider);
 
       termLengthResultsElement.textContent = termLengthValueElement.textContent;

@@ -93,8 +93,13 @@ export function calculateMortgage(data: MortgageData) {
   const firstPaymentInterest = totalMortgage * effectiveMonthlyRate;
   const firstPaymentPrincipal = monthlyPayment - firstPaymentInterest;
   
-  // Calculate interest to principal ratio
-  const interestPrincipalRatio = Math.round((totalInterestPaid / totalMortgage) * 100);
+  // Share of the total amount paid (principal + interest) that is interest,
+  // expressed as a percentage. This is always within 0-100 by construction
+  // (unlike a raw interest/principal ratio, which can exceed 100% at
+  // ordinary rates), so it's safe to drive a 0-100 progress bar directly.
+  const interestPrincipalRatio = Math.max(0, Math.min(100,
+    Math.round((totalInterestPaid / totalPayments) * 100)
+  ));
 
   // Simulate the real amortization schedule over the term (capped above at
   // the amortization period) instead of relying purely on the closed-form
