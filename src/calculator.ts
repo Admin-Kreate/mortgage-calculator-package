@@ -671,7 +671,9 @@ export function initCalculator(container: HTMLElement) {
     const purchasePrice = ppValue ? parseInt(ppValue) : 0;
 
     const downpaymentValue = parseInt(downPaymentInput.dataset.previousValue ?? '0');
-    let downpaymentPercentageValue = (downpaymentValue / purchasePrice) * 100;
+    // Guard against a zero (or missing) purchase price - dividing by it
+    // would otherwise render as "Infinity%".
+    let downpaymentPercentageValue = purchasePrice > 0 ? (downpaymentValue / purchasePrice) * 100 : 0;
 
     // The down payment dollar amount is fixed by the user, but the purchase
     // price can move independently (its own slider/text field). Recomputing
