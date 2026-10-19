@@ -723,7 +723,11 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "downpayment-percentage":
-            if (1 <= numericValue && numericValue <= 40) {
+            // 5%-40%, matching the slider's min/max (previously 1%-40%,
+            // which let a typed value like "2%" be accepted while the
+            // slider - which the calculation also reads - silently clamped
+            // to 5%, decoupling the displayed and calculated values).
+            if (5 <= numericValue && numericValue <= 40) {
               downPaymentPercentageInputSlider.value = numericValue.toString();
               updateSliderBackground(downPaymentPercentageInputSlider);
               target.value = `${value}${symbol}`;
