@@ -606,13 +606,51 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
     updateResults();
   });
 
+  // X-2: preserve a leading minus sign (previously stripped, so "-1000" was
+  // silently accepted as 1000) and collapse to a single decimal point.
+  // Returns null when there is no usable numeric content at all (empty,
+  // whitespace, letters-only, or a bare "-"/"."), which callers use to
+  // detect X-1 (non-numeric/cleared input) rather than defaulting to 0.
+  const sanitizeSignedDecimal = (raw: string): string | null => {
+    const trimmed = raw.trim();
+    if (trimmed === '') return null;
+    // Strip the currency symbol etc. first (keeping digits/dot/minus), then
+    // check for a leading minus - otherwise a minus typed after the "$"
+    // prefix (e.g. "$-500") is stranded behind the symbol and never
+    // recognized as negative.
+    const signedDigits = trimmed.replace(/[^0-9.\-]/g, '');
+    const isNegative = signedDigits.startsWith('-');
+    let digits = signedDigits.replace(/-/g, '');
+    const firstDot = digits.indexOf('.');
+    if (firstDot !== -1) {
+      digits = digits.slice(0, firstDot + 1) + digits.slice(firstDot + 1).replace(/\./g, '');
+    }
+    if (digits === '' || digits === '.') return null;
+    return isNegative ? `-${digits}` : digits;
+  };
+
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target) {
-        let value = target.value;
-        value = value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters
-        const numericValue = value ? parseFloat(value) : 0;
+        // X-1: non-numeric/cleared input must be rejected and the previous
+        // value restored, instead of falling through to `parseInt('')` ->
+        // NaN -> "$ NaN". `sanitized` is null for invalid input, which makes
+        // `numericValue` NaN; every numeric comparison below is false for
+        // NaN, so invalid input naturally falls into each case's existing
+        // "restore previous value" branch.
+        const sanitized = sanitizeSignedDecimal(target.value);
+        const value = sanitized ?? '';
+        const parsedValue = sanitized !== null ? parseFloat(sanitized) : NaN;
+        // X-3: a very long digit string (e.g. hundreds of 9s pasted in, or
+        // just a fat-fingered huge number) parses via parseFloat to
+        // Infinity, not NaN. Every field below that only checks a lower
+        // bound (`0 <= numericValue`) let that through: Infinity.toLocaleString()
+        // renders as the literal string "$  ∞", and feeding Infinity into
+        // calculateMaxMortgage propagates to "$∞" in the results panel.
+        // Treat non-finite parses the same as invalid input (NaN), so they
+        // fall into each case's existing "restore previous value" branch.
+        const numericValue = Number.isFinite(parsedValue) ? parsedValue : NaN;
 
         switch (type) {
           case "affordability-level-gds":
