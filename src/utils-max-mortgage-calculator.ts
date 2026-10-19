@@ -283,10 +283,39 @@ export function calculateMaxMortgage(params: {
   const actualGdsRatio = adjustedGrossIncome > 0 ? (totalMonthlyHousingCosts / adjustedGrossIncome) * 100 : 0;
   const actualTdsRatio = adjustedGrossIncome > 0 ? (totalMonthlyDebtCosts / adjustedGrossIncome) * 100 : 0;
   
-  // Calculate cash left using full condo fees (no inclusion rate effect) and include full rental income (no percentage reduction)
-  const totalMonthlyDebtCostsForCashLeft = monthlyMortgagePayment + (propertyTaxMonthly + condoFees + heatCosts) + monthlyDebtPayments;
-  const baseIncomeForCashLeft = monthlyGrossIncome + (includeRentalIncome ? rentalIncomeMonthly : 0);
-  const cashLeftGross = baseIncomeForCashLeft - totalMonthlyDebtCostsForCashLeft;
+  // MX-12: "Home Expenses (incl. rental offset)" must match its label - use
+  // the same inclusion-rate-adjusted condo fee figure the qualifying math
+  // used (fixedHousingCosts), and actually net out the rental offset.
+  // (Moved up from below the return block so cashLeftGross, right below,
+  // can be built from it - see MX-12 comment there for why.)
+  const homeExpensesNetOfOffset = Math.max(0, fixedHousingCosts - rentalIncomeOffset);
+
+  // MX-12: cashLeftGross previously used the FULL, un-portioned condoFees
+  // and the FULL, un-portioned rentalIncomeMonthly regardless of which
+  // rental rule/portion/condo-inclusion-rate was selected, while
+  // homeExpensesNetOfOffset (above) correctly applied all three. That made
+  // the four numbers actually shown to the user in the breakdown - mortgage,
+  // debt, home expenses, cash left - silently fail to sum back to gross
+  // income in most configurations (e.g. even at condoFeeInclusionRate=100%
+  // with OFFSET, a portion < 100% left a gap; with ADD-BACK, the gap was
+  // exactly the un-portioned rentalIncomeMonthly). That's confusing and
+  // looks broken even though it never touched isQualified or
+  // maxMortgageAmount, which don't depend on cashLeftGross at all.
+  //
+  // Fix: derive cashLeftGross from the SAME effective figures the
+  // qualifying math already computed - adjustedGrossIncome (which already
+  // reflects the selected rental rule and portion: it includes the
+  // portioned rental amount for ADD-BACK, or excludes it entirely for
+  // OFFSET because that portioned amount is instead netted out of
+  // homeExpensesNetOfOffset below) and homeExpensesNetOfOffset (which
+  // already reflects the selected condo-fee inclusion rate and the capped
+  // rental offset). This is a deliberate choice: "Cash Left" now shows what
+  // is left over on the SAME qualifying basis as the rest of the panel,
+  // not a separate "true real-world cash flow" figure using full condo
+  // fees/full rental income - so by construction:
+  //   monthlyMortgagePayment + monthlyDebtPayments + homeExpensesNetOfOffset + cashLeftGross === adjustedGrossIncome
+  // for both rental rules and all condo-inclusion-rates, always.
+  const cashLeftGross = adjustedGrossIncome - monthlyMortgagePayment - homeExpensesNetOfOffset - monthlyDebtPayments;
   
   // MX-10: when adjustedGrossIncome is 0 (gross income slider can go to $0),
   // the guard above forces actualGdsRatio/actualTdsRatio to 0 to avoid
@@ -312,7 +341,7 @@ export function calculateMaxMortgage(params: {
     monthlyGrossIncome: Math.round(adjustedGrossIncome * 100) / 100,
     totalMonthlyHousingCosts: Math.round(totalMonthlyHousingCosts * 100) / 100,
     totalMonthlyDebtCosts: Math.round(totalMonthlyDebtCosts * 100) / 100,
-    homeExpenses: Math.round((propertyTaxMonthly + condoFees + heatCosts) * 100) / 100,
+    homeExpenses: Math.round(homeExpensesNetOfOffset * 100) / 100,
     includedCondoFees: Math.round(includedCondoFees * 100) / 100,
     cashLeftGross: Math.round(cashLeftGross * 100) / 100,
     isQualified,
