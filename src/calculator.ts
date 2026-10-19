@@ -733,24 +733,41 @@ export function initCalculator(container: HTMLElement) {
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target) {
-        let value = target.value;
-        value = value.replace(/[^0-9.]/g, ''); // Remove non-numeric characters
-        const numericValue = value ? parseInt(value) : 0;
+        const rawValue = target.value.trim();
+        // A leading minus sign would otherwise be stripped by the digits
+        // regex below, silently turning "-1000" into an accepted 1000.
+        // None of these fields accept negative values, so reject it here.
+        // Strip the currency symbol etc. FIRST (keeping digits/dot/minus),
+        // then check for a leading minus - otherwise a minus typed after
+        // the "$" prefix (e.g. "$-500") is stranded behind the symbol and
+        // never recognized as negative.
+        const signedDigits = rawValue.replace(/[^0-9.\-]/g, '');
+        const isNegative = signedDigits.startsWith('-');
+        const digitsOnly = signedDigits.replace(/-/g, '');
+
+        // parseFloat (not parseInt) so cents aren't silently truncated;
+        // whole-dollar/percentage fields round to the nearest unit below.
+        // Empty/non-numeric input and negative input both resolve to NaN,
+        // which fails every numeric comparison below and falls through to
+        // each case's "restore previous value" branch (fixes the literal
+        // "$ NaN" that an empty/alphabetic entry used to produce).
+        const parsedValue = (!isNegative && digitsOnly) ? parseFloat(digitsOnly) : NaN;
+        const numericValue = isNaN(parsedValue) ? NaN : Math.round(parsedValue);
 
         switch (type) {
           case "purchase-price":
-            if (MIN_PURCHASE_PRICE <= numericValue && numericValue <= MAX_PURCHASE_PRICE) {
+            if (!isNaN(numericValue) && MIN_PURCHASE_PRICE <= numericValue && numericValue <= MAX_PURCHASE_PRICE) {
               purchasePriceInputSlider.value = numericValue.toString();
               updateSliderBackground(purchasePriceInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             updateDownpaymentPercentageInputs();
             break;
 
-          case "downpayment":
+          case "downpayment": {
             let ppValue = purchasePriceInput.dataset.previousValue?.replace(/[^0-9.]/g, '');
             const purchasePrice = ppValue ? parseInt(ppValue) : 0;
 
@@ -761,7 +778,8 @@ export function initCalculator(container: HTMLElement) {
             // (previously only the upper bound was checked, and the lower
             // bound - though computed - was never used, so e.g. a $1 down
             // payment was accepted).
-            if (downpaymentLowerLimit <= numericValue && numericValue <= downpaymentUpperLimit) {
+            if (!isNaN(numericValue) && purchasePrice > 0 &&
+              downpaymentLowerLimit <= numericValue && numericValue <= downpaymentUpperLimit) {
               const downpaymentPercentageValue = (numericValue / purchasePrice) * 100;
               downPaymentPercentageInputSlider.value = downpaymentPercentageValue.toString();
               updateSliderBackground(downPaymentPercentageInputSlider);
@@ -769,36 +787,39 @@ export function initCalculator(container: HTMLElement) {
               downPaymentPecentageInput.value = `${downpaymentPercentageValue.toLocaleString('en-US')}%`;
               downPaymentPecentageInput.dataset.previousValue = downpaymentPercentageValue.toString();
 
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${target.dataset.previousValue}`;
+              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
+          }
 
-          case "downpayment-percentage":
-            // 5%-40%, matching the slider's min/max (previously 1%-40%,
-            // which let a typed value like "2%" be accepted while the
-            // slider - which the calculation also reads - silently clamped
-            // to 5%, decoupling the displayed and calculated values).
-            if (5 <= numericValue && numericValue <= 40) {
+          case "downpayment-percentage": {
+            // 5%-40%, matching the slider's min/max and the dollar field's
+            // bounds above (previously this accepted 1%-40%, contradicting
+            // the slider and the dollar field).
+            if (!isNaN(numericValue) && 5 <= numericValue && numericValue <= 40) {
               downPaymentPercentageInputSlider.value = numericValue.toString();
               updateSliderBackground(downPaymentPercentageInputSlider);
-              target.value = `${value}${symbol}`;
-              target.dataset.previousValue = value;
+              target.value = `${numericValue}${symbol}`;
+              target.dataset.previousValue = numericValue.toString();
 
               let ppValue = purchasePriceInput.dataset.previousValue?.replace(/[^0-9.]/g, '');
               const purchasePrice = ppValue ? parseInt(ppValue) : 0;
-              const downpaymentValue = purchasePrice ? purchasePrice * (numericValue * 0.01) : 0;
+              const downpaymentValue = purchasePrice ? Math.round(purchasePrice * (numericValue * 0.01)) : 0;
               downPaymentInput.value = `$  ${downpaymentValue.toLocaleString('en-US')}`;
               downPaymentInput.dataset.previousValue = downpaymentValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${target.dataset.previousValue}${symbol}`;
             }
             break;
+          }
 
-          case "interest-rate":
-            const floatValue = value ? parseFloat(value) : 0.00;
+          case "interest-rate": {
+            // Keep decimal precision here (unlike the dollar/percentage
+            // fields above) - rates are entered like "4.75".
+            const floatValue = (!isNegative && digitsOnly) ? parseFloat(digitsOnly) : NaN;
             // 1%-15%, matching the slider's min/max. Previously there was
             // no upper bound at all, so e.g. "999" was accepted.
             if (!isNaN(floatValue) && 1 <= floatValue && floatValue <= 15) {
@@ -810,44 +831,45 @@ export function initCalculator(container: HTMLElement) {
               target.value = `${parseFloat(target.dataset.previousValue).toFixed(2)}%`;
             }
             break;
+          }
 
           case "property-taxes":
-            if (0 <= numericValue && numericValue <= MAX_PROPERTY_TAXES) {
+            if (!isNaN(numericValue) && 0 <= numericValue && numericValue <= MAX_PROPERTY_TAXES) {
               propertyTaxesInputSlider.value = numericValue.toString();
               updateSliderBackground(propertyTaxesInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
 
           case "heating-costs":
-            if (0 <= numericValue && numericValue <= MAX_HEATING_COSTS) {
+            if (!isNaN(numericValue) && 0 <= numericValue && numericValue <= MAX_HEATING_COSTS) {
               heatingCostsInputSlider.value = numericValue.toString();
               updateSliderBackground(heatingCostsInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
 
           case "condo-fees":
-            if (0 <= numericValue && numericValue <= MAX_CONDO_FEES) {
+            if (!isNaN(numericValue) && 0 <= numericValue && numericValue <= MAX_CONDO_FEES) {
               condoFeesInputSlider.value = numericValue.toString();
               updateSliderBackground(condoFeesInputSlider);
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
             break;
 
           case "extra-payments":
-            if (0 <= numericValue) {
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+            if (!isNaN(numericValue) && 0 <= numericValue) {
+              target.value = `${symbol}  ${numericValue.toLocaleString('en-US')}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
               target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
             }
