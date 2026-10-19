@@ -267,14 +267,26 @@ export function calculateAdvancedResults(data: MortgageData) {
   const stressTestSemiAnnualRate = qualifyingRate / 100 / 2;
   const stressTestEffectiveMonthlyRate = Math.pow(1 + stressTestSemiAnnualRate, 2 / 12) - 1;
   const numberOfPayments = data.amortizationPeriod * 12;
-  const mortgageAmount = data.purchasePrice - data.downPaymentAmount;
-  
-  const stressTestPayment = mortgageAmount * 
-    (stressTestEffectiveMonthlyRate * Math.pow(1 + stressTestEffectiveMonthlyRate, numberOfPayments)) / 
+
+  // Use the same insured principal (mortgage amount + CMHC premium, when
+  // applicable) as the actual payment calculation above - otherwise the
+  // stress test/income-required figures are understated for exactly the
+  // buyers (under 20% down) who most need them to be correct.
+  const insuredMortgageAmount = mortgageResults.totalMortgage;
+
+  const stressTestPayment = insuredMortgageAmount *
+    (stressTestEffectiveMonthlyRate * Math.pow(1 + stressTestEffectiveMonthlyRate, numberOfPayments)) /
     (Math.pow(1 + stressTestEffectiveMonthlyRate, numberOfPayments) - 1);
-  
-  // Calculate income required (using 32% GDS ratio)
-  const annualPayment = stressTestPayment * 12 + data.propertyTaxes + data.heatingCosts + data.condoFees * 12;
+
+  // Calculate income required (using a 32% GDS ratio).
+  // Lenders count only 50% of condo fees towards GDS/TDS, not 100%.
+  // NOTE: this is a GDS (Gross Debt Service) figure only. A proper TDS
+  // (Total Debt Service) check would also need the applicant's other debt
+  // payments (car loans, credit cards, lines of credit, etc.), which this
+  // calculator does not currently collect as an input - so no TDS-based
+  // income requirement is produced, and this number can still understate
+  // what a lender would actually require if the buyer carries other debt.
+  const annualPayment = stressTestPayment * 12 + data.propertyTaxes + data.heatingCosts + (data.condoFees * 12 * 0.5);
   const incomeRequired = Math.round(annualPayment / 0.32);
   
   return {
