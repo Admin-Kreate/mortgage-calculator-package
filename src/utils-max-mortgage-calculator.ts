@@ -104,13 +104,29 @@ function effectiveMonthlyRateFromAnnual(annualRateDecimal: number, compounding: 
   }
 }
 
-function calculateMortgagePayment(principal: number, annualRate: number, amortizationMonths: number, compounding: string = 'semi-annual'): number {
+type LoanType = 'REGULAR' | 'INTEREST_ONLY';
+
+function normalizeLoanType(loanType: string | undefined): LoanType {
+  return (loanType || '').trim().toUpperCase() === 'INTEREST_ONLY' ? 'INTEREST_ONLY' : 'REGULAR';
+}
+
+function calculateMortgagePayment(principal: number, annualRate: number, amortizationMonths: number, compounding: string = 'semi-annual', loanType: string = 'REGULAR'): number {
+  const annualRateDecimal = annualRate / 100;
+  const normalizedCompounding = normalizeCompounding(compounding);
+  const normalizedLoanType = normalizeLoanType(loanType);
+
+  if (normalizedLoanType === 'INTEREST_ONLY') {
+    // Interest-only: the payment is simply principal x periodic rate, there
+    // is no amortizing paydown component.
+    if (annualRate === 0) return 0;
+    const effectiveMonthlyRate = effectiveMonthlyRateFromAnnual(annualRateDecimal, normalizedCompounding);
+    return principal * effectiveMonthlyRate;
+  }
+
   if (annualRate === 0) {
     return principal / amortizationMonths;
   }
 
-  const annualRateDecimal = annualRate / 100;
-  const normalizedCompounding = normalizeCompounding(compounding);
   const effectiveMonthlyRate = effectiveMonthlyRateFromAnnual(annualRateDecimal, normalizedCompounding);
 
   const numerator = effectiveMonthlyRate * Math.pow(1 + effectiveMonthlyRate, amortizationMonths);
@@ -128,7 +144,6 @@ export function calculateMaxMortgage(params: {
   interestRate: number;
   amortizationYears: number;
   amortizationMonths: number;
-  affordabilityLevel: number;
   rentalIncomeMonthly: number;
   includeRentalIncome: boolean;
   stressTestRule: string;
@@ -149,7 +164,6 @@ export function calculateMaxMortgage(params: {
     interestRate,
     amortizationYears,
     amortizationMonths,
-    affordabilityLevel,
     rentalIncomeMonthly,
     includeRentalIncome,
     stressTestRule,
@@ -216,8 +230,21 @@ export function calculateMaxMortgage(params: {
   
   // MX-1: normalise once, use everywhere (amount side AND payment side).
   const normalizedCompounding = normalizeCompounding(compounding);
+  const normalizedLoanType = normalizeLoanType(loanType);
 
-  // Calculate maximum mortgage amount using stress test rate
+  // Calculate maximum mortgage amount using stress test rate.
+  //
+  // NOTE (qualification, not payment display): this always uses the regular
+  // amortizing-payment formula, regardless of loan type. An earlier revision
+  // sized the max amount for INTEREST_ONLY as `availableForMortgage / rate`
+  // (i.e. "principal = payment / rate"), which let a borrower qualify for
+  // ~14% MORE mortgage by selecting Interest Only than Regular on identical
+  // income - a non-amortizing, higher-risk product qualifying for a LARGER
+  // loan. That is an invented underwriting rule with no cited lender/B-20
+  // basis, so it was reverted: how much someone can borrow no longer depends
+  // on loan type. What their payment on that amount looks like still does
+  // (see calculateMortgagePayment below), which is what "Interest Only" is
+  // meant to change - not the size of the mortgage itself.
   let maxMortgageAmount = 0;
   if (availableForMortgage > 0) {
     const stressRateDecimal = stressTestRate / 100;
@@ -233,8 +260,8 @@ export function calculateMaxMortgage(params: {
   }
 
   // Calculate actual monthly payment at contract rate - same normalised
-  // compounding as the amount side above (MX-1).
-  const monthlyMortgagePayment = calculateMortgagePayment(maxMortgageAmount, interestRate, totalAmortizationMonths, normalizedCompounding);
+  // compounding AND loan type as the amount side above (MX-1/MX-8).
+  const monthlyMortgagePayment = calculateMortgagePayment(maxMortgageAmount, interestRate, totalAmortizationMonths, normalizedCompounding, normalizedLoanType);
   
   // Calculate actual GDS and TDS ratios
   const totalMonthlyHousingCosts = monthlyMortgagePayment + fixedHousingCosts;

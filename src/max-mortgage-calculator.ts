@@ -780,7 +780,22 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
     const rawRentalMethod = rentalIncomeMethodActiveElement.textContent?.toLowerCase().replace(" ", "-") || 'offset';
     const rentalIncomeMethodValue: RentalIncomeMethod = isRentalIncomeMethod(rawRentalMethod) ? rawRentalMethod : 'offset';
 
+    // MX-8: the Regular / Interest Only selector was rendered but never
+    // read - `loanType` was hardcoded 'REGULAR'. Wire the actual selection
+    // through.
     const debtServiceRateTypeActiveElement = container.querySelector(".debt-service-rate .btn-group-selector .active") as HTMLInputElement;
+    const loanTypeValue = debtServiceRateTypeActiveElement?.textContent?.trim().toLowerCase() === 'interest only' ? 'INTEREST_ONLY' : 'REGULAR';
+
+    // MX-8 (follow-up): a prior revision derived a 50/80 "affordabilityLevel"
+    // from the Baseline/Standard selector and passed it into
+    // calculateMaxMortgage - but that function never reads the parameter, so
+    // it had zero effect on any output. It looked wired up but wasn't. The
+    // Baseline/Standard selector's real, working effect is entirely through
+    // the GDS/TDS % fields below (customGdsRatio/customTdsRatio, set to
+    // 35/42 or 39/44 when the selector is clicked - see the click handler
+    // above) - that's what actually drives the calculation, so the
+    // affordabilityLevel field has been removed rather than left as
+    // cosmetic dead plumbing.
 
     const resultObj = calculateMaxMortgage({
       grossAnnualIncome: grossAnnualIncomeValue,
@@ -790,8 +805,10 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       heatCosts: heatingCostValue,
       interestRate: interestRateValue,
       amortizationYears: amortizationValue,
+      // No UI control exists for a fractional-month amortization period (the
+      // slider only offers whole years), so this stays 0 - it is genuinely
+      // unused rather than silently overridden.
       amortizationMonths: 0,
-      affordabilityLevel: 0,
       customGdsRatio: affordabilityLevelGdsValue,
       customTdsRatio: affordabilityLevelTdsValue,
       rentalIncomeMonthly: rentalIncomeMonthlyValue,
@@ -800,7 +817,7 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       condoFeeInclusionRate: condoFeeInclusionRateValue,
       rentalIncomeRule: rentalIncomeMethodValue.toUpperCase(),
       rentalIncomePortion: rentalIncomePortionRateValue,
-      loanType: 'REGULAR',
+      loanType: loanTypeValue,
       compounding: compoundingFrequencyValue,
     });
 
