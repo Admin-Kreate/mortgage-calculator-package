@@ -95,22 +95,23 @@ export function calculateMortgage(data: MortgageData) {
   
   // Calculate interest to principal ratio
   const interestPrincipalRatio = Math.round((totalInterestPaid / totalMortgage) * 100);
-  
-  // Calculate Term Payments (for the mortgage term, typically 5 years)
-  const termPayments = monthlyPayment * termNumberOfPayments;
-  
-  // To calculate term interest and principal accurately, we need to simulate the amortization
-  // For simplicity, we'll use an estimate based on the term length relative to amortization
-  const remainingPrincipalAtEndOfTerm = calculateRemainingPrincipal(
-    totalMortgage, 
-    effectiveMonthlyRate, 
-    monthlyPayment, 
+
+  // Simulate the real amortization schedule over the term (capped above at
+  // the amortization period) instead of relying purely on the closed-form
+  // remaining-balance formula, which can go negative once the number of
+  // payments simulated exceeds the point the loan is actually paid off.
+  const termSchedule = simulateAmortizationSchedule(
+    totalMortgage,
+    effectiveMonthlyRate,
+    monthlyPayment,
     termNumberOfPayments
   );
-  
-  const termPrincipalPaid = totalMortgage - remainingPrincipalAtEndOfTerm;
-  const termInterestPaid = termPayments - termPrincipalPaid;
-  
+
+  const termPrincipalPaid = termSchedule.totalPrincipal;
+  const termInterestPaid = termSchedule.totalInterest;
+  const remainingPrincipalAtEndOfTerm = termSchedule.endingBalance;
+  const termPayments = termSchedule.totalPrincipal + termSchedule.totalInterest;
+
   return {
     monthlyPayment: Math.round(monthlyPayment),
     mortgageAmount: Math.round(mortgageAmount),
@@ -128,18 +129,55 @@ export function calculateMortgage(data: MortgageData) {
   };
 }
 
-// Helper function to calculate remaining principal at the end of term
-function calculateRemainingPrincipal(
-  initialPrincipal: number, 
-  monthlyRate: number, 
-  monthlyPayment: number, 
-  numberOfPayments: number
-): number {
-  // P = P0(1+r)^n - PMT*[(1+r)^n - 1]/r
-  // where P is remaining principal, P0 is initial principal,
-  // r is monthly rate, PMT is monthly payment, n is number of payments
-  return initialPrincipal * Math.pow(1 + monthlyRate, numberOfPayments) - 
-         monthlyPayment * (Math.pow(1 + monthlyRate, numberOfPayments) - 1) / monthlyRate;
+// Simulate a monthly amortization schedule - optionally with extra
+// principal payments applied - and report what actually happens, rather
+// than using closed-form formulas that can go negative once the number of
+// payments simulated exceeds the point the loan is fully paid off.
+function simulateAmortizationSchedule(
+  principal: number,
+  monthlyRate: number,
+  monthlyPayment: number,
+  numberOfPayments: number,
+  extraPaymentForMonth?: (monthIndex: number) => number
+): { months: number; totalInterest: number; totalPrincipal: number; endingBalance: number } {
+  let balance = principal;
+  let totalInterest = 0;
+  let totalPrincipal = 0;
+  let months = 0;
+
+  for (let month = 1; month <= numberOfPayments; month++) {
+    if (balance <= 0.005) {
+      break;
+    }
+
+    const interestPortion = balance * monthlyRate;
+    let principalPortion = monthlyPayment - interestPortion;
+
+    if (extraPaymentForMonth) {
+      principalPortion += extraPaymentForMonth(month);
+    }
+
+    // Never pay down more principal than remains outstanding, and never
+    // let a payment reduce principal by a negative amount.
+    if (principalPortion > balance) {
+      principalPortion = balance;
+    }
+    if (principalPortion < 0) {
+      principalPortion = 0;
+    }
+
+    balance -= principalPortion;
+    totalInterest += interestPortion;
+    totalPrincipal += principalPortion;
+    months = month;
+  }
+
+  return {
+    months,
+    totalInterest,
+    totalPrincipal,
+    endingBalance: Math.max(0, balance),
+  };
 }
 
 // Calculate advanced results including all costs and stress test
