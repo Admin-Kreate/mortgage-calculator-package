@@ -216,7 +216,15 @@ export function calculateMaxMortgage(params: {
   // MX-3: use a proper undefined check - 0 is a valid, deliberately-entered
   // ratio and must not be replaced by the default.
   const customGds = params.customGdsRatio !== undefined ? params.customGdsRatio : 35;
-  const customTds = params.customTdsRatio !== undefined ? params.customTdsRatio : 42;
+  const rawCustomTds = params.customTdsRatio !== undefined ? params.customTdsRatio : 42;
+
+  // MX-4: TDS must be >= GDS (TDS is a superset of GDS - it can never be the
+  // tighter constraint). This is primarily enforced at input time in
+  // max-mortgage-calculator.ts; this clamp is a defensive backstop so the
+  // math can never produce a nonsense binding constraint even if an invalid
+  // combination reaches this function some other way.
+  const customTds = Math.max(rawCustomTds, customGds);
+
   const gdsRatio = customGds / 100;
   const tdsRatio = customTds / 100;
 
