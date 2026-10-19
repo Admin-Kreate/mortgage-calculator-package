@@ -936,12 +936,27 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
     const debtPayments = resultObj.totalMonthlyDebtCosts - resultObj.totalMonthlyHousingCosts;
     const homeExpenses = resultObj.homeExpenses;
 
-    // Calculate proportions for visual breakdown
-    const total = resultObj.monthlyMortgagePayment + Math.max(debtPayments, 0) + homeExpenses + resultObj.cashLeftGross;
-    const mortgageProp = (resultObj.monthlyMortgagePayment / total) * 100;
-    const debtProp = (Math.max(debtPayments, 0) / total) * 100;
-    const expensesProp = (homeExpenses / total) * 100;
-    const cashProp = (resultObj.cashLeftGross / total) * 100;
+    // Calculate proportions for visual breakdown.
+    // MX-5: gross income can be 0 (slider minimum), making `total` 0 and every
+    // width "NaN%". A large debt load can also make cashLeftGross negative -
+    // an earlier revision floored cashProp at 0 for that case, but still
+    // divided by the raw (unclamped) total, so the OTHER three segments
+    // could still individually exceed 100% (e.g. debtProp > 400%) whenever
+    // the negative cash figure shrank the denominator below any one
+    // numerator. Fix: clamp every component to >= 0 first, then build the
+    // denominator from those same clamped values, so the four widths are
+    // guaranteed to sum to exactly 100% (or all be 0 when nothing is
+    // positive) rather than each being independently, unboundedly divided.
+    const clampedMortgage = Math.max(0, resultObj.monthlyMortgagePayment);
+    const clampedDebt = Math.max(0, debtPayments);
+    const clampedExpenses = Math.max(0, homeExpenses);
+    const clampedCash = Math.max(0, resultObj.cashLeftGross);
+    const barTotal = clampedMortgage + clampedDebt + clampedExpenses + clampedCash;
+    const hasPositiveTotal = barTotal > 0;
+    const mortgageProp = hasPositiveTotal ? (clampedMortgage / barTotal) * 100 : 0;
+    const debtProp = hasPositiveTotal ? (clampedDebt / barTotal) * 100 : 0;
+    const expensesProp = hasPositiveTotal ? (clampedExpenses / barTotal) * 100 : 0;
+    const cashProp = hasPositiveTotal ? (clampedCash / barTotal) * 100 : 0;
 
     breakdownBarMonthlyMortgageResultsElement.style.width = `${mortgageProp.toString()}%`;
     breakdownBarDebtPaymentResultsElement.style.width = `${debtProp.toString()}%`;
