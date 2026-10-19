@@ -921,7 +921,17 @@ export function initCalculator(container: HTMLElement) {
       principalPaidDuringTermResultsElement.textContent = `$${resultObj.termPrincipalPaid.toLocaleString()}`;
       interestPaidDuringTermResultsElement.textContent = `$${resultObj.termInterestPaid.toLocaleString()}`;
       balanceRemainingAfterTermResultsElement.textContent = `$${resultObj.remainingPrincipalAtEndOfTerm.toLocaleString()}`;
-      principalSlider.value = Math.round((resultObj.termPrincipalPaid / resultObj.mortgageAmount) * 100).toString();
+      // termPrincipalPaid (and remainingPrincipalAtEndOfTerm, its complement)
+      // are computed in utils.ts against totalMortgage - the insured
+      // principal (mortgage amount + CMHC premium, when applicable) - not
+      // the bare mortgageAmount. Dividing by mortgageAmount here understated
+      // the insured share whenever mortgage insurance applies (down payment
+      // < 20%), making this percentage inconsistent with the dollar figures
+      // shown directly above it, which do sum to totalMortgage.
+      const principalPaidPercent = resultObj.totalMortgage > 0
+        ? Math.round((resultObj.termPrincipalPaid / resultObj.totalMortgage) * 100)
+        : 0;
+      principalSlider.value = Math.max(0, Math.min(100, principalPaidPercent)).toString();
       updateSliderBackground(principalSlider);
 
       totalMortgagePlusInterestResultsElement.textContent = `$${resultObj.totalMortgagePlusInterest.toLocaleString()}`;

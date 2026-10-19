@@ -130,7 +130,12 @@ export function calculateMortgage(data: MortgageData) {
     termPayments: Math.round(termPayments),
     termPrincipalPaid: Math.round(termPrincipalPaid),
     termInterestPaid: Math.round(termInterestPaid),
-    remainingPrincipalAtEndOfTerm: Math.round(remainingPrincipalAtEndOfTerm)
+    remainingPrincipalAtEndOfTerm: Math.round(remainingPrincipalAtEndOfTerm),
+    // Exposed (unrounded) so calculator.ts can compute the Principal Paid
+    // during Term progress bar against the actual insured principal
+    // (mortgage amount + CMHC premium, when applicable) instead of the bare
+    // mortgage amount.
+    totalMortgage,
   };
 }
 
