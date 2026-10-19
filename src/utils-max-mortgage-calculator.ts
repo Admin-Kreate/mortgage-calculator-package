@@ -15,20 +15,6 @@ export interface MortgageResult {
   isQualified: boolean,
 }
 
-export interface MortgageParams {
-  grossAnnualIncome: number;
-  monthlyDebtPayments: number;
-  propertyTaxMonthly: number;
-  condoFees: number;
-  heatCosts: number;
-  interestRate: number;
-  amortizationYears: number;
-  amortizationMonths: number;
-  affordabilityLevel: number;
-  rentalIncomeMonthly: number;
-  includeRentalIncome: boolean;
-}
-
 export function formatCurrency(amount: number, detailed = false): string {
   return new Intl.NumberFormat('en-CA', {
     style: 'currency',
