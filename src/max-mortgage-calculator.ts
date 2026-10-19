@@ -497,8 +497,17 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
 
   addRentalIncomeToggleSelectorElements.forEach((selector, index) => {
     selector.addEventListener('click', () => {
-      const prevValue = (container.querySelector('.title-toggle-wrapper .toggle .selected') as HTMLElement)?.dataset?.value;
-      const newValue = prevValue === 'off' ? 'on' : 'off';
+      // MX-11: this used to derive newValue by inverting whatever was
+      // *previously* selected, regardless of which of the two ("off"/"on")
+      // buttons was actually clicked - every other segmented control in
+      // this file (Regular/Interest Only, Contract/B20, Add Back/Offset,
+      // Baseline/Standard) sets state to whichever option was clicked, not
+      // a blind toggle-flip. With the old logic, clicking the already-active
+      // option (e.g. clicking "on" again, or a double click) flipped it OFF
+      // and silently zeroed out the rental income fields, instead of being
+      // a no-op. Read the clicked element's own target state directly so
+      // it's idempotent and consistent with the rest of the UI.
+      const newValue = (selector as HTMLElement).dataset.value === 'on' ? 'on' : 'off';
 
       addRentalIncomeToggleSelectorElements.forEach(h => h.classList.remove('selected'));
 
