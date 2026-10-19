@@ -154,37 +154,43 @@ export function calculateMaxMortgage(params: {
     stressTestRate = Math.max(5.25, interestRate + 2);
   }
   
+  // Calculate fixed housing expenses with condo fees inclusion rate applied.
+  // Computed before the rental income offset so the offset (MX-6) can be
+  // capped against it.
+  const includedCondoFees = condoFees * (condoFeeInclusionRate / 100);
+  const fixedHousingCosts = propertyTaxMonthly + includedCondoFees + heatCosts;
+
   // Calculate rental income based on rule and portion
   let effectiveRentalIncome = 0;
   let rentalIncomeOffset = 0;
-  
+
   if (includeRentalIncome) {
     const rentalPortion = rentalIncomePortion / 100;
     const rentalAmount = rentalIncomeMonthly * rentalPortion;
-    
+
     if (rentalIncomeRule === 'ADD-BACK') {
       // Add back - Added to the income
       effectiveRentalIncome = rentalAmount;
-    } else { // OFFSET
-      // Set off - subtracted from expenses
-      rentalIncomeOffset = rentalAmount;
+    } else {
+      // OFFSET - Set off against housing expenses. MX-6: the offset cannot
+      // reduce housing costs below zero - it is capped at the fixed housing
+      // costs it is meant to be offsetting, otherwise it becomes an
+      // uncapped, mislabeled income add-back that manufactures unlimited
+      // extra borrowing power.
+      rentalIncomeOffset = Math.min(rentalAmount, fixedHousingCosts);
     }
   }
   const adjustedGrossIncome = monthlyGrossIncome + effectiveRentalIncome;
-  
+
   // Use custom GDS/TDS ratios from form input (fallback to defaults)
   const customGds = params.customGdsRatio || 35;
   const customTds = params.customTdsRatio || 42;
   const gdsRatio = customGds / 100;
   const tdsRatio = customTds / 100;
-  
+
   const maxHousingCosts = adjustedGrossIncome * gdsRatio;
   const maxTotalDebtCosts = adjustedGrossIncome * tdsRatio;
-  
-  // Calculate fixed housing expenses with condo fees inclusion rate applied
-  const includedCondoFees = condoFees * (condoFeeInclusionRate / 100);
-  const fixedHousingCosts = propertyTaxMonthly + includedCondoFees + heatCosts;
-  
+
   // Available amount for mortgage payment (apply rental income offset for OFFSET rule)
   const availableForMortgage = Math.min(
     maxHousingCosts - fixedHousingCosts + rentalIncomeOffset,
