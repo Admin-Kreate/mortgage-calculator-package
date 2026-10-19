@@ -60,7 +60,7 @@ export function initCalculator(container: HTMLElement) {
           <img src="${InterestRateIcon}" alt="Interest Rate icon"/>
           <div class="title">Interest Rate</div>
         </div>
-        <div class="fixed-variable-selector">
+        <div class="fixed-variable-selector" data-tooltip="Selecting Fixed or Variable does not change the numbers below - it is not yet factored into these calculations.">
           <div class="selector">Fixed</div>
           <div class="selector active">Variable</div>
         </div>
@@ -130,7 +130,7 @@ export function initCalculator(container: HTMLElement) {
           <img src="${PaymentFrequencyIcon}" alt="Payment Frequency icon"/>
           <div class="title">Payment Frequency</div>
         </div>
-        <div class="mortgage-calculator-info">How often you make mortgage payments</div>
+        <div class="mortgage-calculator-info">How often you make mortgage payments - selecting a frequency does not change the numbers below; it is not yet factored into these calculations</div>
       </div>
       <div class="dropdown">
         <div class="dropdown-field">
@@ -308,10 +308,10 @@ export function initCalculator(container: HTMLElement) {
         </div>
       </div>
       <div class="input-field"><input type="text" value="$  0" data-previous-value="0" class="value-input"></div>
-      <div class="dropdown">
+      <div class="dropdown disabled">
         <div class="dropdown-field">
           <span>Monthly</span>
-          <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
+          <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>
         </div>
         <div class="dropdown-opts">
           <div class="dropdown-opt">Monthly</div>
@@ -564,8 +564,19 @@ export function initCalculator(container: HTMLElement) {
 
       const firstField = selector.parentElement?.parentElement?.nextElementSibling;
       const secondField = selector.parentElement?.parentElement?.nextElementSibling?.nextElementSibling;
-      if (selector.textContent?.toLowerCase() === 'none') {
+      const selectedType = selector.textContent?.toLowerCase();
+      if (selectedType === 'none') {
         firstField?.classList.add("disabled");
+        secondField?.classList.add("disabled");
+      } else if (selectedType === 'one-time') {
+        // A one-time extra payment is applied exactly once (month 1) in
+        // utils.ts's buildExtraPaymentSchedule regardless of what the
+        // frequency dropdown shows - "how often" is meaningless for a
+        // single payment. Disable it here so it isn't shown as a live,
+        // interactive control that silently has zero effect on the result
+        // (this matters especially since "One-Time" is the default active
+        // extra-payment type on page load).
+        firstField?.classList.remove("disabled");
         secondField?.classList.add("disabled");
       } else {
         firstField?.classList.remove("disabled");
