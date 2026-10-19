@@ -720,6 +720,15 @@ export function initCalculator(container: HTMLElement) {
   // indication anything was wrong.
   const MAX_PURCHASE_PRICE = 2000000;
 
+  // Upper bounds for the other dollar fields, matching their sliders'
+  // max attributes (100000 / 5000 / 1500). These don't cascade into other
+  // fields the way purchase price does, but for the same reason - keeping
+  // the typed value from silently diverging from what the slider can show -
+  // they're bounded here too.
+  const MAX_PROPERTY_TAXES = 100000;
+  const MAX_HEATING_COSTS = 5000;
+  const MAX_CONDO_FEES = 1500;
+
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
@@ -803,7 +812,7 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "property-taxes":
-            if (0 <= numericValue) {
+            if (0 <= numericValue && numericValue <= MAX_PROPERTY_TAXES) {
               propertyTaxesInputSlider.value = numericValue.toString();
               updateSliderBackground(propertyTaxesInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -814,7 +823,7 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "heating-costs":
-            if (0 <= numericValue) {
+            if (0 <= numericValue && numericValue <= MAX_HEATING_COSTS) {
               heatingCostsInputSlider.value = numericValue.toString();
               updateSliderBackground(heatingCostsInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
@@ -825,7 +834,7 @@ export function initCalculator(container: HTMLElement) {
             break;
 
           case "condo-fees":
-            if (0 <= numericValue) {
+            if (0 <= numericValue && numericValue <= MAX_CONDO_FEES) {
               condoFeesInputSlider.value = numericValue.toString();
               updateSliderBackground(condoFeesInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
