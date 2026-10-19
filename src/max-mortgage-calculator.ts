@@ -618,12 +618,24 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
           case "affordability-level-gds":
           case "affordability-level-tds":
             if (0 <= numericValue && numericValue <= 100) {
-              target.value = `${parseInt(value).toLocaleString('en-US')}${symbol}`;
-              target.dataset.previousValue = value;
-              if (type === "affordability-level-gds") {
-                affordabilityRatioGds.textContent = `${parseFloat(parseFloat(value).toFixed(2)).toLocaleString('en-US')}${symbol}`;
-              } else if (type === "affordability-level-tds") {
-                affordabilityRatioTds.textContent = `${parseFloat(parseFloat(value).toFixed(2)).toLocaleString('en-US')}${symbol}`;
+              // MX-4: TDS must be >= GDS - reject a combination that would
+              // violate that relation instead of accepting it silently.
+              const otherInput = type === "affordability-level-gds" ? affordabilityLevelTdsInput : affordabilityLevelGdsInput;
+              const otherValue = otherInput.dataset.previousValue !== undefined
+                ? parseFloat(otherInput.dataset.previousValue)
+                : (type === "affordability-level-gds" ? 42 : 35);
+              const isValidRelation = type === "affordability-level-gds" ? numericValue <= otherValue : numericValue >= otherValue;
+
+              if (isValidRelation) {
+                target.value = `${parseInt(value).toLocaleString('en-US')}${symbol}`;
+                target.dataset.previousValue = value;
+                if (type === "affordability-level-gds") {
+                  affordabilityRatioGds.textContent = `${parseFloat(parseFloat(value).toFixed(2)).toLocaleString('en-US')}${symbol}`;
+                } else if (type === "affordability-level-tds") {
+                  affordabilityRatioTds.textContent = `${parseFloat(parseFloat(value).toFixed(2)).toLocaleString('en-US')}${symbol}`;
+                }
+              } else if (target.dataset.previousValue) {
+                target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')}${symbol}`;
               }
             } else if (target.dataset.previousValue) {
               target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')}${symbol}`;
