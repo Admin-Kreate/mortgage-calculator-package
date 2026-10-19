@@ -358,6 +358,7 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
 
   const affordabilityRatioGds = container.querySelector('.affordability-level .current-calculated-ratios .value span:nth-of-type(1)') as HTMLInputElement;
   const affordabilityRatioTds = container.querySelector('.affordability-level .current-calculated-ratios .value span:nth-of-type(2)') as HTMLInputElement;
+  const affordabilityRatiosValueElement = container.querySelector('.affordability-level .current-calculated-ratios .value') as HTMLElement;
 
   const addRentalIncomeExpandableElement = container.querySelector('.add-rental-income .expandable') as HTMLInputElement;
   const addRentalIncomeMonthlyInput = container.querySelector('.add-rental-income-monthly .value-input') as HTMLInputElement;
@@ -675,17 +676,15 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
                 const roundedValue = Math.round(numericValue);
                 target.value = `${roundedValue.toLocaleString('en-US')}${symbol}`;
                 target.dataset.previousValue = roundedValue.toString();
-                if (type === "affordability-level-gds") {
-                  affordabilityRatioGds.textContent = `${roundedValue.toLocaleString('en-US')}${symbol}`;
-                } else if (type === "affordability-level-tds") {
-                  affordabilityRatioTds.textContent = `${roundedValue.toLocaleString('en-US')}${symbol}`;
-                }
               } else if (target.dataset.previousValue) {
                 target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')}${symbol}`;
               }
             } else if (target.dataset.previousValue) {
               target.value = `${parseInt(target.dataset.previousValue).toLocaleString('en-US')}${symbol}`;
             }
+            // MX-2: the "Current Calculated Ratios" box is no longer an echo
+            // of this input - it is populated from the real computed ratios
+            // inside updateResults().
             break;
           }
 
@@ -919,6 +918,19 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
     maxMortgageAmountResultsElement.textContent = formatCurrency(resultObj.maxMortgageAmount);
     stressTestRateResultsElement.textContent = formatPercentage(resultObj.stressTestRate);
     gdsTdsRatioResultElements.textContent = `${formatPercentage(resultObj.gdsRatio)} / ${formatPercentage(resultObj.tdsRatio)}`;
+
+    // MX-2: show the real computed ratios, not an echo of whatever the user typed.
+    affordabilityRatioGds.textContent = formatPercentage(resultObj.actualGdsRatio);
+    affordabilityRatioTds.textContent = formatPercentage(resultObj.actualTdsRatio);
+    if (affordabilityRatiosValueElement) {
+      // Surface isQualified: this only goes false when fixed housing costs
+      // and/or existing debt alone already exceed the GDS/TDS budget (i.e.
+      // even a $0 mortgage would not qualify).
+      affordabilityRatiosValueElement.style.color = resultObj.isQualified ? '' : '#b91c1c';
+      affordabilityRatiosValueElement.title = resultObj.isQualified
+        ? ''
+        : 'Fixed home expenses and existing debt payments already exceed the GDS/TDS budget, even with no mortgage.';
+    }
 
     monthlyMortgageResultsElement.textContent = formatCurrency(resultObj.monthlyMortgagePayment, true);
     const debtPayments = resultObj.totalMonthlyDebtCosts - resultObj.totalMonthlyHousingCosts;
