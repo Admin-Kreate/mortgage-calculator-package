@@ -707,7 +707,11 @@ export function initCalculator(container: HTMLElement) {
             const downpaymentLowerLimit = purchasePrice * 0.05;
             const downpaymentUpperLimit = purchasePrice * 0.40;
 
-            if (numericValue <= downpaymentUpperLimit) {
+            // Enforce the same 5%-40% bounds as the percentage field below
+            // (previously only the upper bound was checked, and the lower
+            // bound - though computed - was never used, so e.g. a $1 down
+            // payment was accepted).
+            if (downpaymentLowerLimit <= numericValue && numericValue <= downpaymentUpperLimit) {
               const downpaymentPercentageValue = (numericValue / purchasePrice) * 100;
               downPaymentPercentageInputSlider.value = downpaymentPercentageValue.toString();
               updateSliderBackground(downPaymentPercentageInputSlider);
