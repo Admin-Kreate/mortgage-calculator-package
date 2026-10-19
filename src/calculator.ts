@@ -671,7 +671,32 @@ export function initCalculator(container: HTMLElement) {
     const purchasePrice = ppValue ? parseInt(ppValue) : 0;
 
     const downpaymentValue = parseInt(downPaymentInput.dataset.previousValue ?? '0');
-    const downpaymentPercentageValue = (downpaymentValue / purchasePrice) * 100;
+    let downpaymentPercentageValue = (downpaymentValue / purchasePrice) * 100;
+
+    // The down payment dollar amount is fixed by the user, but the purchase
+    // price can move independently (its own slider/text field). Recomputing
+    // the percentage from a fixed dollar amount against a new purchase price
+    // can push it outside the 5%-40% bounds enforced everywhere else - or,
+    // if the purchase price drops below the down payment amount, negative -
+    // which would silently produce a negative mortgage amount downstream.
+    // Re-clamp here and pull the dollar amount back in line with it so the
+    // two fields never drift out of sync with the bounds they claim to share.
+    let clampedDownpaymentValue = downpaymentValue;
+    if (purchasePrice > 0) {
+      if (downpaymentPercentageValue < 5) {
+        downpaymentPercentageValue = 5;
+        clampedDownpaymentValue = Math.round(purchasePrice * 0.05);
+      } else if (downpaymentPercentageValue > 40) {
+        downpaymentPercentageValue = 40;
+        clampedDownpaymentValue = Math.round(purchasePrice * 0.40);
+      }
+    }
+
+    if (clampedDownpaymentValue !== downpaymentValue) {
+      downPaymentInput.value = `$  ${clampedDownpaymentValue.toLocaleString('en-US')}`;
+      downPaymentInput.dataset.previousValue = clampedDownpaymentValue.toString();
+    }
+
     downPaymentPercentageInputSlider.value = downpaymentPercentageValue.toString();
     updateSliderBackground(downPaymentPercentageInputSlider);
 
