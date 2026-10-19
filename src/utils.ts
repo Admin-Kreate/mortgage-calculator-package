@@ -37,19 +37,24 @@ export function calculateMortgage(data: MortgageData) {
   // Calculate mortgage amount (purchase price - down payment)
   const mortgageAmount = data.purchasePrice - data.downPaymentAmount;
   
-  // Calculate CMHC mortgage insurance if down payment is less than 20%
+  // Calculate CMHC mortgage insurance if down payment is less than 20%.
+  // Down payments below 5% aren't legal for an insured mortgage in Canada;
+  // the UI (calculator.ts) is expected to enforce that 5% floor on input.
+  // As a defensive fallback here, anything under 10% (including, in error,
+  // under 5%) is still charged the highest premium tier below rather than
+  // silently falling through with a 0% rate/no premium.
   let mortgageInsurance = 0;
   if (data.downPaymentPercentage < 20) {
-    // CMHC insurance rates (simplified)
-    let rate = 0;
+    let rate: number;
     if (data.downPaymentPercentage >= 15) {
       rate = 0.028;
     } else if (data.downPaymentPercentage >= 10) {
       rate = 0.031;
-    } else if (data.downPaymentPercentage >= 5) {
+    } else {
+      // 5%-9.99% down, and a defensive fallback for anything lower.
       rate = 0.04;
     }
-    
+
     mortgageInsurance = mortgageAmount * rate;
   }
   
@@ -68,8 +73,10 @@ export function calculateMortgage(data: MortgageData) {
   // Number of monthly payments for amortization period
   const totalNumberOfPayments = data.amortizationPeriod * 12;
   
-  // Number of monthly payments for term
-  const termNumberOfPayments = data.termLength * 12;
+  // Number of monthly payments for term. The term can never be longer than
+  // the amortization period itself (you can't have a 10-year term on a
+  // 5-year amortization), so it's capped here.
+  const termNumberOfPayments = Math.min(data.termLength, data.amortizationPeriod) * 12;
   
   // Calculate monthly payment using the mortgage formula with effective rate
   const monthlyPayment = totalMortgage * 
@@ -86,24 +93,30 @@ export function calculateMortgage(data: MortgageData) {
   const firstPaymentInterest = totalMortgage * effectiveMonthlyRate;
   const firstPaymentPrincipal = monthlyPayment - firstPaymentInterest;
   
-  // Calculate interest to principal ratio
-  const interestPrincipalRatio = Math.round((totalInterestPaid / totalMortgage) * 100);
-  
-  // Calculate Term Payments (for the mortgage term, typically 5 years)
-  const termPayments = monthlyPayment * termNumberOfPayments;
-  
-  // To calculate term interest and principal accurately, we need to simulate the amortization
-  // For simplicity, we'll use an estimate based on the term length relative to amortization
-  const remainingPrincipalAtEndOfTerm = calculateRemainingPrincipal(
-    totalMortgage, 
-    effectiveMonthlyRate, 
-    monthlyPayment, 
+  // Share of the total amount paid (principal + interest) that is interest,
+  // expressed as a percentage. This is always within 0-100 by construction
+  // (unlike a raw interest/principal ratio, which can exceed 100% at
+  // ordinary rates), so it's safe to drive a 0-100 progress bar directly.
+  const interestPrincipalRatio = Math.max(0, Math.min(100,
+    Math.round((totalInterestPaid / totalPayments) * 100)
+  ));
+
+  // Simulate the real amortization schedule over the term (capped above at
+  // the amortization period) instead of relying purely on the closed-form
+  // remaining-balance formula, which can go negative once the number of
+  // payments simulated exceeds the point the loan is actually paid off.
+  const termSchedule = simulateAmortizationSchedule(
+    totalMortgage,
+    effectiveMonthlyRate,
+    monthlyPayment,
     termNumberOfPayments
   );
-  
-  const termPrincipalPaid = totalMortgage - remainingPrincipalAtEndOfTerm;
-  const termInterestPaid = termPayments - termPrincipalPaid;
-  
+
+  const termPrincipalPaid = termSchedule.totalPrincipal;
+  const termInterestPaid = termSchedule.totalInterest;
+  const remainingPrincipalAtEndOfTerm = termSchedule.endingBalance;
+  const termPayments = termSchedule.totalPrincipal + termSchedule.totalInterest;
+
   return {
     monthlyPayment: Math.round(monthlyPayment),
     mortgageAmount: Math.round(mortgageAmount),
@@ -121,18 +134,55 @@ export function calculateMortgage(data: MortgageData) {
   };
 }
 
-// Helper function to calculate remaining principal at the end of term
-function calculateRemainingPrincipal(
-  initialPrincipal: number, 
-  monthlyRate: number, 
-  monthlyPayment: number, 
-  numberOfPayments: number
-): number {
-  // P = P0(1+r)^n - PMT*[(1+r)^n - 1]/r
-  // where P is remaining principal, P0 is initial principal,
-  // r is monthly rate, PMT is monthly payment, n is number of payments
-  return initialPrincipal * Math.pow(1 + monthlyRate, numberOfPayments) - 
-         monthlyPayment * (Math.pow(1 + monthlyRate, numberOfPayments) - 1) / monthlyRate;
+// Simulate a monthly amortization schedule - optionally with extra
+// principal payments applied - and report what actually happens, rather
+// than using closed-form formulas that can go negative once the number of
+// payments simulated exceeds the point the loan is fully paid off.
+function simulateAmortizationSchedule(
+  principal: number,
+  monthlyRate: number,
+  monthlyPayment: number,
+  numberOfPayments: number,
+  extraPaymentForMonth?: (monthIndex: number) => number
+): { months: number; totalInterest: number; totalPrincipal: number; endingBalance: number } {
+  let balance = principal;
+  let totalInterest = 0;
+  let totalPrincipal = 0;
+  let months = 0;
+
+  for (let month = 1; month <= numberOfPayments; month++) {
+    if (balance <= 0.005) {
+      break;
+    }
+
+    const interestPortion = balance * monthlyRate;
+    let principalPortion = monthlyPayment - interestPortion;
+
+    if (extraPaymentForMonth) {
+      principalPortion += extraPaymentForMonth(month);
+    }
+
+    // Never pay down more principal than remains outstanding, and never
+    // let a payment reduce principal by a negative amount.
+    if (principalPortion > balance) {
+      principalPortion = balance;
+    }
+    if (principalPortion < 0) {
+      principalPortion = 0;
+    }
+
+    balance -= principalPortion;
+    totalInterest += interestPortion;
+    totalPrincipal += principalPortion;
+    months = month;
+  }
+
+  return {
+    months,
+    totalInterest,
+    totalPrincipal,
+    endingBalance: Math.max(0, balance),
+  };
 }
 
 // Calculate advanced results including all costs and stress test
