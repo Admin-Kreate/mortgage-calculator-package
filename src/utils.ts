@@ -73,8 +73,10 @@ export function calculateMortgage(data: MortgageData) {
   // Number of monthly payments for amortization period
   const totalNumberOfPayments = data.amortizationPeriod * 12;
   
-  // Number of monthly payments for term
-  const termNumberOfPayments = data.termLength * 12;
+  // Number of monthly payments for term. The term can never be longer than
+  // the amortization period itself (you can't have a 10-year term on a
+  // 5-year amortization), so it's capped here.
+  const termNumberOfPayments = Math.min(data.termLength, data.amortizationPeriod) * 12;
   
   // Calculate monthly payment using the mortgage formula with effective rate
   const monthlyPayment = totalMortgage * 
