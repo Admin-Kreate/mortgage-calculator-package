@@ -70,35 +70,52 @@ export function getAffordabilityColor(level: number): string {
   return 'text-red-600';
 }
 
-function calculateMortgagePayment(principal: number, annualRate: number, amortizationMonths: number, compounding: string = 'Semi-Annual'): number {
+type CompoundingFrequency = 'monthly' | 'semi-annual' | 'annual';
+
+// MX-1: single normalisation point for compounding. The UI sends lowercase
+// strings ('monthly', 'semi-annual', 'annual') but only Monthly, Semi-Annual
+// and Annual are mathematically implemented below (Daily/Weekly/Bi-Weekly/
+// Quarterly are not - the dropdown has been restricted to the supported
+// three in max-mortgage-calculator.ts). Anything unrecognised falls back to
+// the Canadian standard, semi-annual compounding.
+function normalizeCompounding(compounding: string): CompoundingFrequency {
+  const normalized = (compounding || '').trim().toLowerCase();
+  if (normalized === 'monthly') return 'monthly';
+  if (normalized === 'annual') return 'annual';
+  return 'semi-annual';
+}
+
+// Converts a nominal annual rate into the effective monthly rate for the
+// given compounding frequency. Used by BOTH the max-amount (stress test)
+// side and the actual-payment (contract rate) side so they can never
+// disagree (MX-1).
+function effectiveMonthlyRateFromAnnual(annualRateDecimal: number, compounding: CompoundingFrequency): number {
+  switch (compounding) {
+    case 'monthly':
+      return annualRateDecimal / 12;
+    case 'annual':
+      // Annual compounding: ((1 + r)^(1/12)) - 1
+      return Math.pow(1 + annualRateDecimal, 1 / 12) - 1;
+    case 'semi-annual':
+    default:
+      // Canadian standard: semi-annual compounding, monthly payments
+      // Formula: ((1 + r/2)^(2/12)) - 1
+      return Math.pow(1 + annualRateDecimal / 2, 2 / 12) - 1;
+  }
+}
+
+function calculateMortgagePayment(principal: number, annualRate: number, amortizationMonths: number, compounding: string = 'semi-annual'): number {
   if (annualRate === 0) {
     return principal / amortizationMonths;
   }
-  
-  // Convert annual rate to effective monthly rate based on compounding frequency
-  let effectiveMonthlyRate: number;
+
   const annualRateDecimal = annualRate / 100;
-  
-  switch (compounding) {
-    case 'Monthly':
-      effectiveMonthlyRate = annualRateDecimal / 12;
-      break;
-    case 'Semi-Annual':
-      // Canadian standard: semi-annual compounding, monthly payments
-      // Formula: ((1 + r/2)^(2/12)) - 1
-      effectiveMonthlyRate = Math.pow(1 + annualRateDecimal / 2, 2/12) - 1;
-      break;
-    case 'Annual':
-      // Annual compounding: ((1 + r)^(1/12)) - 1
-      effectiveMonthlyRate = Math.pow(1 + annualRateDecimal, 1/12) - 1;
-      break;
-    default:
-      effectiveMonthlyRate = Math.pow(1 + annualRateDecimal / 2, 2/12) - 1;
-  }
-  
+  const normalizedCompounding = normalizeCompounding(compounding);
+  const effectiveMonthlyRate = effectiveMonthlyRateFromAnnual(annualRateDecimal, normalizedCompounding);
+
   const numerator = effectiveMonthlyRate * Math.pow(1 + effectiveMonthlyRate, amortizationMonths);
   const denominator = Math.pow(1 + effectiveMonthlyRate, amortizationMonths) - 1;
-  
+
   return principal * (numerator / denominator);
 }
 
@@ -197,27 +214,15 @@ export function calculateMaxMortgage(params: {
     maxTotalDebtCosts - monthlyDebtPayments - fixedHousingCosts + rentalIncomeOffset
   );
   
+  // MX-1: normalise once, use everywhere (amount side AND payment side).
+  const normalizedCompounding = normalizeCompounding(compounding);
+
   // Calculate maximum mortgage amount using stress test rate
   let maxMortgageAmount = 0;
   if (availableForMortgage > 0) {
-    // Use same compounding logic for stress test calculation
-    let effectiveMonthlyStressRate: number;
     const stressRateDecimal = stressTestRate / 100;
-    
-    switch (compounding) {
-      case 'monthly':
-        effectiveMonthlyStressRate = stressRateDecimal / 12;
-        break;
-      case 'semi-annual':
-        effectiveMonthlyStressRate = Math.pow(1 + stressRateDecimal / 2, 2/12) - 1;
-        break;
-      case 'annual':
-        effectiveMonthlyStressRate = Math.pow(1 + stressRateDecimal, 1/12) - 1;
-        break;
-      default:
-        effectiveMonthlyStressRate = Math.pow(1 + stressRateDecimal / 2, 2/12) - 1;
-    }
-    
+    const effectiveMonthlyStressRate = effectiveMonthlyRateFromAnnual(stressRateDecimal, normalizedCompounding);
+
     if (effectiveMonthlyStressRate > 0) {
       const denominator = effectiveMonthlyStressRate * Math.pow(1 + effectiveMonthlyStressRate, totalAmortizationMonths);
       const numerator = Math.pow(1 + effectiveMonthlyStressRate, totalAmortizationMonths) - 1;
@@ -226,9 +231,10 @@ export function calculateMaxMortgage(params: {
       maxMortgageAmount = availableForMortgage * totalAmortizationMonths;
     }
   }
-  
-  // Calculate actual monthly payment at contract rate
-  const monthlyMortgagePayment = calculateMortgagePayment(maxMortgageAmount, interestRate, totalAmortizationMonths, compounding);
+
+  // Calculate actual monthly payment at contract rate - same normalised
+  // compounding as the amount side above (MX-1).
+  const monthlyMortgagePayment = calculateMortgagePayment(maxMortgageAmount, interestRate, totalAmortizationMonths, normalizedCompounding);
   
   // Calculate actual GDS and TDS ratios
   const totalMonthlyHousingCosts = monthlyMortgagePayment + fixedHousingCosts;
