@@ -25,9 +25,9 @@ export function initCalculator(container: HTMLElement) {
       </div>
       <div class="input-field">
         <input type="text" value="$  500,000" data-previous-value="500000" class="value-input">
-        <input type="range" min="0" max="2000000" value="500000" step="10000" class="slider">
+        <input type="range" min="10000" max="2000000" value="500000" step="10000" class="slider">
         <div class="range-label">
-          <span>$0</span>
+          <span>$10,000</span>
           <span>$2M+</span>
         </div>
       </div>
@@ -706,6 +706,20 @@ export function initCalculator(container: HTMLElement) {
     downPaymentPecentageInput.dataset.previousValue = downpaymentPercentageValue.toString();
   };
 
+  // Minimum accepted purchase price. Guards against a $0 purchase price,
+  // which would otherwise make the down payment percentage divide by zero
+  // and render as "Infinity%".
+  const MIN_PURCHASE_PRICE = 10000;
+
+  // Maximum accepted purchase price, matching the purchase-price slider's
+  // max="2000000". The text field previously had no ceiling at all: typing
+  // e.g. "$50,000,000" was accepted straight into dataset.previousValue (the
+  // value inputData.purchasePrice reads from), while the slider silently
+  // clamped its own display to 2,000,000 - so the visible slider position
+  // and the number actually being calculated could diverge by 25x with no
+  // indication anything was wrong.
+  const MAX_PURCHASE_PRICE = 2000000;
+
   const formatInput = (inputElement: HTMLInputElement, symbol: string, type: string) => {
     inputElement.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
@@ -716,7 +730,7 @@ export function initCalculator(container: HTMLElement) {
 
         switch (type) {
           case "purchase-price":
-            if (0 <= numericValue) {
+            if (MIN_PURCHASE_PRICE <= numericValue && numericValue <= MAX_PURCHASE_PRICE) {
               purchasePriceInputSlider.value = numericValue.toString();
               updateSliderBackground(purchasePriceInputSlider);
               target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
