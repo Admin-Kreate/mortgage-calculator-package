@@ -4,6 +4,8 @@ export interface MortgageResult {
   stressTestRate: number,
   gdsRatio: number,
   tdsRatio: number,
+  actualGdsRatio: number,
+  actualTdsRatio: number,
   monthlyGrossIncome: number,
   totalMonthlyHousingCosts: number,
   totalMonthlyDebtCosts: number,
@@ -292,6 +294,8 @@ export function calculateMaxMortgage(params: {
     stressTestRate: Math.round(stressTestRate * 100) / 100,
     gdsRatio: Math.round(customGds * 100) / 100, // Return the input GDS ratio
     tdsRatio: Math.round(customTds * 100) / 100, // Return the input TDS ratio
+    actualGdsRatio: Math.round(actualGdsRatio * 100) / 100,
+    actualTdsRatio: Math.round(actualTdsRatio * 100) / 100,
     monthlyGrossIncome: Math.round(adjustedGrossIncome * 100) / 100,
     totalMonthlyHousingCosts: Math.round(totalMonthlyHousingCosts * 100) / 100,
     totalMonthlyDebtCosts: Math.round(totalMonthlyDebtCosts * 100) / 100,
