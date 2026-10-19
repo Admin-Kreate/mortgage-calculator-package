@@ -52,11 +52,11 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       <div class="input-fields half-width-fields">
         <div class="input-field home-expense-monthly">
           <div class="field-label">Property Tax (Monthly)</div>
-          <input type="text" value="$  200" data-previous-value="200" class="value-input">
+          <input type="text" value="$  200.00" data-previous-value="200" class="value-input">
         </div>
         <div class="input-field home-expense-yearly">
           <div class="field-label">Property Tax (Yearly)</div>
-          <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
+          <input type="text" value="$  2,400.00" data-previous-value="2400" class="value-input">
         </div>
       </div>
       <div class="input-fields half-width-fields">
@@ -91,11 +91,11 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       </div>
       <div class="input-fields half-width-fields">
         <div class="input-field affordability-level-gds">
-          <div class="field-label">Property Tax (GDS)</div>
+          <div class="field-label">GDS Ratio Limit</div>
           <input type="text" value="35%" data-previous-value="35" class="value-input">
         </div>
         <div class="input-field affordability-level-tds">
-          <div class="field-label">Property Tax (TDS)</div>
+          <div class="field-label">TDS Ratio Limit</div>
           <input type="text" value="42%" data-previous-value="42" class="value-input">
         </div>
       </div>
@@ -199,11 +199,11 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       <div class="input-fields half-width-fields expandable">
         <div class="input-field add-rental-income-monthly">
           <div class="field-label">Monthly</div>
-          <input type="text" value="$  200" data-previous-value="200" class="value-input">
+          <input type="text" value="$  200.00" data-previous-value="200" class="value-input">
         </div>
         <div class="input-field add-rental-income-yearly">
           <div class="field-label">Yearly</div>
-          <input type="text" value="$  2,400" data-previous-value="2400" class="value-input">
+          <input type="text" value="$  2,400.00" data-previous-value="2400" class="value-input">
         </div>
       </div>
     </div>
@@ -260,10 +260,10 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
       </div>
       <div class="foot-notes">
         <div class="foot-note">
-          <span>Stress Test:</span> CONTRACT uses your actual rate, 820 uses higher of 5.25% or contract rate + 2%
+          <span>Stress Test:</span> CONTRACT uses your actual rate, B20 uses higher of 5.25% or contract rate + 2%
         </div>
         <div class="foot-note">
-          <span>Rental Income:</span> ADO BACK adds income to qualify, OFFSET reduces housing costs
+          <span>Rental Income:</span> ADD BACK adds income to qualify, OFFSET reduces housing costs
         </div>
       </div>
     </div>
@@ -371,6 +371,8 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
   const condoFeeInclusionRateValueElement = container.querySelector('.condo-fee-inclusion-rate .dropdown-field span') as HTMLInputElement;
   const rentalIncomePortionRateValueElement = container.querySelector('.rental-income-portion .dropdown-field span') as HTMLInputElement;
 
+  const rateTermDropdownFieldElement = container.querySelector('.rate-term .dropdown-field') as HTMLElement | null;
+
   const amortizationInput = container.querySelector('.amortization .value-input') as HTMLInputElement;
   const amortizationInputSlider = container.querySelector('.amortization .slider') as HTMLInputElement;
 
@@ -397,6 +399,14 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
   const addRentalIncomeToggleSelectorElements = container.querySelectorAll('.add-rental-income .opt');
 
   const tooltipElements = container.querySelectorAll("[data-tooltip]");
+
+  // MX-8: the Rate Term dropdown does not feed any calculation - rate term
+  // (contract length) has no bearing on the GDS/TDS affordability math used
+  // here. Rather than silently faking a dependency, make that visible.
+  if (rateTermDropdownFieldElement) {
+    rateTermDropdownFieldElement.title = 'Rate Term does not currently affect the mortgage calculation - it has no effect on GDS/TDS affordability.';
+    rateTermDropdownFieldElement.style.opacity = '0.6';
+  }
 
   const dropdownOpts = container.querySelectorAll('.dropdown-opt');
   dropdownOpts.forEach(dropdownOpt => {
@@ -524,10 +534,10 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
         selector.parentElement?.classList.add('switched-on');
         selector.parentElement?.parentElement?.parentElement?.nextElementSibling?.classList.add('expanded');
       } else {
-        addRentalIncomeMonthlyInput.value = '$  0';
+        addRentalIncomeMonthlyInput.value = '$  0.00';
         addRentalIncomeMonthlyInput.dataset.previousValue = '0';
 
-        addRentalIncomeYearlyInput.value = '$  0';
+        addRentalIncomeYearlyInput.value = '$  0.00';
         addRentalIncomeYearlyInput.dataset.previousValue = '0';
       }
 
@@ -769,47 +779,55 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
             break;
           }
 
+          // MX-9: property tax / rental income monthly<->yearly sync. Use
+          // parseFloat (not parseInt, which silently dropped cents) and
+          // round to the nearest cent, and format both sides with the same
+          // "$  " (two-space) spacing and two decimal places so the two
+          // fields never disagree in precision or layout.
           case "home-expense-monthly":
           case "home-expense-yearly":
           case "add-rental-income-monthly":
-          case "add-rental-income-yearly":
+          case "add-rental-income-yearly": {
+            const formatMoney = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
             if (0 <= numericValue) {
-              target.value = `${symbol}  ${parseInt(value).toLocaleString('en-US')}`;
-              target.dataset.previousValue = value;
+              target.value = `${symbol}  ${formatMoney(numericValue)}`;
+              target.dataset.previousValue = numericValue.toString();
             } else if (target.dataset.previousValue) {
-              target.value = `${symbol}  ${parseInt(target.dataset.previousValue).toLocaleString('en-US')}`;
+              target.value = `${symbol}  ${formatMoney(parseFloat(target.dataset.previousValue))}`;
             }
 
             if (type === "home-expense-monthly") {
               const prevValueStr = target.dataset.previousValue;
-              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
-              const rawYearlyValue = prevValue * 12;
+              const prevValue = prevValueStr ? parseFloat(prevValueStr) : 0;
+              const rawYearlyValue = Math.round(prevValue * 12 * 100) / 100;
 
-              homeExpenseYearlyInput.value = `${symbol} ${rawYearlyValue.toLocaleString('en-US')}`;
+              homeExpenseYearlyInput.value = `${symbol}  ${formatMoney(rawYearlyValue)}`;
               homeExpenseYearlyInput.dataset.previousValue = rawYearlyValue.toString();
             } else if (type === "home-expense-yearly") {
               const prevValueStr = target.dataset.previousValue;
-              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
-              const rawMonthlyValue = prevValue / 12;
+              const prevValue = prevValueStr ? parseFloat(prevValueStr) : 0;
+              const rawMonthlyValue = Math.round((prevValue / 12) * 100) / 100;
 
-              homeExpenseMonthlyInput.value = `${symbol} ${rawMonthlyValue.toLocaleString('en-US')}`;
+              homeExpenseMonthlyInput.value = `${symbol}  ${formatMoney(rawMonthlyValue)}`;
               homeExpenseMonthlyInput.dataset.previousValue = rawMonthlyValue.toString();
             } else if (type === "add-rental-income-monthly") {
               const prevValueStr = target.dataset.previousValue;
-              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
-              const rawYearlyValue = prevValue * 12;
+              const prevValue = prevValueStr ? parseFloat(prevValueStr) : 0;
+              const rawYearlyValue = Math.round(prevValue * 12 * 100) / 100;
 
-              addRentalIncomeYearlyInput.value = `${symbol} ${rawYearlyValue.toLocaleString('en-US')}`;
+              addRentalIncomeYearlyInput.value = `${symbol}  ${formatMoney(rawYearlyValue)}`;
               addRentalIncomeYearlyInput.dataset.previousValue = rawYearlyValue.toString();
             } else if (type === "add-rental-income-yearly") {
               const prevValueStr = target.dataset.previousValue;
-              const prevValue = prevValueStr ? parseInt(prevValueStr) : 0;
-              const rawMonthlyValue = prevValue / 12;
+              const prevValue = prevValueStr ? parseFloat(prevValueStr) : 0;
+              const rawMonthlyValue = Math.round((prevValue / 12) * 100) / 100;
 
-              addRentalIncomeMonthlyInput.value = `${symbol} ${rawMonthlyValue.toLocaleString('en-US')}`;
+              addRentalIncomeMonthlyInput.value = `${symbol}  ${formatMoney(rawMonthlyValue)}`;
               addRentalIncomeMonthlyInput.dataset.previousValue = rawMonthlyValue.toString();
             }
             break;
+          }
 
           case "interest-rate":
             const floatValue = value ? parseFloat(value) : 0.00;
