@@ -129,12 +129,9 @@ export function initMaxMortgageCalculator(container: HTMLElement) {
             <img class="info-icon" src="${DropdownIcon}" alt="Dropdown icon"/>  
           </div>
           <div class="dropdown-opts">
-            <div class="dropdown-opt">Daily</div>
-            <div class="dropdown-opt">Weekly</div>
-            <div class="dropdown-opt">Bi-Weekly</div>
             <div class="dropdown-opt">Monthly</div>
-            <div class="dropdown-opt">Quarterly</div>
             <div class="dropdown-opt">Semi-Annual</div>
+            <div class="dropdown-opt">Annual</div>
           </div>
         </div>
       </div>
