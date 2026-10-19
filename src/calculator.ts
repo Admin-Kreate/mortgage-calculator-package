@@ -245,7 +245,7 @@ export function initCalculator(container: HTMLElement) {
       <div class="header stacked">
         <div class="title-wrapper">
           <img src="${PropertyTaxesIcon}" alt="Property Taxes icon"/>
-          <div class="title">Property Taxes</div>
+          <div class="title">Property Taxes (Annual)</div>
         </div>
         <div class="mortgage-calculator-info">Annual property taxes</div>
       </div>
@@ -263,7 +263,7 @@ export function initCalculator(container: HTMLElement) {
       <div class="header stacked">
         <div class="title-wrapper">
           <img src="${HeatingCostsIcon}" alt="Heating Costs icon"/>
-          <div class="title">Heating Costs</div>
+          <div class="title">Heating Costs (Annual)</div>
         </div>
         <div class="mortgage-calculator-info">Annual heating costs</div>
       </div>
@@ -281,7 +281,7 @@ export function initCalculator(container: HTMLElement) {
       <div class="header stacked">
         <div class="title-wrapper">
           <img src="${CondoFeesIcon}" alt="Condo Fees icon"/>
-          <div class="title">Condo Fees</div>
+          <div class="title">Condo Fees (Monthly)</div>
         </div>
         <div class="mortgage-calculator-info">Monthly condo maintenance fees</div>
       </div>
